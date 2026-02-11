@@ -161,6 +161,14 @@ def get_operating_point(request: OperatingPointRequest):
     head_pressure_discharge = pressure_to_head(request.pressure_discharge_bar_g, request.fluid)
     total_static_head_m = request.static_head_m + (head_pressure_discharge - head_pressure_suction)
 
+    # Validation: Check if Pump Shut-off Head is sufficient
+    shut_off_head = pump_curve_func(0)
+    if shut_off_head < total_static_head_m:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Pump insufficient: Shut-off head ({shut_off_head:.2f} m) is less than system static head ({total_static_head_m:.2f} m)."
+        )
+
     flow_op, head_op, _ = find_operating_point(
         request.suction_sections,
         request.discharge_sections_before,
@@ -172,7 +180,10 @@ def get_operating_point(request: OperatingPointRequest):
     )
     
     if flow_op is None:
-        raise HTTPException(status_code=404, detail="Could not find a valid operating point.")
+        raise HTTPException(
+            status_code=400, 
+            detail="Could not find a valid operating point. The pump curve may not intersect the system curve in a stable region."
+        )
         
     # --- Detailed Analysis ---
     

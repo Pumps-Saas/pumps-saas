@@ -49,7 +49,8 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
         sections: PipeSection[],
         onUpdate: (id: string, s: Partial<PipeSection>) => void,
         onRemove: (id: string) => void,
-        emptyMessage: string
+        emptyMessage: string,
+        compact: boolean = false
     ) => (
         <div className="space-y-4">
             {sections.length === 0 && (
@@ -63,6 +64,7 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
                     segment={section}
                     onUpdate={onUpdate}
                     onRemove={onRemove}
+                    compact={compact}
                 />
             ))}
         </div>
@@ -134,8 +136,9 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
                                 <h4 className="font-semibold text-slate-700">{branchName}</h4>
                                 <div className="flex gap-2">
                                     <Button
-                                        size="xs"
+                                        size="sm"
                                         variant="outline"
+                                        className="h-7 px-2 text-xs"
                                         onClick={() => addSectionToBranch(branchName, createDefaultSection(`${branchName} - Sec ${sections.length + 1}`))}
                                         title="Add Section to Branch"
                                     >
@@ -154,7 +157,8 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
                                 sections,
                                 (id, s) => updateSectionInBranch(branchName, id, s),
                                 (id) => removeSectionFromBranch(branchName, id),
-                                "Empty branch."
+                                "Empty branch.",
+                                true // Compact mode for parallel branches
                             )}
                         </div>
                     ))}

@@ -11,9 +11,10 @@ interface PipeSegmentItemProps {
     segment: PipeSection;
     onUpdate: (id: string, updates: Partial<PipeSection>) => void;
     onRemove: (id: string) => void;
+    compact?: boolean;
 }
 
-export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpdate, onRemove }) => {
+export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpdate, onRemove, compact = false }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { materials, diameters } = useReferenceStore();
 
@@ -79,7 +80,7 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className={`grid gap-4 ${compact ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
                 <Input
                     label="Length (m)"
                     type="number"

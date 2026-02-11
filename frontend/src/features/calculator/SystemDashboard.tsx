@@ -1,19 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import { PipeSegmentManager } from './components/PipeSegmentManager';
 import { PumpCurveEditor } from './components/PumpCurveEditor';
-import { SystemChart } from './components/SystemChart';
+import { HeadFlowChart } from './components/HeadFlowChart';
+import { NPSHChart } from './components/NPSHChart';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { FluidManager } from './components/FluidManager';
 import { SystemNetworkDiagram } from './components/SystemNetworkDiagram';
 import { useSystemStore } from './stores/useSystemStore';
-import { useHydraulicCalculation } from './hooks/useHydraulicCalculation';
 import { Button } from '@/components/ui/Button';
 import { Play, AlertCircle, LayoutGrid, Table2 } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 
 export const SystemDashboard: React.FC = () => {
-    const { calculateOperatingPoint, isCalculating, result, error } = useHydraulicCalculation();
+    // Store State
+    const calculate = useSystemStore(state => state.calculateOperatingPoint);
+    const isCalculating = useSystemStore(state => state.isCalculating);
+    const result = useSystemStore(state => state.operatingPoint);
+    const error = useSystemStore(state => state.calculationError);
+
     const [viewMode, setViewMode] = useState<'kpi' | 'diagram'>('kpi');
+    const [systemCurvePoints, setSystemCurvePoints] = useState<any[]>([]);
 
     const pumpCurve = useSystemStore(state => state.pump_curve);
 
@@ -28,24 +35,107 @@ export const SystemDashboard: React.FC = () => {
     const setPressure = useSystemStore(state => state.setPressure);
     const setAltitude = useSystemStore(state => state.setAltitude);
 
+    // Inputs for System Curve Fetch
+    const fluid = useSystemStore(state => state.fluid);
+    const suction = useSystemStore(state => state.suction_sections);
+    const dischargeBefore = useSystemStore(state => state.discharge_sections_before);
+    const dischargeParallel = useSystemStore(state => state.discharge_parallel_sections);
+    const dischargeAfter = useSystemStore(state => state.discharge_sections_after);
+
+    // Fetch System Curve when inputs change
+    useEffect(() => {
+        const fetchSystemCurve = async () => {
+            try {
+                // Determine max flow based on pump curve or default
+                const maxFlow = pumpCurve.length > 0
+                    ? Math.max(...pumpCurve.map(p => p.flow)) * 1.2
+                    : 100;
+
+                const response = await axios.post('http://localhost:8000/api/v1/calculate/system-curve', {
+                    suction_sections: suction,
+                    discharge_sections_before: dischargeBefore,
+                    discharge_parallel_sections: dischargeParallel,
+                    discharge_sections_after: dischargeAfter,
+                    fluid: fluid,
+                    static_head_m: staticHead,
+
+                    // Pressure Fields
+                    pressure_suction_bar_g: pSuction,
+                    pressure_discharge_bar_g: pDischarge,
+                    atmospheric_pressure_bar: pAtm,
+
+                    flow_min_m3h: 0,
+                    flow_max_m3h: maxFlow,
+                    steps: 30
+                });
+                setSystemCurvePoints(response.data.points);
+            } catch (error) {
+                console.error("Failed to fetch system curve", error);
+            }
+        };
+
+        const timer = setTimeout(fetchSystemCurve, 500);
+        return () => clearTimeout(timer);
+    }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, fluid, staticHead, pumpCurve, pSuction, pDischarge, pAtm]);
+
+    // Process Chart Data
+    const chartData = useMemo(() => {
+        const dataMap = new Map<number, any>();
+
+        // 1. System Curve
+        systemCurvePoints.forEach(p => {
+            dataMap.set(p.flow, {
+                flow: p.flow,
+                systemHead: p.head,
+                npshAvailable: p.npsh_available
+            });
+        });
+
+        // 2. Pump Curve
+        pumpCurve.forEach(p => {
+            const existing = dataMap.get(p.flow) || { flow: p.flow };
+            existing.pumpHead = p.head;
+            if (p.npshr !== undefined) existing.npshRequired = p.npshr;
+            dataMap.set(p.flow, existing);
+        });
+
+        // 3. Operating Point
+        if (result) {
+            const existing = dataMap.get(result.flow_op) || { flow: result.flow_op };
+            // Ensure we have OP data if it wasn't in the curve points
+            dataMap.set(result.flow_op, existing);
+        }
+
+        return Array.from(dataMap.values()).sort((a, b) => a.flow - b.flow);
+    }, [systemCurvePoints, pumpCurve, result]);
+
+
     return (
         <div className="space-y-6 pb-20">
 
-            {/* Top Controls: Global Parameters */}
+            {/* Top Controls: Global Parameters - Improved Grid Layout */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div className="flex flex-col md:flex-row gap-6">
-                    {/* Left: Pressures & Head */}
-                    <div className="flex-1 space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    {/* Left: Operating Conditions (Cols 1-5) */}
+                    <div className="lg:col-span-5 space-y-4">
                         <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide border-b pb-2">
                             Operating Conditions
                         </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                             <Input
                                 label="Geometric Static Head (m)"
                                 type="number"
                                 value={staticHead}
                                 onChange={(e) => setStaticHead(parseFloat(e.target.value) || 0)}
                                 helperText="Elevation Diff (Z2 - Z1)"
+                            />
+                            <Input
+                                label="Altitude (m)"
+                                type="number"
+                                value={altitude}
+                                onChange={(e) => setAltitude(parseFloat(e.target.value) || 0)}
+                                helperText={`Patm: ${pAtm.toFixed(3)} bar`}
                             />
                             <Input
                                 label="Suction Tank Press. (bar g)"
@@ -59,40 +149,36 @@ export const SystemDashboard: React.FC = () => {
                                 value={pDischarge}
                                 onChange={(e) => setPressure('pressure_discharge_bar_g', parseFloat(e.target.value) || 0)}
                             />
-                            <Input
-                                label="Altitude (m)"
-                                type="number"
-                                value={altitude}
-                                onChange={(e) => setAltitude(parseFloat(e.target.value) || 0)}
-                                helperText={`Patm: ${pAtm.toFixed(3)} bar`}
-                            />
                         </div>
                     </div>
 
-                    {/* Middle: Fluid Manager */}
-                    <div className="w-full md:w-80">
+                    {/* Middle: Fluid Manager (Cols 6-9) */}
+                    <div className="lg:col-span-4">
                         <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wide border-b pb-2 mb-4">
                             Fluid
                         </h3>
-                        <FluidManager />
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <FluidManager />
+                        </div>
                     </div>
 
-                    {/* Right: Action */}
-                    <div className="flex flex-col justify-end w-full md:w-auto min-w-[180px]">
+                    {/* Right: Validation & Action (Cols 10-12) */}
+                    <div className="lg:col-span-3 flex flex-col justify-end space-y-4">
                         {error && (
-                            <div className="mb-2 text-red-600 text-xs bg-red-50 p-2 rounded border border-red-100 flex items-start">
-                                <AlertCircle size={14} className="mr-1 mt-0.5 shrink-0" />
+                            <div className="bg-red-50 text-red-700 p-3 rounded-md border border-red-200 text-sm flex items-start gap-2 animate-in fade-in slide-in-from-top-1">
+                                <AlertCircle size={16} className="mt-0.5 shrink-0" />
                                 <span>{error}</span>
                             </div>
                         )}
                         <Button
                             size="lg"
-                            onClick={calculateOperatingPoint}
+                            onClick={calculate}
                             isLoading={isCalculating}
+                            disabled={pumpCurve.length < 3}
                             icon={<Play size={20} fill="currentColor" />}
                             className="shadow-lg shadow-blue-500/20 w-full"
                         >
-                            Calculate
+                            {isCalculating ? 'Calculating...' : 'Run Calculation'}
                         </Button>
                     </div>
                 </div>
@@ -162,18 +248,25 @@ export const SystemDashboard: React.FC = () => {
                         </div>
                     )}
 
+                    {/* Chart 1: Head vs Flow */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-4">System Analysis</h3>
-                        <SystemChart
-                            pumpCurve={pumpCurve}
+                        <HeadFlowChart
+                            data={chartData}
                             operatingPoint={result}
-                            staticHead={staticHead}
                         />
                         {!result && !isCalculating && (
-                            <div className="text-center text-slate-400 mt-4 text-sm">
-                                Run calculation to see operating point intersection.
+                            <div className="text-center text-slate-400 mt-4 text-sm italic">
+                                Run calculation to see intersection.
                             </div>
                         )}
+                    </div>
+
+                    {/* Chart 2: NPSH Analysis */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <NPSHChart
+                            data={chartData}
+                            operatingPoint={result}
+                        />
                     </div>
                 </div>
             </div>

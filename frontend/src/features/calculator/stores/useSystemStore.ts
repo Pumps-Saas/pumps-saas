@@ -43,8 +43,13 @@ interface SystemStore extends SystemState {
     // Fitting Actions
     addFittingToSection: (sectionLocation: 'suction' | 'discharge_before' | 'discharge_after', sectionId: string, fitting: PipeFitting) => void;
 
-    // Reset
     resetSystem: () => void;
+
+    // Calculation Action
+    operatingPoint: any | null; // Using any to avoid import cycles for now, or use OperatingPointResult
+    isCalculating: boolean;
+    calculationError: string | null;
+    calculateOperatingPoint: () => Promise<void>;
 }
 
 const DEFAULT_FLUID: Fluid = {
@@ -53,6 +58,10 @@ const DEFAULT_FLUID: Fluid = {
     nu: 1.004e-6,
     pv_kpa: 2.34
 };
+
+// Import axios here to use in the store action
+import axios from 'axios';
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 export const useSystemStore = create<SystemStore>((set, get) => ({
     fluid: DEFAULT_FLUID,
@@ -68,6 +77,11 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     pressure_discharge_bar_g: 0,
     atmospheric_pressure_bar: 1.01325,
     altitude_m: 0,
+
+    // Calculation State
+    operatingPoint: null,
+    isCalculating: false,
+    calculationError: null,
 
     setFluid: (fluid) => set({ fluid }),
     setStaticHead: (head) => set({ static_head: head }),
@@ -160,6 +174,35 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         }
     }),
 
+    calculateOperatingPoint: async () => {
+        const state = get();
+        set({ isCalculating: true, calculationError: null, operatingPoint: null });
+
+        try {
+            const payload = {
+                suction_sections: state.suction_sections,
+                discharge_sections_before: state.discharge_sections_before,
+                discharge_parallel_sections: state.discharge_parallel_sections,
+                discharge_sections_after: state.discharge_sections_after,
+                fluid: state.fluid,
+                static_head_m: state.static_head,
+
+                pressure_suction_bar_g: state.pressure_suction_bar_g,
+                pressure_discharge_bar_g: state.pressure_discharge_bar_g,
+                atmospheric_pressure_bar: state.atmospheric_pressure_bar,
+
+                pump_curve_points: state.pump_curve
+            };
+
+            const response = await axios.post(`${API_BASE_URL}/calculate/operating-point`, payload);
+            set({ operatingPoint: response.data, isCalculating: false });
+        } catch (error: any) {
+            console.error('Failed to calculate operating point:', error);
+            const msg = error.response?.data?.detail || "Failed to calculate operating point.";
+            set({ isCalculating: false, calculationError: msg });
+        }
+    },
+
     resetSystem: () => set({
         fluid: DEFAULT_FLUID,
         suction_sections: [],
@@ -170,6 +213,9 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         pump_curve: [],
         pressure_suction_bar_g: 0,
         pressure_discharge_bar_g: 0,
-        atmospheric_pressure_bar: 1.01325
+        atmospheric_pressure_bar: 1.01325,
+        operatingPoint: null,
+        isCalculating: false,
+        calculationError: null
     })
 }));
