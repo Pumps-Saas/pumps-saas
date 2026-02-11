@@ -1,0 +1,12 @@
+bcrypt
+fpdf2
+graphviz
+matplotlib
+numpy
+pandas
+Pillow
+pyyaml
+scipy
+streamlit
+streamlit-authenticator==0.4.2
+httpx

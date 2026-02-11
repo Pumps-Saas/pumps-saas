@@ -1,0 +1,166 @@
+import { create } from 'zustand';
+import {
+    SystemState,
+    PipeSection,
+    PumpCurvePoint,
+    Fluid,
+    PipeFitting
+} from '@/types/engineering';
+import { v4 as uuidv4 } from 'uuid';
+
+interface SystemStore extends SystemState {
+    // Actions
+    setFluid: (fluid: Fluid) => void;
+    setStaticHead: (head: number) => void;
+    setPressure: (field: 'pressure_suction_bar_g' | 'pressure_discharge_bar_g' | 'atmospheric_pressure_bar', value: number) => void;
+
+    // Suction Actions
+    addSuctionSection: (section: Omit<PipeSection, 'id'>) => void;
+    updateSuctionSection: (id: string, section: Partial<PipeSection>) => void;
+    removeSuctionSection: (id: string) => void;
+
+    // Discharge Before Junction Actions
+    addDischargeSectionBefore: (section: Omit<PipeSection, 'id'>) => void;
+    updateDischargeSectionBefore: (id: string, section: Partial<PipeSection>) => void;
+    removeDischargeSectionBefore: (id: string) => void;
+
+    // Discharge Parallel Actions
+    addParallelBranch: (branchName: string) => void;
+    removeParallelBranch: (branchName: string) => void;
+    addSectionToBranch: (branchName: string, section: Omit<PipeSection, 'id'>) => void;
+    updateSectionInBranch: (branchName: string, sectionId: string, section: Partial<PipeSection>) => void;
+    removeSectionFromBranch: (branchName: string, sectionId: string) => void;
+
+    // Discharge After Junction Actions
+    addDischargeSectionAfter: (section: Omit<PipeSection, 'id'>) => void;
+    updateDischargeSectionAfter: (id: string, section: Partial<PipeSection>) => void;
+    removeDischargeSectionAfter: (id: string) => void;
+
+    // Pump Actions
+    setPumpCurve: (points: PumpCurvePoint[]) => void;
+
+    // Fitting Actions
+    addFittingToSection: (sectionLocation: 'suction' | 'discharge_before' | 'discharge_after', sectionId: string, fitting: PipeFitting) => void;
+
+    // Reset
+    resetSystem: () => void;
+}
+
+const DEFAULT_FLUID: Fluid = {
+    name: "Water (20°C)",
+    rho: 998.2,
+    nu: 1.004e-6,
+    pv_kpa: 2.34
+};
+
+export const useSystemStore = create<SystemStore>((set, get) => ({
+    fluid: DEFAULT_FLUID,
+    suction_sections: [],
+    discharge_sections_before: [],
+    discharge_parallel_sections: {},
+    discharge_sections_after: [],
+    static_head: 10,
+    pump_curve: [],
+
+    // Default Pressures
+    pressure_suction_bar_g: 0,
+    pressure_discharge_bar_g: 0,
+    atmospheric_pressure_bar: 1.01325,
+
+    setFluid: (fluid) => set({ fluid }),
+    setStaticHead: (head) => set({ static_head: head }),
+    setPressure: (field, value) => set({ [field]: value }),
+
+    // Suction
+    addSuctionSection: (section) => set((state) => ({
+        suction_sections: [...state.suction_sections, { ...section, id: uuidv4() }]
+    })),
+    updateSuctionSection: (id, section) => set((state) => ({
+        suction_sections: state.suction_sections.map(s => s.id === id ? { ...s, ...section } : s)
+    })),
+    removeSuctionSection: (id) => set((state) => ({
+        suction_sections: state.suction_sections.filter(s => s.id !== id)
+    })),
+
+    // Discharge Before
+    addDischargeSectionBefore: (section) => set((state) => ({
+        discharge_sections_before: [...state.discharge_sections_before, { ...section, id: uuidv4() }]
+    })),
+    updateDischargeSectionBefore: (id, section) => set((state) => ({
+        discharge_sections_before: state.discharge_sections_before.map(s => s.id === id ? { ...s, ...section } : s)
+    })),
+    removeDischargeSectionBefore: (id) => set((state) => ({
+        discharge_sections_before: state.discharge_sections_before.filter(s => s.id !== id)
+    })),
+
+    // Parallel Branches
+    addParallelBranch: (branchName) => set((state) => ({
+        discharge_parallel_sections: {
+            ...state.discharge_parallel_sections,
+            [branchName]: []
+        }
+    })),
+    removeParallelBranch: (branchName) => set((state) => {
+        const newBranches = { ...state.discharge_parallel_sections };
+        delete newBranches[branchName];
+        return { discharge_parallel_sections: newBranches };
+    }),
+    addSectionToBranch: (branchName, section) => set((state) => ({
+        discharge_parallel_sections: {
+            ...state.discharge_parallel_sections,
+            [branchName]: [...(state.discharge_parallel_sections[branchName] || []), { ...section, id: uuidv4() }]
+        }
+    })),
+    updateSectionInBranch: (branchName, sectionId, section) => set((state) => ({
+        discharge_parallel_sections: {
+            ...state.discharge_parallel_sections,
+            [branchName]: state.discharge_parallel_sections[branchName].map(s => s.id === sectionId ? { ...s, ...section } : s)
+        }
+    })),
+    removeSectionFromBranch: (branchName, sectionId) => set((state) => ({
+        discharge_parallel_sections: {
+            ...state.discharge_parallel_sections,
+            [branchName]: state.discharge_parallel_sections[branchName].filter(s => s.id !== sectionId)
+        }
+    })),
+
+    // Discharge After
+    addDischargeSectionAfter: (section) => set((state) => ({
+        discharge_sections_after: [...state.discharge_sections_after, { ...section, id: uuidv4() }]
+    })),
+    updateDischargeSectionAfter: (id, section) => set((state) => ({
+        discharge_sections_after: state.discharge_sections_after.map(s => s.id === id ? { ...s, ...section } : s)
+    })),
+    removeDischargeSectionAfter: (id) => set((state) => ({
+        discharge_sections_after: state.discharge_sections_after.filter(s => s.id !== id)
+    })),
+
+    setPumpCurve: (points) => set({ pump_curve: points }),
+
+    addFittingToSection: (location, sectionId, fitting) => set((state) => {
+        // Helper to update specific section in a list
+        const updateList = (list: PipeSection[]) =>
+            list.map(s => s.id === sectionId ? { ...s, fittings: [...s.fittings, fitting] } : s);
+
+        if (location === 'suction') {
+            return { suction_sections: updateList(state.suction_sections) };
+        } else if (location === 'discharge_before') {
+            return { discharge_sections_before: updateList(state.discharge_sections_before) };
+        } else {
+            return { discharge_sections_after: updateList(state.discharge_sections_after) };
+        }
+    }),
+
+    resetSystem: () => set({
+        fluid: DEFAULT_FLUID,
+        suction_sections: [],
+        discharge_sections_before: [],
+        discharge_parallel_sections: {},
+        discharge_sections_after: [],
+        static_head: 10,
+        pump_curve: [],
+        pressure_suction_bar_g: 0,
+        pressure_discharge_bar_g: 0,
+        atmospheric_pressure_bar: 1.01325
+    })
+}));
