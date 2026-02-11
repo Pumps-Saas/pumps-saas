@@ -13,6 +13,7 @@ interface SystemStore extends SystemState {
     setFluid: (fluid: Fluid) => void;
     setStaticHead: (head: number) => void;
     setPressure: (field: 'pressure_suction_bar_g' | 'pressure_discharge_bar_g' | 'atmospheric_pressure_bar', value: number) => void;
+    setAltitude: (val: number) => void;
 
     // Suction Actions
     addSuctionSection: (section: Omit<PipeSection, 'id'>) => void;
@@ -66,10 +67,18 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     pressure_suction_bar_g: 0,
     pressure_discharge_bar_g: 0,
     atmospheric_pressure_bar: 1.01325,
+    altitude_m: 0,
 
     setFluid: (fluid) => set({ fluid }),
     setStaticHead: (head) => set({ static_head: head }),
     setPressure: (field, value) => set({ [field]: value }),
+    setAltitude: (val: number) => {
+        // Calculate Patm based on Altitude
+        // P = 101325 * (1 - 2.25577e-5 * h)^5.25588  (Pa)
+        const patm_pa = 101325 * Math.pow((1 - 2.25577e-5 * val), 5.25588);
+        const patm_bar = patm_pa / 100000;
+        set({ altitude_m: val, atmospheric_pressure_bar: patm_bar });
+    },
 
     // Suction
     addSuctionSection: (section) => set((state) => ({

@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { FittingsManager } from './FittingsManager';
+import { useReferenceStore } from '../stores/useReferenceStore';
 
 interface PipeSegmentItemProps {
     segment: PipeSection;
@@ -12,26 +13,22 @@ interface PipeSegmentItemProps {
     onRemove: (id: string) => void;
 }
 
-// Temporary static data - will move to a shared constant file later or fetching from store
-const MATERIALS = [
-    { label: 'Steel (New)', value: 0.045 },
-    { label: 'Steel (Old)', value: 0.2 },
-    { label: 'PVC', value: 0.0015 },
-    { label: 'Concrete', value: 0.5 },
-];
-
-const STANDARD_DIAMETERS = [
-    { label: '1" (26.6mm)', value: 26.6 },
-    { label: '2" (52.5mm)', value: 52.5 },
-    { label: '3" (77.9mm)', value: 77.9 },
-    { label: '4" (102.3mm)', value: 102.3 },
-    { label: '6" (154.1mm)', value: 154.1 },
-    { label: '8" (202.7mm)', value: 202.7 },
-    { label: '10" (254.5mm)', value: 254.5 },
-];
-
 export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpdate, onRemove }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { materials, diameters } = useReferenceStore();
+
+    // Convert reference objects to options
+    const materialOptions = Object.entries(materials).map(([name, roughness]) => ({
+        label: name,
+        value: roughness
+    }));
+
+    const diameterOptions = Object.entries(diameters)
+        .sort((a, b) => a[1] - b[1])
+        .map(([name, d_mm]) => ({
+            label: `${name} (${d_mm}mm)`,
+            value: d_mm
+        }));
 
     // Handlers
     const handleChange = (field: keyof PipeSection, value: any) => {
@@ -67,9 +64,14 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                         className="font-semibold text-lg border-slate-200"
                     />
                 </div>
-                <div className="flex space-x-2">
-                    <button onClick={() => setIsExpanded(!isExpanded)} className="text-slate-400 hover:text-blue-600">
-                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                <div className="flex space-x-2 items-center">
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="text-xs flex items-center text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                    >
+                        <Settings2 size={14} className="mr-1" />
+                        {isExpanded ? 'Hide Advanced' : 'Fittings / Equipment'}
+                        {isExpanded ? <ChevronUp size={14} className="ml-1" /> : <ChevronDown size={14} className="ml-1" />}
                     </button>
                     <button onClick={() => onRemove(segment.id)} className="text-slate-400 hover:text-red-500">
                         <Trash2 size={20} />
@@ -86,13 +88,13 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                 />
                 <Select
                     label="Diameter"
-                    options={STANDARD_DIAMETERS.map(d => ({ label: d.label, value: d.value }))}
+                    options={diameterOptions.length > 0 ? diameterOptions : [{ label: "Loading...", value: 0 }]}
                     value={segment.diameter_mm}
                     onChange={(e) => handleChange('diameter_mm', parseFloat(e.target.value))}
                 />
                 <Select
                     label="Material"
-                    options={MATERIALS.map(m => ({ label: m.label, value: m.value }))}
+                    options={materialOptions.length > 0 ? materialOptions : [{ label: "Loading...", value: 0 }]}
                     value={segment.roughness_mm}
                     onChange={handleMaterialChange}
                 />

@@ -53,6 +53,7 @@ export const PumpCurveEditor: React.FC = () => {
                                 <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Flow (m³/h)</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Head (m)</th>
                                 <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Eff (%)</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">NPSHr (m)</th>
                                 <th className="px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
@@ -81,6 +82,15 @@ export const PumpCurveEditor: React.FC = () => {
                                             value={point.efficiency}
                                             onChange={(e) => updatePoint(index, 'efficiency', parseFloat(e.target.value) || 0)}
                                             className="h-8 text-sm"
+                                        />
+                                    </td>
+                                    <td className="px-3 py-2">
+                                        <Input
+                                            type="number"
+                                            value={point.npshr || ''}
+                                            onChange={(e) => updatePoint(index, 'npshr', parseFloat(e.target.value))}
+                                            className="h-8 text-sm"
+                                            placeholder="Opt"
                                         />
                                     </td>
                                     <td className="px-3 py-2 text-center">

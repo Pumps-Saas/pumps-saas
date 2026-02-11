@@ -6,6 +6,7 @@ interface ReferenceStore {
     fluids: Record<string, any>;
     materials: Record<string, number>;
     fittings: Record<string, number>;
+    diameters: Record<string, number>;
     isLoading: boolean;
     error: string | null;
     fetchStandards: () => Promise<void>;
@@ -15,6 +16,7 @@ export const useReferenceStore = create<ReferenceStore>((set) => ({
     fluids: {},
     materials: {},
     fittings: {},
+    diameters: {},
     isLoading: false,
     error: null,
     fetchStandards: async () => {
@@ -25,6 +27,7 @@ export const useReferenceStore = create<ReferenceStore>((set) => ({
                 fluids: response.data.fluids,
                 materials: response.data.materials,
                 fittings: response.data.fittings,
+                diameters: response.data.diameters,
                 isLoading: false
             });
         } catch (err: any) {

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from typing import Dict, List, Any
-from app.core.constants import FLUIDOS_PADRAO, MATERIAIS_PADRAO, K_FACTORS
+from app.core.constants import FLUIDOS_PADRAO, MATERIAIS_PADRAO, K_FACTORS, DIAMETROS_PADRAO
 from app.schemas.calculations import FluidProperties
 
 router = APIRouter()
@@ -13,7 +13,8 @@ def get_standards():
     return {
         "fluids": FLUIDOS_PADRAO,
         "materials": MATERIAIS_PADRAO,
-        "fittings": K_FACTORS
+        "fittings": K_FACTORS,
+        "diameters": DIAMETROS_PADRAO
     }
 
 @router.post("/custom", response_model=FluidProperties)

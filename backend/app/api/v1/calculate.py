@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any, Optional
 import numpy as np
+import numpy as np
 
 from app.schemas.calculations import (
     PipeSection, FluidProperties, HeadLossResult, 
@@ -58,17 +59,53 @@ def get_system_curve(request: SystemHeadCurveRequest):
         total_dynamic_head = loss_suction + loss_before + loss_parallel + loss_after
         total_head = total_static_head_m + total_dynamic_head
         
-        points.append({"flow": float(flow), "head": float(total_head)})
+        
+        # Calculate NPSHa for this flow
+        # TODO: Refactor calculate_npsha to accept just loss_suction to avoid recalculating
+        # For now, let's just reuse logic: NPSHa = H_abs_suction - H_vapor - H_loss_suction
+        # Pre-calculated head_pressure_suction contains P_gauge effect converted to head.
+        # But calculate_npsha uses P_gauge directly. Let's use calculate_npsha function for consistency.
+        
+        npsha = calculate_npsha(
+            flow, 
+            request.suction_sections, 
+            request.fluid, 
+            request.atmospheric_pressure_bar, 
+            request.pressure_suction_bar_g
+        )
+
+        points.append({
+            "flow": float(flow), 
+            "head": float(total_head),
+            "npsh_available": float(npsha)
+        })
         
     return {"points": points}
 
-def interpolate_efficiency(flow: float, points: List[Dict[str, float]]) -> Optional[float]:
+def interpolate_npshr(flow: float, points: List[Any]) -> Optional[float]:
+    """Interpolates NPSH Required from pump curve points."""
+    # Handle dict or object
+    def get_val(p, key):
+        return p.get(key) if isinstance(p, dict) else getattr(p, key, None)
+
+    npshr_points = [p for p in points if get_val(p, 'npshr') is not None]
+    if len(npshr_points) < 2:
+        return None
+    flows = [get_val(p, 'flow') for p in npshr_points]
+    npshrs = [get_val(p, 'npshr') for p in npshr_points]
+    # Simple linear interpolation for now
+    return float(np.interp(flow, flows, npshrs))
+
+def interpolate_efficiency(flow: float, points: List[Any]) -> Optional[float]:
     """Interpolates efficiency from pump curve points."""
-    eff_points = [p for p in points if 'efficiency' in p and p['efficiency'] is not None]
+    def get_val(p, key):
+        return p.get(key) if isinstance(p, dict) else getattr(p, key, None)
+
+    eff_points = [p for p in points if get_val(p, 'efficiency') is not None]
     if len(eff_points) < 2:
         return None
-    flows = [p['flow'] for p in eff_points]
-    effs = [p['efficiency'] for p in eff_points]
+    flows = [get_val(p, 'flow') for p in eff_points]
+    effs = [get_val(p, 'efficiency') for p in eff_points]
     return float(np.interp(flow, flows, effs))
 
 def calculate_npsha(
@@ -175,6 +212,10 @@ def get_operating_point(request: OperatingPointRequest):
         request.atmospheric_pressure_bar, 
         request.pressure_suction_bar_g
     )
+
+    # NPSHr Interpolation
+    npshr = interpolate_npshr(flow_op, request.pump_curve_points)
+    cavitation_risk = (npshr is not None and npsha < npshr)
     
     return OperatingPointResponse(
         flow_op=float(flow_op),
@@ -183,5 +224,7 @@ def get_operating_point(request: OperatingPointRequest):
         power_kw=float(power_kw) if power_kw else None,
         cost_per_year=float(cost_per_year) if cost_per_year else None,
         npsh_available=float(npsha),
+        npsh_required=float(npshr) if npshr is not None else None,
+        cavitation_risk=cavitation_risk,
         details=details
     )

@@ -82,13 +82,15 @@ export const SystemChart: React.FC<SystemChartProps> = ({ pumpCurve, operatingPo
         const dataMap = new Map<number, any>();
 
         systemCurvePoints.forEach(p => {
-            dataMap.set(p.flow, { flow: p.flow, systemHead: p.head });
+            // @ts-ignore - API returns npsh_available
+            dataMap.set(p.flow, { flow: p.flow, systemHead: p.head, npshAvailable: p.npsh_available });
         });
 
         // 2. Add Pump Curve points (exact)
         pumpCurve.forEach(p => {
             const existing = dataMap.get(p.flow) || { flow: p.flow };
             existing.pumpHead = p.head;
+            if (p.npshr !== undefined) existing.npshRequired = p.npshr;
             dataMap.set(p.flow, existing);
         });
 
@@ -127,12 +129,21 @@ export const SystemChart: React.FC<SystemChartProps> = ({ pumpCurve, operatingPo
                     />
                     <Legend verticalAlign="top" />
 
-                    {/* Pump Curve: We want to connect the points. Line is fine. */}
+                    {/* NPSH Axis (Right) */}
+                    <YAxis
+                        yAxisId="npsh"
+                        orientation="right"
+                        label={{ value: 'NPSH (m)', angle: 90, position: 'insideRight' }}
+                        domain={[0, 'auto']}
+                    />
+
+                    {/* Pump Curve */}
                     <Line
+                        yAxisId={0}
                         type="monotone"
                         dataKey="pumpHead"
                         stroke="#2563eb"
-                        name="Pump Curve"
+                        name="Pump Head"
                         strokeWidth={3}
                         dot={{ r: 4, fill: '#2563eb' }}
                         connectNulls
@@ -141,31 +152,51 @@ export const SystemChart: React.FC<SystemChartProps> = ({ pumpCurve, operatingPo
 
                     {/* System Curve */}
                     <Line
+                        yAxisId={0}
                         type="monotone"
                         dataKey="systemHead"
                         stroke="#ef4444"
-                        name="System Curve"
+                        name="System Head"
                         strokeWidth={3}
                         dot={false}
                         connectNulls
                         isAnimationActive={false}
                     />
 
+                    {/* NPSH Available */}
+                    <Line
+                        yAxisId="npsh"
+                        type="monotone"
+                        dataKey="npshAvailable"
+                        stroke="#10b981" // Emerald 500
+                        name="NPSH Available"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={false}
+                        connectNulls
+                        isAnimationActive={false}
+                    />
+
+                    {/* NPSH Required */}
+                    <Line
+                        yAxisId="npsh"
+                        type="monotone"
+                        dataKey="npshRequired"
+                        stroke="#f59e0b" // Amber 500
+                        name="NPSH Required"
+                        strokeWidth={2}
+                        strokeDasharray="3 3"
+                        dot={{ r: 3, fill: '#f59e0b' }}
+                        connectNulls
+                        isAnimationActive={false}
+                    />
+
+
                     {operatingPoint && (
-                        <ReferenceDot
-                            x={operatingPoint.flow_op}
-                            y={operatingPoint.head_op}
-                            r={6}
-                            fill="#22c55e"
-                            stroke="#fff"
-                            strokeWidth={2}
-                        />
+                        <ReferenceLine yAxisId={0} x={operatingPoint.flow_op} stroke="#22c55e" strokeDasharray="3 3" />
                     )}
                     {operatingPoint && (
-                        <ReferenceLine x={operatingPoint.flow_op} stroke="#22c55e" strokeDasharray="3 3" />
-                    )}
-                    {operatingPoint && (
-                        <ReferenceLine y={operatingPoint.head_op} stroke="#22c55e" strokeDasharray="3 3" />
+                        <ReferenceLine yAxisId={0} y={operatingPoint.head_op} stroke="#22c55e" strokeDasharray="3 3" />
                     )}
 
                 </ComposedChart>

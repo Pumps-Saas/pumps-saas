@@ -24,7 +24,9 @@ export const SystemDashboard: React.FC = () => {
     const pSuction = useSystemStore(state => state.pressure_suction_bar_g);
     const pDischarge = useSystemStore(state => state.pressure_discharge_bar_g);
     const pAtm = useSystemStore(state => state.atmospheric_pressure_bar);
+    const altitude = useSystemStore(state => state.altitude_m);
     const setPressure = useSystemStore(state => state.setPressure);
+    const setAltitude = useSystemStore(state => state.setAltitude);
 
     return (
         <div className="space-y-6 pb-20">
@@ -58,11 +60,11 @@ export const SystemDashboard: React.FC = () => {
                                 onChange={(e) => setPressure('pressure_discharge_bar_g', parseFloat(e.target.value) || 0)}
                             />
                             <Input
-                                label="Atmospheric Press. (bar)"
+                                label="Altitude (m)"
                                 type="number"
-                                step="0.001"
-                                value={pAtm}
-                                onChange={(e) => setPressure('atmospheric_pressure_bar', parseFloat(e.target.value) || 0)}
+                                value={altitude}
+                                onChange={(e) => setAltitude(parseFloat(e.target.value) || 0)}
+                                helperText={`Patm: ${pAtm.toFixed(3)} bar`}
                             />
                         </div>
                     </div>

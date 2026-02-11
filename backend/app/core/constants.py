@@ -1,13 +1,44 @@
 
 # Default Material Roughness (mm)
 MATERIAIS_PADRAO = {
-    "Aço Carbono (novo)": 0.046,
-    "Aço Carbono (pouco uso)": 0.1,
-    "Aço Carbono (enferrujado)": 0.2,
-    "Aço Inox": 0.002,
-    "Ferro Fundido": 0.26,
-    "PVC / Plástico": 0.0015,
-    "Concreto": 0.5
+    "Aço Carbono (Novo)": 0.045,
+    "Aço Carbono (Usado)": 0.2,
+    "Aço Carbono (Corroído)": 0.5,
+    "Aço Galvanizado": 0.15,
+    "Aço Inox (304/316)": 0.002,
+    "Ferro Fundido (Novo)": 0.26,
+    "Ferro Fundido (Usado)": 0.8,
+    "PVC / Plástico / PEAD": 0.0015,
+    "Concreto (Liso)": 0.3,
+    "Concreto (Rugoso)": 2.0,
+    "Cobre / Latão": 0.0015,
+    "Vidro": 0.0001
+}
+
+# Standard Diameters (Schedule 40 approximate ID in mm)
+DIAMETROS_PADRAO = {
+    '1/2" (15mm)': 15.8,
+    '3/4" (20mm)': 20.9,
+    '1" (25mm)': 26.6,
+    '1 1/4" (32mm)': 35.1,
+    '1 1/2" (40mm)': 40.9,
+    '2" (50mm)': 52.5,
+    '2 1/2" (65mm)': 62.7,
+    '3" (75mm)': 77.9,
+    '4" (100mm)': 102.3,
+    '5" (125mm)': 128.2,
+    '6" (150mm)': 154.1,
+    '8" (200mm)': 202.7,
+    '10" (250mm)': 254.5,
+    '12" (300mm)': 303.2,
+    '14" (350mm)': 333.4,
+    '16" (400mm)': 381.0,
+    '18" (450mm)': 428.6,
+    '20" (500mm)': 477.8,
+    '24" (600mm)': 574.6,
+    '30" (750mm)': 717.6,
+    '36" (900mm)': 863.6,
+    '40" (1000mm)': 965.2
 }
 
 # Default Fluid Properties

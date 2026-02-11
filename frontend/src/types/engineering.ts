@@ -31,6 +31,7 @@ export interface PumpCurvePoint {
     flow: number;
     head: number;
     efficiency?: number;
+    npshr?: number;
 }
 
 export interface SystemState {
@@ -46,6 +47,7 @@ export interface SystemState {
     pressure_suction_bar_g: number;
     pressure_discharge_bar_g: number;
     atmospheric_pressure_bar: number;
+    altitude_m: number;
 
     pump_curve: PumpCurvePoint[];
 }
