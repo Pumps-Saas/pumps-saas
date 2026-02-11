@@ -97,9 +97,63 @@ def find_operating_point(
     # Initial guess: 50 m3/h
     solution = root(error_func, 50.0, method='hybr', options={'xtol': 1e-8})
 
+    
     if solution.success and solution.x[0] > 1e-3:
         flow_op = solution.x[0]
         head_op = pump_curve_func(flow_op)
         return flow_op, head_op, system_curve
     
     return None, None, system_curve
+
+def find_natural_flow(
+    suction_sections: List[PipeSection],
+    discharge_sections_before: List[PipeSection],
+    discharge_parallel_sections: Dict[str, List[PipeSection]],
+    discharge_sections_after: List[PipeSection],
+    total_static_head_m: float,
+    fluid: FluidProperties
+) -> float:
+    """
+    Finds the flow rate achievable without a pump (Gravity/Pressure driven).
+    Logic: Solves for Q where System FrictionHead(Q) + TotalStaticHead = 0.
+    Since Friction is always positive, TotalStaticHead must be negative (driving flow).
+    """
+    
+    # Check if flow is inherently possible (negative static head drives flow)
+    # Total Static Head = (Z2 - Z1) + (P2 - P1)/rho*g
+    if total_static_head_m >= 0:
+        return 0.0
+
+    target_friction_loss = -total_static_head_m
+
+    def friction_error_func(flow_m3h):
+        # Prevent negative flow inputs during optimization
+        # Use simple float cast since root passes array
+        try:
+            f = float(flow_m3h)
+        except TypeError:
+            f = float(flow_m3h[0])
+
+        if f <= 1e-3:
+            return -target_friction_loss
+            
+        loss_suction = calculate_series_loss(suction_sections, f, fluid)
+        loss_before = calculate_series_loss(discharge_sections_before, f, fluid)
+        loss_parallel, _ = calculate_parallel_loss(discharge_parallel_sections, f, fluid)
+        
+        if loss_parallel == -1.0:
+                 return 1e9 # Penalty
+                 
+        loss_after = calculate_series_loss(discharge_sections_after, f, fluid)
+        
+        total_friction = loss_suction + loss_before + loss_parallel + loss_after
+        
+        return total_friction - target_friction_loss
+
+    # Solve for root starting at 50 m3/h
+    solution = root(friction_error_func, 50.0, method='hybr', options={'xtol': 1e-6})
+
+    if solution.success and solution.x[0] > 1e-3:
+        return float(solution.x[0])
+        
+    return 0.0

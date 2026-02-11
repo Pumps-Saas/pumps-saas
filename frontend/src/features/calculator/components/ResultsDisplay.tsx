@@ -103,6 +103,25 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
             </div>
 
             {/* Alerts */}
+            {result?.natural_flow_m3h && result.natural_flow_m3h > 0 && (
+                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-md">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <Droplets className="h-5 w-5 text-emerald-500" aria-hidden="true" />
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-medium text-emerald-800">Natural Flow Available</h3>
+                            <div className="mt-2 text-sm text-emerald-700">
+                                <p>
+                                    Due to high source pressure or elevation, this system can flow at <strong>{result.natural_flow_m3h.toFixed(1)} m³/h</strong> without a pump.
+                                    The pump is only needed if you require higher flow rates.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {result?.cavitation_risk && (
                 <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
                     <div className="flex">
@@ -117,6 +136,39 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Calculation Memorial */}
+            {result?.head_breakdown && (
+                <Card title="Calculation Memorial (Head Balance)">
+                    <div className="text-sm text-slate-600 space-y-2 mb-4">
+                        <p>Total Dynamic Head required from the pump is calculated as:</p>
+                        <p className="font-mono bg-slate-100 p-2 rounded text-center">
+                            H<sub>pump</sub> = ΔZ + ΔP<sub>head</sub> + H<sub>friction</sub>
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                        <div className="p-3 bg-slate-50 rounded border border-slate-100">
+                            <div className="text-xs text-slate-500 mb-1">Static Elevation (ΔZ)</div>
+                            <div className="font-semibold text-slate-700">{result.head_breakdown.static_head_m.toFixed(2)} m</div>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded border border-slate-100">
+                            <div className="text-xs text-slate-500 mb-1">Pressure Head (ΔP)</div>
+                            <div className="font-semibold text-slate-700">{result.head_breakdown.pressure_head_m.toFixed(2)} m</div>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded border border-slate-100">
+                            <div className="text-xs text-slate-500 mb-1">Friction Losses (H<sub>f</sub>)</div>
+                            <div className="font-semibold text-slate-700">{result.head_breakdown.friction_head_m.toFixed(2)} m</div>
+                        </div>
+                        <div className="p-3 bg-indigo-50 rounded border border-indigo-100">
+                            <div className="text-xs text-indigo-600 mb-1 font-bold">Total Required Head</div>
+                            <div className="font-bold text-indigo-700">{result.head_breakdown.total_head_m.toFixed(2)} m</div>
+                        </div>
+                    </div>
+                    <div className="mt-2 text-center text-xs text-slate-400 italic">
+                        * Values may vary slightly due to rounding.
+                    </div>
+                </Card>
             )}
 
             {/* Detailed Table (Can be toggled or replaced by Diagram later) */}

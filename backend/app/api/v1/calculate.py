@@ -1,14 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any, Optional
 import numpy as np
-import numpy as np
 
 from app.schemas.calculations import (
     PipeSection, FluidProperties, HeadLossResult, 
     OperatingPointRequest, OperatingPointResponse, SystemHeadCurveRequest
 )
 from app.services.fluid_mechanics import calculate_pipe_section_loss, calculate_series_loss
-from app.services.optimization import calculate_parallel_loss, find_operating_point
+from app.services.optimization import calculate_parallel_loss, find_operating_point, find_natural_flow
 
 router = APIRouter()
 
@@ -200,24 +199,49 @@ def get_operating_point(request: OperatingPointRequest):
         power_kw = (q_m3s * rho * g * head_op) / (eta_pump * eta_motor * 1000.0)
         cost_per_year = power_kw * request.hours_per_day * 365 * request.energy_cost_per_kwh
 
+    # Natural Flow Calculation (Phase 6)
+    natural_flow_m3h = find_natural_flow(
+        request.suction_sections,
+        request.discharge_sections_before,
+        request.discharge_parallel_sections,
+        request.discharge_sections_after,
+        total_static_head_m,
+        request.fluid
+    )
+
     # Detailed Losses
     details = []
-    def append_details(sections: List[PipeSection]):
-        for s in sections:
-            details.append(calculate_pipe_section_loss(s, flow_op, request.fluid))
+    
+    # Casting to float to satisfy type checkers (though we checked for None above)
+    safe_flow_op = float(flow_op)
 
-    append_details(request.suction_sections)
-    append_details(request.discharge_sections_before)
-    _, flow_dist = calculate_parallel_loss(request.discharge_parallel_sections, flow_op, request.fluid)
+    def append_details(sections: List[PipeSection], flow: float):
+        for s in sections:
+            res = calculate_pipe_section_loss(s, flow, request.fluid)
+            details.append(res)
+
+    append_details(request.suction_sections, safe_flow_op)
+    append_details(request.discharge_sections_before, safe_flow_op)
+    
+    parallel_loss, flow_dist = calculate_parallel_loss(request.discharge_parallel_sections, safe_flow_op, request.fluid)
+    
+    # Add parallel branch details
     for branch_name, branch_sections in request.discharge_parallel_sections.items():
         branch_flow = flow_dist.get(branch_name, 0)
-        for s in branch_sections:
-            details.append(calculate_pipe_section_loss(s, branch_flow, request.fluid))
-    append_details(request.discharge_sections_after)
+        append_details(branch_sections, branch_flow)
+    
+    append_details(request.discharge_sections_after, safe_flow_op)
+
+    # Re-calculate correct total friction for breakdown
+    loss_suction = calculate_series_loss(request.suction_sections, safe_flow_op, request.fluid)
+    loss_before = calculate_series_loss(request.discharge_sections_before, safe_flow_op, request.fluid)
+    loss_after = calculate_series_loss(request.discharge_sections_after, safe_flow_op, request.fluid)
+    
+    head_friction_total = loss_suction + loss_before + parallel_loss + loss_after
 
     # NPSH Calculation
     npsha = calculate_npsha(
-        flow_op, 
+        safe_flow_op, 
         request.suction_sections, 
         request.fluid, 
         request.atmospheric_pressure_bar, 
@@ -225,11 +249,14 @@ def get_operating_point(request: OperatingPointRequest):
     )
 
     # NPSHr Interpolation
-    npshr = interpolate_npshr(flow_op, request.pump_curve_points)
+    npshr = interpolate_npshr(safe_flow_op, request.pump_curve_points)
     cavitation_risk = (npshr is not None and npsha < npshr)
     
+    # Memorial Breakdown
+    head_pressure_net = head_pressure_discharge - head_pressure_suction
+    
     return OperatingPointResponse(
-        flow_op=float(flow_op),
+        flow_op=float(safe_flow_op),
         head_op=float(head_op),
         efficiency_op=float(efficiency_op) if efficiency_op else None,
         power_kw=float(power_kw) if power_kw else None,
@@ -237,5 +264,12 @@ def get_operating_point(request: OperatingPointRequest):
         npsh_available=float(npsha),
         npsh_required=float(npshr) if npshr is not None else None,
         cavitation_risk=cavitation_risk,
-        details=details
+        details=details,
+        natural_flow_m3h=float(natural_flow_m3h),
+        head_breakdown={
+            "static_head_m": float(request.static_head_m),
+            "pressure_head_m": float(head_pressure_net),
+            "friction_head_m": float(head_friction_total),
+            "total_head_m": float(request.static_head_m + head_pressure_net + head_friction_total)
+        }
     )

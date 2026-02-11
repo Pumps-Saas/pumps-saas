@@ -90,3 +90,7 @@ class OperatingPointResponse(BaseModel):
     npsh_required: Optional[float] = None
     cavitation_risk: bool = False
     details: List[HeadLossResult] = []
+
+    # Phase 6: Advanced Analysis
+    natural_flow_m3h: Optional[float] = None
+    head_breakdown: Optional[Dict[str, float]] = None

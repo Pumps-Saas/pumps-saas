@@ -72,4 +72,11 @@ export interface OperatingPointResult {
     npsh_required?: number;
     cavitation_risk?: boolean;
     details?: HeadLossResult[];
+    natural_flow_m3h?: number;
+    head_breakdown?: {
+        static_head_m: number;
+        pressure_head_m: number;
+        friction_head_m: number;
+        total_head_m: number;
+    };
 }
