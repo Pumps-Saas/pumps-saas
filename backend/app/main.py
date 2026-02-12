@@ -22,6 +22,11 @@ if settings.BACKEND_CORS_ORIGINS:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+@app.on_event("startup")
+def on_startup():
+    from app.core.db import create_db_and_tables
+    create_db_and_tables()
+
 @app.get("/")
 def root():
     return {"message": "Welcome to Pumps SaaS v2.0 API"}

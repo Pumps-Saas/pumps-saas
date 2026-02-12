@@ -44,6 +44,7 @@ interface SystemStore extends SystemState {
     addFittingToSection: (sectionLocation: 'suction' | 'discharge_before' | 'discharge_after', sectionId: string, fitting: PipeFitting) => void;
 
     resetSystem: () => void;
+    loadState: (state: Partial<SystemState>) => void;
 
     // Calculation Action
     operatingPoint: any | null; // Using any to avoid import cycles for now, or use OperatingPointResult
@@ -217,5 +218,10 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         operatingPoint: null,
         isCalculating: false,
         calculationError: null
-    })
+    }),
+
+    loadState: (state) => set((currentState) => ({
+        ...currentState,
+        ...state
+    }))
 }));
