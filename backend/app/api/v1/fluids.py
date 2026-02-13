@@ -46,8 +46,7 @@ def create_custom_fluid(
     """
     Create new custom fluid.
     """
-    fluid = CustomFluid.from_orm(fluid_in)
-    fluid.user_id = current_user.id
+    fluid = CustomFluid(**fluid_in.dict(), user_id=current_user.id)
     session.add(fluid)
     session.commit()
     session.refresh(fluid)

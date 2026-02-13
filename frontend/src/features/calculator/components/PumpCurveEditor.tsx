@@ -1,14 +1,83 @@
-import React from 'react';
-import { Plus, Trash2, Save, FolderOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Trash2, Save, FolderOpen, Database } from 'lucide-react';
 import { useSystemStore } from '../stores/useSystemStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { PumpCurvePoint } from '@/types/engineering';
+import { api } from '@/api/client';
 
 export const PumpCurveEditor: React.FC = () => {
     const points = useSystemStore(state => state.pump_curve);
     const setPoints = useSystemStore(state => state.setPumpCurve);
+
+    // Persistence State
+    const [savedPumps, setSavedPumps] = useState<any[]>([]);
+    const [selectedPumpId, setSelectedPumpId] = useState("");
+
+    // Metadata State (for saving)
+    const [manufacturer, setManufacturer] = useState("");
+    const [model, setModel] = useState("");
+
+    useEffect(() => {
+        loadPumps();
+    }, []);
+
+    const loadPumps = async () => {
+        try {
+            const res = await api.pumps.list();
+            setSavedPumps(res.data);
+        } catch (error) {
+            console.error("Failed to load pumps", error);
+        }
+    };
+
+    const handleLoadPump = (pumpId: string) => {
+        setSelectedPumpId(pumpId);
+        if (!pumpId) return;
+
+        const pump = savedPumps.find(p => p.id.toString() === pumpId);
+        if (pump) {
+            setPoints(pump.curve_points);
+            setManufacturer(pump.manufacturer);
+            setModel(pump.model);
+        }
+    };
+
+    const handleSavePump = async () => {
+        if (!manufacturer || !model) return alert("Please enter Manufacturer and Model");
+        if (points.length < 3) return alert("Please enter at least 3 points");
+
+        try {
+            await api.pumps.create({
+                manufacturer,
+                model,
+                curve_points: points
+            });
+            alert("Pump Saved to Library!");
+            loadPumps();
+        } catch (error: any) {
+            console.error("Failed to save pump", error);
+            alert(`Failed to save: ${error.response?.data?.detail || error.message}`);
+        }
+    };
+
+    const handleDeletePump = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!selectedPumpId) return;
+        if (!confirm("Delete this pump from library?")) return;
+
+        try {
+            await api.pumps.delete(parseInt(selectedPumpId));
+            setSelectedPumpId("");
+            setManufacturer("");
+            setModel("");
+            loadPumps();
+        } catch (error) {
+            console.error("Failed to delete pump", error);
+        }
+    };
 
     const addPoint = () => {
         setPoints([...points, { flow: 0, head: 0, efficiency: 0 }]);
@@ -25,15 +94,65 @@ export const PumpCurveEditor: React.FC = () => {
         setPoints(newPoints);
     };
 
+    const pumpOptions = [
+        { label: "Select from Library...", value: "" },
+        ...savedPumps.map(p => ({ label: `${p.manufacturer} - ${p.model}`, value: p.id.toString() }))
+    ];
+
     return (
-        <Card title="Pump Curve Data"
-            action={
-                <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" icon={<FolderOpen size={14} />}>Load</Button>
-                    <Button size="sm" variant="outline" icon={<Save size={14} />}>Save</Button>
+        <Card title="Pump Curve Data & Library">
+            <div className="space-y-4 mb-4 border-b border-slate-200 pb-4">
+                {/* Library Controls */}
+                <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                        <Select
+                            label="Load from Library"
+                            options={pumpOptions}
+                            value={selectedPumpId}
+                            onChange={(e) => handleLoadPump(e.target.value)}
+                        />
+                    </div>
+                    {selectedPumpId && (
+                        <Button
+                            variant="primary"
+                            className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                            onClick={handleDeletePump}
+                            icon={<Trash2 size={16} />}
+                        >
+                            Delete
+                        </Button>
+                    )}
                 </div>
-            }
-        >
+
+                {/* Metadata Inputs */}
+                <div className="grid grid-cols-2 gap-2">
+                    <Input
+                        label="Manufacturer"
+                        value={manufacturer}
+                        onChange={(e) => setManufacturer(e.target.value)}
+                        placeholder="e.g. KSB"
+                    />
+                    <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                            <Input
+                                label="Model"
+                                value={model}
+                                onChange={(e) => setModel(e.target.value)}
+                                placeholder="e.g. MegaCPK 50-200"
+                            />
+                        </div>
+                        <Button
+                            onClick={handleSavePump}
+                            icon={<Save size={16} />}
+                            className="mb-[2px]"
+                            title="Save current curve to Library"
+                        >
+                            Save
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
             <div className="mb-4 text-sm text-slate-500">
                 Enter at least 3 points to define the pump curve.
             </div>

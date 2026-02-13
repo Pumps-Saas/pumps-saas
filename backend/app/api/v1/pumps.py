@@ -17,8 +17,7 @@ def create_pump(
     """
     Save a new pump to the user's catalog.
     """
-    pump = Pump.from_orm(pump_in)
-    pump.user_id = current_user.id
+    pump = Pump(**pump_in.dict(), user_id=current_user.id)
     session.add(pump)
     session.commit()
     session.refresh(pump)
