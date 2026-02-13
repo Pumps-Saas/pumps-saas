@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../../api/client';
-import { useSystemStore } from '../calculator/stores/useSystemStore'; // Clear store on logout?
+import { useSystemStore } from '../calculator/stores/useSystemStore';
 
 interface User {
     email: string;
@@ -59,7 +59,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const logout = () => {
         localStorage.removeItem('token');
         setUser(null);
-        // Optional: specific store clearing mechanism
+        // Clear system state to prevent data leakage to other users
+        useSystemStore.getState().resetSystem();
     };
 
     return (
