@@ -84,8 +84,9 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                 <Input
                     label="Length (m)"
                     type="number"
+                    min="0"
                     value={segment.length_m}
-                    onChange={(e) => handleChange('length_m', parseFloat(e.target.value) || 0)}
+                    onChange={(e) => handleChange('length_m', Math.max(0, parseFloat(e.target.value) || 0))}
                 />
                 <Select
                     label="Diameter"
@@ -102,9 +103,10 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                 <Input
                     label="Roughness (mm)"
                     type="number"
+                    min="0"
                     step="0.001"
                     value={segment.roughness_mm}
-                    onChange={(e) => handleChange('roughness_mm', parseFloat(e.target.value) || 0)}
+                    onChange={(e) => handleChange('roughness_mm', Math.max(0, parseFloat(e.target.value) || 0))}
                 />
             </div>
 
@@ -120,8 +122,9 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                             <Input
                                 label="Equipment Head Loss (m)"
                                 type="number"
+                                min="0"
                                 value={segment.equipment_loss_m}
-                                onChange={(e) => handleChange('equipment_loss_m', parseFloat(e.target.value) || 0)}
+                                onChange={(e) => handleChange('equipment_loss_m', Math.max(0, parseFloat(e.target.value) || 0))}
                                 helperText="Losses from heat exchangers, filters, etc."
                             />
                         </div>

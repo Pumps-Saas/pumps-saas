@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { useToast } from '../../components/ui/Toast';
 
 export const Register = () => {
     const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ export const Register = () => {
     const [inviteCode, setInviteCode] = useState('');
     const [error, setError] = useState('');
     const { register } = useAuth();
+    const { addToast } = useToast();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -15,9 +17,12 @@ export const Register = () => {
         setError('');
         try {
             await register({ email, password, invite_code: inviteCode });
+            addToast("Registration successful! Please login.", 'success');
             navigate('/login');
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Registration failed');
+            const msg = err.response?.data?.detail || 'Registration failed';
+            setError(msg);
+            addToast(msg, 'error');
         }
     };
 

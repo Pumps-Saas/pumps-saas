@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../api/client';
 import { useSystemStore } from '../calculator/stores/useSystemStore';
+import { useToast } from '../../components/ui/Toast';
 import { Folder, FileText, Plus, Trash2, Save, Play } from 'lucide-react';
 
 interface Project {
@@ -22,6 +23,7 @@ export const ProjectManager = () => {
     const [scenarios, setScenarios] = useState<Scenario[]>([]);
     const [newProjectName, setNewProjectName] = useState('');
     const [newScenarioName, setNewScenarioName] = useState('');
+    const { addToast } = useToast();
 
     // Store actions
     const loadState = useSystemStore((state) => state.loadState);
@@ -78,9 +80,10 @@ export const ProjectManager = () => {
             await api.projects.create({ name: newProjectName, description: '' });
             setNewProjectName('');
             loadProjects();
+            addToast("Project created successfully!", 'success');
         } catch (error: any) {
             console.error("Failed to create project", error);
-            alert(`Failed to create project: ${error.response?.data?.detail || error.message}`);
+            addToast(`Failed to create project: ${error.response?.data?.detail || error.message}`, 'error');
         }
     };
 
@@ -94,9 +97,10 @@ export const ProjectManager = () => {
             });
             setNewScenarioName('');
             loadScenarios(selectedProject.id);
+            addToast("Scenario saved successfully!", 'success');
         } catch (error: any) {
             console.error("Failed to save scenario", error);
-            alert(`Failed to save scenario: ${error.response?.data?.detail || error.message}`);
+            addToast(`Failed to save scenario: ${error.response?.data?.detail || error.message}`, 'error');
         }
     };
 
@@ -106,6 +110,7 @@ export const ProjectManager = () => {
             setTimeout(() => {
                 calculateOperatingPoint(); // Trigger calculation
             }, 100);
+            addToast(`Loaded scenario: ${scenario.name}`, 'info');
         }
     };
 
@@ -115,8 +120,10 @@ export const ProjectManager = () => {
             await api.projects.delete(id);
             if (selectedProject?.id === id) setSelectedProject(null);
             loadProjects();
+            addToast("Project deleted.", 'info');
         } catch (error) {
             console.error("Failed to delete project", error);
+            addToast("Failed to delete project", 'error');
         }
     };
 
@@ -125,8 +132,10 @@ export const ProjectManager = () => {
         try {
             await api.projects.deleteScenario(id);
             if (selectedProject) loadScenarios(selectedProject.id);
+            addToast("Scenario deleted.", 'info');
         } catch (error) {
             console.error("Failed to delete scenario", error);
+            addToast("Failed to delete scenario", 'error');
         }
     };
 

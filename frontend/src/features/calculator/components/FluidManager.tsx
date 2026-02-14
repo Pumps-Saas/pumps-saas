@@ -8,10 +8,12 @@ import { useSystemStore } from '../stores/useSystemStore';
 import { useReferenceStore } from '../stores/useReferenceStore';
 import { Card } from '@/components/ui/Card';
 import { api } from '@/api/client';
+import { useToast } from '@/components/ui/Toast';
 
 export const FluidManager: React.FC = () => {
     const currentFluid = useSystemStore(state => state.fluid);
     const setFluid = useSystemStore(state => state.setFluid);
+    const { addToast } = useToast();
 
     // Reference Data
     const { fluids: standardFluids, fetchStandards } = useReferenceStore();
@@ -70,20 +72,35 @@ export const FluidManager: React.FC = () => {
         setIsCustom(false);
     };
 
-    // Handle Save New Custom Fluid
     const handleSaveCustom = async () => {
-        if (!customName) return alert("Please enter a name");
+        if (!customName) {
+            addToast("Please enter a name", 'warning');
+            return;
+        }
+        if (rho <= 0) {
+            addToast("Density must be positive", 'warning');
+            return;
+        }
+        if (nu < 0) {
+            addToast("Viscosity cannot be negative", 'warning');
+            return;
+        }
+        if (pv < 0) {
+            addToast("Vapor pressure cannot be negative", 'warning');
+            return;
+        }
+
         try {
             await api.fluids.create({
                 name: customName,
                 properties: { rho, nu, pv_kpa: pv }
             });
-            alert("Custom Fluid Saved!");
+            addToast("Custom Fluid Saved!", 'success');
             loadCustomFluids();
             setIsCustom(false);
         } catch (error: any) {
             console.error("Failed to save fluid", error);
-            alert(`Failed to save: ${error.response?.data?.detail || error.message}`);
+            addToast(`Failed to save: ${error.response?.data?.detail || error.message}`, 'error');
         }
     };
 
@@ -144,9 +161,9 @@ export const FluidManager: React.FC = () => {
                             <div className="col-span-2">
                                 <Input label="Name" value={customName} onChange={e => setCustomName(e.target.value)} />
                             </div>
-                            <Input label="Density (kg/m³)" type="number" value={rho} onChange={e => setRho(parseFloat(e.target.value))} />
-                            <Input label="Viscosity (m²/s)" type="number" step="1e-7" value={nu} onChange={e => setNu(parseFloat(e.target.value))} />
-                            <Input label="Vapor Press. (kPa)" type="number" step="0.01" value={pv} onChange={e => setPv(parseFloat(e.target.value))} />
+                            <Input label="Density (kg/m³)" type="number" min="0.001" step="0.1" value={rho} onChange={e => setRho(parseFloat(e.target.value))} />
+                            <Input label="Viscosity (m²/s)" type="number" min="0" step="1e-7" value={nu} onChange={e => setNu(parseFloat(e.target.value))} />
+                            <Input label="Vapor Press. (kPa)" type="number" min="0" step="0.01" value={pv} onChange={e => setPv(parseFloat(e.target.value))} />
                             <div className="col-span-2 pt-2">
                                 <Button size="sm" onClick={handleSaveCustom} className="w-full" icon={<Save size={16} />}>
                                     Save to Library

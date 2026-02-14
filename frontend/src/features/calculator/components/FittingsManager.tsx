@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { PipeFitting } from '@/types/engineering';
 import { useReferenceStore } from '../stores/useReferenceStore';
+import { useToast } from '@/components/ui/Toast';
 
 interface FittingsManagerProps {
     fittings: PipeFitting[];
@@ -20,14 +21,26 @@ export const FittingsManager: React.FC<FittingsManagerProps> = ({ fittings, onAd
     const [quantity, setQuantity] = useState(1);
     const [isCustom, setIsCustom] = useState(false);
 
+    const { addToast } = useToast();
+
     const handleAdd = () => {
         if (isCustom) {
-            if (!customName || customK <= 0) return;
+            if (!customName) {
+                addToast("Please enter a custom fitting name", 'warning');
+                return;
+            }
+            if (customK <= 0) {
+                addToast("K factor must be positive", 'warning');
+                return;
+            }
             onAdd({ name: customName, k: customK, quantity });
             setCustomName("");
             setCustomK(0);
         } else {
-            if (!selectedStandard) return;
+            if (!selectedStandard) {
+                addToast("Please select a standard fitting", 'warning');
+                return;
+            }
             onAdd({
                 name: selectedStandard,
                 k: standardFittings[selectedStandard],
@@ -100,7 +113,7 @@ export const FittingsManager: React.FC<FittingsManagerProps> = ({ fittings, onAd
                             type="number"
                             min="1"
                             value={quantity}
-                            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                         />
                     </div>
 

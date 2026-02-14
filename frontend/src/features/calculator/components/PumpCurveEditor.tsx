@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { PumpCurvePoint } from '@/types/engineering';
 import { api } from '@/api/client';
+import { useToast } from '@/components/ui/Toast';
 
 export const PumpCurveEditor: React.FC = () => {
     const points = useSystemStore(state => state.pump_curve);
     const setPoints = useSystemStore(state => state.setPumpCurve);
+    const { addToast } = useToast();
 
     // Persistence State
     const [savedPumps, setSavedPumps] = useState<any[]>([]);
@@ -46,8 +48,14 @@ export const PumpCurveEditor: React.FC = () => {
     };
 
     const handleSavePump = async () => {
-        if (!manufacturer || !model) return alert("Please enter Manufacturer and Model");
-        if (points.length < 3) return alert("Please enter at least 3 points");
+        if (!manufacturer || !model) {
+            addToast("Please enter Manufacturer and Model", 'warning');
+            return;
+        }
+        if (points.length < 3) {
+            addToast("Please enter at least 3 points", 'warning');
+            return;
+        }
 
         try {
             await api.pumps.create({
@@ -55,11 +63,11 @@ export const PumpCurveEditor: React.FC = () => {
                 model,
                 curve_points: points
             });
-            alert("Pump Saved to Library!");
+            addToast("Pump Saved to Library!", 'success');
             loadPumps();
         } catch (error: any) {
             console.error("Failed to save pump", error);
-            alert(`Failed to save: ${error.response?.data?.detail || error.message}`);
+            addToast(`Failed to save: ${error.response?.data?.detail || error.message}`, 'error');
         }
     };
 
@@ -182,32 +190,37 @@ export const PumpCurveEditor: React.FC = () => {
                                     <td className="px-3 py-2">
                                         <Input
                                             type="number"
+                                            min="0"
                                             value={point.flow}
-                                            onChange={(e) => updatePoint(index, 'flow', parseFloat(e.target.value) || 0)}
+                                            onChange={(e) => updatePoint(index, 'flow', Math.max(0, parseFloat(e.target.value) || 0))}
                                             className="h-8 text-sm"
                                         />
                                     </td>
                                     <td className="px-3 py-2">
                                         <Input
                                             type="number"
+                                            min="0"
                                             value={point.head}
-                                            onChange={(e) => updatePoint(index, 'head', parseFloat(e.target.value) || 0)}
+                                            onChange={(e) => updatePoint(index, 'head', Math.max(0, parseFloat(e.target.value) || 0))}
                                             className="h-8 text-sm"
                                         />
                                     </td>
                                     <td className="px-3 py-2">
                                         <Input
                                             type="number"
+                                            min="0"
+                                            max="100"
                                             value={point.efficiency}
-                                            onChange={(e) => updatePoint(index, 'efficiency', parseFloat(e.target.value) || 0)}
+                                            onChange={(e) => updatePoint(index, 'efficiency', Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
                                             className="h-8 text-sm"
                                         />
                                     </td>
                                     <td className="px-3 py-2">
                                         <Input
                                             type="number"
+                                            min="0"
                                             value={point.npshr || ''}
-                                            onChange={(e) => updatePoint(index, 'npshr', parseFloat(e.target.value))}
+                                            onChange={(e) => updatePoint(index, 'npshr', Math.max(0, parseFloat(e.target.value)))}
                                             className="h-8 text-sm"
                                             placeholder="Opt"
                                         />

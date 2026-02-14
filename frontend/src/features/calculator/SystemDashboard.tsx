@@ -9,8 +9,9 @@ import { FluidManager } from './components/FluidManager';
 import { SystemNetworkDiagram } from './components/SystemNetworkDiagram';
 import { useSystemStore } from './stores/useSystemStore';
 import { Button } from '@/components/ui/Button';
-import { Play, AlertCircle, LayoutGrid, Table2 } from 'lucide-react';
+import { Play, AlertCircle, LayoutGrid, Table2, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
+import { generatePDFReport } from './services/pdfGenerator';
 
 export const SystemDashboard: React.FC = () => {
     // Store State
@@ -109,6 +110,67 @@ export const SystemDashboard: React.FC = () => {
         return Array.from(dataMap.values()).sort((a, b) => a.flow - b.flow);
     }, [systemCurvePoints, pumpCurve, result]);
 
+    // PDF Export Logic
+    const handleExportPDF = () => {
+        if (!result) return;
+
+        // Flatten discharge sections for the report (Parallel branches are complex, for now we list main line sections)
+        // TODO: Better representation of parallel branches in PDF
+        const dischargeSegments = [
+            ...dischargeBefore,
+            ...Object.values(dischargeParallel).flat(), // Simple flatten for list view
+            ...dischargeAfter
+        ];
+
+        generatePDFReport({
+            projectName: "Pump Analysis", // Placeholder until we have project context here
+            scenarioName: "Scenario 1",
+            fluid: {
+                name: fluid.name,
+                temperature: 20, // Default for now
+                density: fluid.rho,
+                viscosity: fluid.nu,
+                vaporPressure: fluid.pv_kpa
+            },
+            operatingConditions: {
+                flow: result.flow_op,
+                head: result.head_op,
+                staticHead: staticHead,
+                pressureSuction: pSuction,
+                pressureDischarge: pDischarge,
+                altitude: altitude,
+                atmosphericPressure: pAtm
+            },
+            pump: {
+                manufacturer: "Generic", // Placeholder
+                model: "Custom Curve"
+            },
+            results: {
+                dutyFlow: result.flow_op,
+                dutyHead: result.head_op,
+                efficiency: result.efficiency_op,
+                power: result.power_kw,
+                npshAvailable: result.npsh_available || 0,
+                npshRequired: result.npsh_required,
+                headBreakdown: result.head_breakdown ? {
+                    static: result.head_breakdown.static_head_m,
+                    pressure: result.head_breakdown.pressure_head_m,
+                    friction: result.head_breakdown.friction_head_m,
+                    total: result.head_breakdown.total_head_m
+                } : undefined
+            },
+            suction: {
+                totalLength: suction.reduce((acc, s) => acc + s.length_m, 0),
+                totalLoss: 0, // Not calculated per line yet in frontend summary
+                segments: suction
+            },
+            discharge: {
+                totalLength: dischargeSegments.reduce((acc, s) => acc + s.length_m, 0),
+                totalLoss: 0,
+                segments: dischargeSegments
+            }
+        });
+    };
 
     return (
         <div className="space-y-6 pb-20">
@@ -179,6 +241,16 @@ export const SystemDashboard: React.FC = () => {
                             className="shadow-lg shadow-blue-500/20 w-full"
                         >
                             {isCalculating ? 'Calculating...' : 'Run Calculation'}
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            onClick={handleExportPDF}
+                            disabled={!result}
+                            icon={<FileText size={18} />}
+                            className="w-full border-blue-200 hover:bg-blue-50 text-blue-700"
+                        >
+                            Export PDF Report
                         </Button>
                     </div>
                 </div>

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { useToast } from '../../components/ui/Toast';
 
 export const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login } = useAuth();
+    const { addToast } = useToast();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -20,20 +22,24 @@ export const Login = () => {
 
         try {
             await login(params);
+            addToast("Sign in successful!", 'success');
             navigate('/');
         } catch (err: any) {
             console.error("Login error:", err);
             const detail = err.response?.data?.detail;
+            let msg = 'Login failed.';
             if (typeof detail === 'string') {
-                setError(detail);
+                msg = detail;
             } else if (Array.isArray(detail)) {
                 // Handle Pydantic validation errors (array of objects)
-                setError(detail.map(e => e.msg).join(', '));
+                msg = detail.map(e => e.msg).join(', ');
             } else if (typeof detail === 'object') {
-                setError(JSON.stringify(detail));
+                msg = JSON.stringify(detail);
             } else {
-                setError('Login failed. Please check your connection.');
+                msg = 'Login failed. Please check your connection.';
             }
+            addToast(msg, 'error');
+            setError(msg);
         }
     };
 
