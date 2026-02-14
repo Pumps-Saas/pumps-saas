@@ -39,6 +39,10 @@ interface SystemStore extends SystemState {
 
     // Pump Actions
     setPumpCurve: (points: PumpCurvePoint[]) => void;
+    setPumpDetails: (manufacturer: string, model: string) => void;
+
+    pump_manufacturer: string;
+    pump_model: string;
 
     // Fitting Actions
     addFittingToSection: (sectionLocation: 'suction' | 'discharge_before' | 'discharge_after', sectionId: string, fitting: PipeFitting) => void;
@@ -72,6 +76,8 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     discharge_sections_after: [],
     static_head: 10,
     pump_curve: [],
+    pump_manufacturer: "",
+    pump_model: "",
 
     // Default Pressures
     pressure_suction_bar_g: 0,
@@ -94,6 +100,8 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         const patm_bar = patm_pa / 100000;
         set({ altitude_m: val, atmospheric_pressure_bar: patm_bar });
     },
+
+    setPumpDetails: (manufacturer, model) => set({ pump_manufacturer: manufacturer, pump_model: model }),
 
     // Suction
     addSuctionSection: (section) => set((state) => ({

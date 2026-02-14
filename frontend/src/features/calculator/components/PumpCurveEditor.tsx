@@ -10,17 +10,21 @@ import { api } from '@/api/client';
 import { useToast } from '@/components/ui/Toast';
 
 export const PumpCurveEditor: React.FC = () => {
+    // Store State
     const points = useSystemStore(state => state.pump_curve);
     const setPoints = useSystemStore(state => state.setPumpCurve);
+    const manufacturer = useSystemStore(state => state.pump_manufacturer);
+    const model = useSystemStore(state => state.pump_model);
+    const setPumpDetails = useSystemStore(state => state.setPumpDetails);
+
     const { addToast } = useToast();
 
     // Persistence State
     const [savedPumps, setSavedPumps] = useState<any[]>([]);
     const [selectedPumpId, setSelectedPumpId] = useState("");
 
-    // Metadata State (for saving)
-    const [manufacturer, setManufacturer] = useState("");
-    const [model, setModel] = useState("");
+    // Local state for inputs to avoid jitter, sync on blur or change? 
+    // Actually, direct store update for inputs is fine for this scale.
 
     useEffect(() => {
         loadPumps();
@@ -42,8 +46,7 @@ export const PumpCurveEditor: React.FC = () => {
         const pump = savedPumps.find(p => p.id.toString() === pumpId);
         if (pump) {
             setPoints(pump.curve_points);
-            setManufacturer(pump.manufacturer);
-            setModel(pump.model);
+            setPumpDetails(pump.manufacturer, pump.model);
         }
     };
 
@@ -79,8 +82,7 @@ export const PumpCurveEditor: React.FC = () => {
         try {
             await api.pumps.delete(parseInt(selectedPumpId));
             setSelectedPumpId("");
-            setManufacturer("");
-            setModel("");
+            setPumpDetails("", "");
             loadPumps();
         } catch (error) {
             console.error("Failed to delete pump", error);
@@ -137,7 +139,7 @@ export const PumpCurveEditor: React.FC = () => {
                     <Input
                         label="Manufacturer"
                         value={manufacturer}
-                        onChange={(e) => setManufacturer(e.target.value)}
+                        onChange={(e) => setPumpDetails(e.target.value, model)}
                         placeholder="e.g. KSB"
                     />
                     <div className="flex gap-2 items-end">
@@ -145,7 +147,7 @@ export const PumpCurveEditor: React.FC = () => {
                             <Input
                                 label="Model"
                                 value={model}
-                                onChange={(e) => setModel(e.target.value)}
+                                onChange={(e) => setPumpDetails(manufacturer, e.target.value)}
                                 placeholder="e.g. MegaCPK 50-200"
                             />
                         </div>

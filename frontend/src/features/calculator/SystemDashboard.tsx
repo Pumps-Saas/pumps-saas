@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Play, AlertCircle, LayoutGrid, Table2, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { generatePDFReport } from './services/pdfGenerator';
+import html2canvas from 'html2canvas';
 
 export const SystemDashboard: React.FC = () => {
     // Store State
@@ -111,23 +112,64 @@ export const SystemDashboard: React.FC = () => {
     }, [systemCurvePoints, pumpCurve, result]);
 
     // PDF Export Logic
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!result) return;
 
-        // Flatten discharge sections for the report (Parallel branches are complex, for now we list main line sections)
-        // TODO: Better representation of parallel branches in PDF
+        // Flatten discharge sections for the report
         const dischargeSegments = [
             ...dischargeBefore,
-            ...Object.values(dischargeParallel).flat(), // Simple flatten for list view
+            ...Object.values(dischargeParallel).flat(),
             ...dischargeAfter
         ];
 
+        // Capture Charts
+        let systemCurveImg: string | undefined;
+        let npshCurveImg: string | undefined;
+        let networkDiagramImg: string | undefined;
+
+        try {
+            const systemChartEl = document.getElementById('chart-system-curve');
+            if (systemChartEl) {
+                const canvas = await html2canvas(systemChartEl);
+                systemCurveImg = canvas.toDataURL('image/png');
+            }
+
+            const npshChartEl = document.getElementById('chart-npsh');
+            if (npshChartEl) {
+                const canvas = await html2canvas(npshChartEl);
+                npshCurveImg = canvas.toDataURL('image/png');
+            }
+
+            // For diagram, we need to temporarily show it if it's hidden or capture it if visible
+            // If viewMode is 'kpi', diagram is hidden. We might need to force render or just rely on user having seen it?
+            // Better strategy: The diagram container might handle its own ref, but for now let's try capturing if available.
+            // Note: If user is in KPI view, Diagram is unmounted. We can't capture it easily without mounting it.
+            // For now, we only capture if viewMode is 'diagram' OR we rely on cached state if we had one (we don't).
+            // Let's check if the element exists (hidden or not).
+
+            // NOTE: Capturing "hidden" elements is tricky. 
+            // Simple approach: Only capture what is on screen or tell user "Please switch to diagram view for full report" for now.
+            // OR we can rely on standard screenshot if visible.
+
+            // Capture Network Diagram (Always, from hidden container)
+            const diagramEl = document.getElementById('hidden-network-diagram');
+            if (diagramEl) {
+                // Must ensure it takes a moment to render if it was just mounted?
+                // It's always mounted now if result exists.
+                const canvas = await html2canvas(diagramEl);
+                networkDiagramImg = canvas.toDataURL('image/png');
+            }
+
+        } catch (e) {
+            console.error("Failed to capture charts", e);
+        }
+
         generatePDFReport({
-            projectName: "Pump Analysis", // Placeholder until we have project context here
+            projectName: "Pump Analysis",
             scenarioName: "Scenario 1",
             fluid: {
                 name: fluid.name,
-                temperature: 20, // Default for now
+                temperature: 20,
                 density: fluid.rho,
                 viscosity: fluid.nu,
                 vaporPressure: fluid.pv_kpa
@@ -142,8 +184,9 @@ export const SystemDashboard: React.FC = () => {
                 atmosphericPressure: pAtm
             },
             pump: {
-                manufacturer: "Generic", // Placeholder
-                model: "Custom Curve"
+                manufacturer: useSystemStore.getState().pump_manufacturer,
+                model: useSystemStore.getState().pump_model,
+                points: pumpCurve // Pass the actual curve points from store
             },
             results: {
                 dutyFlow: result.flow_op,
@@ -161,13 +204,18 @@ export const SystemDashboard: React.FC = () => {
             },
             suction: {
                 totalLength: suction.reduce((acc, s) => acc + s.length_m, 0),
-                totalLoss: 0, // Not calculated per line yet in frontend summary
+                totalLoss: 0,
                 segments: suction
             },
             discharge: {
                 totalLength: dischargeSegments.reduce((acc, s) => acc + s.length_m, 0),
                 totalLoss: 0,
                 segments: dischargeSegments
+            },
+            charts: {
+                systemCurveImg,
+                npshCurveImg,
+                networkDiagramImg
             }
         });
     };
@@ -321,7 +369,7 @@ export const SystemDashboard: React.FC = () => {
                     )}
 
                     {/* Chart 1: Head vs Flow */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div id="chart-system-curve" className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                         <HeadFlowChart
                             data={chartData}
                             operatingPoint={result}
@@ -334,12 +382,18 @@ export const SystemDashboard: React.FC = () => {
                     </div>
 
                     {/* Chart 2: NPSH Analysis */}
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div id="chart-npsh" className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                         <NPSHChart
                             data={chartData}
                             operatingPoint={result}
                         />
                     </div>
+                </div>
+            </div>
+            {/* Hidden Network Diagram for PDF Capture */}
+            <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1200px', height: '800px', backgroundColor: 'white' }}>
+                <div id="hidden-network-diagram">
+                    {result && <SystemNetworkDiagram result={result} />}
                 </div>
             </div>
         </div>
