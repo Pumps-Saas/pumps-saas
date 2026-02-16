@@ -4,9 +4,10 @@ import { OperatingPointResult } from '@/types/engineering';
 
 interface SystemSchematicProps {
     result: OperatingPointResult | null;
+    printMode?: boolean;
 }
 
-export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result }) => {
+export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printMode = false }) => {
     // Get Topology
     const suction = useSystemStore(state => state.suction_sections);
     const dischargeBefore = useSystemStore(state => state.discharge_sections_before);
@@ -17,9 +18,33 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result }) => {
     const getResult = (id: string) => result?.details?.find(d => d.section_id === id);
 
     // SVG Constants
-    const PIPE_Y = 150; // Main centerline Y
-    const COMPONENT_SPACING = 300; // Spacing between major components
-    const PARALLEL_OFFSET = 80; // Vertical offset for branches
+    const PIPE_Y = 150;
+    const COMPONENT_SPACING = 300;
+    const PARALLEL_OFFSET = 100; // Increased to give more room
+
+    // Style Multipliers (Refined for better balance)
+    const textScale = printMode ? 1.8 : 1; // Reduced from 2.5
+    const strokeScale = printMode ? 2.0 : 1;
+    const baseFontSize = 10 * textScale;
+    const headerFontSize = 12 * textScale;
+    const strokeWidth = 1.5 * strokeScale;
+    const heavyStroke = 2 * strokeScale;
+
+    // Background Filter for Text (to prevent overlap)
+    const textBgFilter = (
+        <defs>
+            <filter x="-0.1" y="0" width="1.2" height="1" id="solid-bg">
+                <feFlood floodColor="white" result="bg" />
+                <feMerge>
+                    <feMergeNode in="bg" />
+                    <feMergeNode in="SourceGraphic" />
+                </feMerge>
+            </filter>
+            <marker id="arrowhead" markerWidth={10 * strokeScale} markerHeight={7 * strokeScale} refX={9 * strokeScale} refY={3.5 * strokeScale} orient="auto">
+                <polygon points={`0 0, ${10 * strokeScale} ${3.5 * strokeScale}, 0 ${7 * strokeScale}`} fill="black" />
+            </marker>
+        </defs>
+    );
 
     const elements = useMemo(() => {
         const svgElements: React.ReactNode[] = [];
@@ -30,13 +55,13 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result }) => {
         svgElements.push(
             <g key="suction-tank" transform={`translate(${cursorX}, ${PIPE_Y - 35})`}>
                 {/* Cylinder Side/Body */}
-                <path d="M0,15 L0,55 A20,10 0 0,0 100,55 L100,15" fill="#add8e6" stroke="black" strokeWidth="1" />
+                <path d="M0,15 L0,55 A20,10 0 0,0 100,55 L100,15" fill="#add8e6" stroke="black" strokeWidth={strokeWidth} />
                 {/* Cylinder Top (Ellipse) */}
-                <ellipse cx="50" cy="15" rx="50" ry="10" fill="#bee3f8" stroke="black" strokeWidth="1" />
+                <ellipse cx="50" cy="15" rx="50" ry="10" fill="#bee3f8" stroke="black" strokeWidth={strokeWidth} />
                 {/* Label */}
-                <text x="50" y="35" textAnchor="middle" fontSize="10" fontWeight="bold" fill="black">
+                <text x="50" y="35" textAnchor="middle" fontSize={baseFontSize} fontWeight="bold" fill="black">
                     <tspan x="50" dy="0">Reservatório</tspan>
-                    <tspan x="50" dy="12">Sucção</tspan>
+                    <tspan x="50" dy={baseFontSize * 1.2}>Sucção</tspan>
                 </text>
             </g>
         );
@@ -49,19 +74,20 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result }) => {
 
             // Line
             svgElements.push(
-                <line key={`pipe-${id}`} x1={startX} y1={y} x2={endX} y2={y} stroke="black" strokeWidth="1.5" markerEnd="url(#arrowhead)" />
+                <line key={`pipe-${id}`} x1={startX} y1={y} x2={endX} y2={y} stroke="black" strokeWidth={strokeWidth} markerEnd="url(#arrowhead)" />
             );
 
-            // Label Box (Invisible bg for spacing? No, transparent as requested)
-            // Text
+            // Label Box
+            const currentLabelOffset = printMode ? labelYOffset * 1.8 : labelYOffset;
+
             svgElements.push(
-                <text key={`label-${id}`} x={midX} y={y + labelYOffset} textAnchor="middle" fontSize="10" fill="black">
+                <text key={`label-${id}`} x={midX} y={y + currentLabelOffset} textAnchor="middle" fontSize={baseFontSize} fill="black" filter="url(#solid-bg)">
                     <tspan x={midX} dy="0" fontWeight="bold">{name}</tspan>
                     {res && (
                         <>
-                            <tspan x={midX} dy="12">{result?.flow_op.toFixed(1)} m³/h</tspan>
-                            <tspan x={midX} dy="12">{res.velocity_m_s.toFixed(2)} m/s</tspan>
-                            <tspan x={midX} dy="12">Perda: {res.total_loss_m.toFixed(2)} m</tspan>
+                            <tspan x={midX} dy={baseFontSize * 1.2}>{result?.flow_op.toFixed(1)} m³/h</tspan>
+                            <tspan x={midX} dy={baseFontSize * 1.2}>{res.velocity_m_s.toFixed(2)} m/s</tspan>
+                            <tspan x={midX} dy={baseFontSize * 1.2}>Perda: {res.total_loss_m.toFixed(2)} m</tspan>
                         </>
                     )}
                 </text>
@@ -73,19 +99,16 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result }) => {
             const endX = cursorX + COMPONENT_SPACING;
             drawPipe(cursorX, endX, PIPE_Y, s.name || `Sucção ${idx + 1}`, s.id);
             cursorX = endX;
-            // Junction Dot if not last (actually logic is segments are lines, so dot is automatic? No dots in print, just continuous line to pump)
-            // Print shows continuous. We just move cursor.
         });
 
         // --- 3. Pump (Orange Circle) ---
-        // Pump is centered on current cursorX + radius
         const pumpRadius = 40;
         const pumpCenterX = cursorX + pumpRadius;
 
         svgElements.push(
             <g key="pump" transform={`translate(${pumpCenterX}, ${PIPE_Y})`}>
-                <circle r={pumpRadius} fill="#ffa500" stroke="black" strokeWidth="2" />
-                <text x="0" y="5" textAnchor="middle" fontSize="12" fontWeight="bold" fill="black">Bomba</text>
+                <circle r={pumpRadius} fill="#ffa500" stroke="black" strokeWidth={heavyStroke} />
+                <text x="0" y="5" textAnchor="middle" fontSize={headerFontSize} fontWeight="bold" fill="black">Bomba</text>
             </g>
         );
         cursorX = pumpCenterX + pumpRadius;
@@ -103,55 +126,49 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result }) => {
         const branchKeys = Object.keys(dischargeParallel);
         if (branchKeys.length > 0) {
             const splitX = cursorX;
-            const branchLength = COMPONENT_SPACING + 100;
+            const branchLength = COMPONENT_SPACING + 150; // More room for labels
             const mergeX = splitX + branchLength;
 
             // Draw Split Pipe (Vertical)
-            // Top Y, Bottom Y
             const topY = PIPE_Y - PARALLEL_OFFSET;
-            const bottomY = PIPE_Y + PARALLEL_OFFSET; // Assuming 2 branches for now based on print style
+            const bottomY = PIPE_Y + PARALLEL_OFFSET;
 
             // Vertical Line at Split
             svgElements.push(
-                <line key="split-vertical" x1={splitX} y1={topY} x2={splitX} y2={bottomY} stroke="black" strokeWidth="1.5" />
+                <line key="split-vertical" x1={splitX} y1={topY} x2={splitX} y2={bottomY} stroke="black" strokeWidth={strokeWidth} />
             );
-            // Dots at intersection?
-            svgElements.push(<circle key="split-dot" cx={splitX} cy={PIPE_Y} r="3" fill="black" />);
+            // Dots
+            svgElements.push(<circle key="split-dot" cx={splitX} cy={PIPE_Y} r={3 * strokeScale} fill="black" />);
 
 
             branchKeys.forEach((key, bIdx) => {
                 const isTop = bIdx === 0;
+                // If more than 2, this logic needs expansion, but for now 2 is typical.
+                // Improve spacing if we have multiples
                 const branchY = isTop ? topY : bottomY;
                 const segments = dischargeParallel[key];
-
-                // For simplicity, visualizing the first segment of the branch on the horizontal run
-                // Real schematic might need multiple segments chained. Assuming 1 for layout cleanliness.
                 const s = segments[0];
 
                 if (s) {
-                    // Horizontal Line
-                    drawPipe(splitX, mergeX, branchY, `${key} (${s.name})`, s.id, -20);
+                    drawPipe(splitX, mergeX, branchY, `${key}`, s.id, -20);
                 } else {
-                    // Empty Branch Placeholder
+                    // Empty Branch
                     svgElements.push(
-                        <line key={`branch-empty-${key}`} x1={splitX} y1={branchY} x2={mergeX} y2={branchY} stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 4" />
+                        <line key={`branch-empty-${key}`} x1={splitX} y1={branchY} x2={mergeX} y2={branchY} stroke="#94a3b8" strokeWidth={strokeWidth} strokeDasharray="4 4" />
                     );
                     svgElements.push(
-                        <text key={`label-empty-${key}`} x={(splitX + mergeX) / 2} y={branchY - 10} textAnchor="middle" fontSize="10" fill="#94a3b8" fontStyle="italic">
+                        <text key={`label-empty-${key}`} x={(splitX + mergeX) / 2} y={branchY - 10} textAnchor="middle" fontSize={baseFontSize} fill="#94a3b8" fontStyle="italic" filter="url(#solid-bg)">
                             {key} (Empty)
                         </text>
                     );
                 }
-
-                // If there are more segments, we'd need to chain them inside the branch length. 
-                // For now, simple representation.
             });
 
             // Vertical Line at Merge
             svgElements.push(
-                <line key="merge-vertical" x1={mergeX} y1={topY} x2={mergeX} y2={bottomY} stroke="black" strokeWidth="1.5" />
+                <line key="merge-vertical" x1={mergeX} y1={topY} x2={mergeX} y2={bottomY} stroke="black" strokeWidth={strokeWidth} />
             );
-            svgElements.push(<circle key="merge-dot" cx={mergeX} cy={PIPE_Y} r="3" fill="black" />);
+            svgElements.push(<circle key="merge-dot" cx={mergeX} cy={PIPE_Y} r={3 * strokeScale} fill="black" />);
 
             cursorX = mergeX;
         }
@@ -165,28 +182,24 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result }) => {
 
         // --- 7. Discharge Tank (Grey Circle) ---
         const endTankRadius = 35;
-        const endTankCenterX = cursorX + endTankRadius; // Slight gap? No, consume line end.
-        // Actually drawPipe went to cursorX.
+        const endTankCenterX = cursorX + endTankRadius;
 
         svgElements.push(
             <g key="end-tank" transform={`translate(${endTankCenterX}, ${PIPE_Y})`}>
-                <circle r={endTankRadius} fill="#d1d5db" stroke="black" strokeWidth="2" />
-                <text x="0" y="5" textAnchor="middle" fontSize="12" fontWeight="bold" fill="black">Fim</text>
+                <circle r={endTankRadius} fill="#d1d5db" stroke="black" strokeWidth={heavyStroke} />
+                <text x="0" y="5" textAnchor="middle" fontSize={headerFontSize} fontWeight="bold" fill="black">Fim</text>
             </g>
         );
         cursorX = endTankCenterX + endTankRadius;
 
-        return { svgElements, totalWidth: cursorX + 50 };
-    }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, result]);
+        // Add extra padding at the end
+        return { svgElements, totalWidth: cursorX + 100 };
+    }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, result, printMode, baseFontSize, headerFontSize, strokeWidth, heavyStroke]);
 
     return (
         <div style={{ width: '100%', background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <svg width="100%" height="auto" viewBox={`0 0 ${elements.totalWidth} 300`} preserveAspectRatio="xMidYMid meet">
-                <defs>
-                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" fill="black" />
-                    </marker>
-                </defs>
+            <svg width="100%" height="auto" viewBox={`0 0 ${elements.totalWidth} 400`} preserveAspectRatio="xMidYMid meet">
+                {textBgFilter}
                 {elements.svgElements}
             </svg>
         </div>

@@ -132,17 +132,42 @@ export const SystemDashboard: React.FC = () => {
 
             let diagramImg, chart1Img, chart2Img;
 
-            if (diagramEl) {
-                const canvas = await html2canvas(diagramEl, { scale: 2, backgroundColor: '#ffffff' });
-                diagramImg = canvas.toDataURL('image/png');
+            console.log("Starting PDF generation...");
+
+            try {
+                if (diagramEl) {
+                    console.log("Capturing Diagram...");
+                    const canvas = await html2canvas(diagramEl, { scale: 2, backgroundColor: '#ffffff', logging: false });
+                    diagramImg = canvas.toDataURL('image/png');
+                }
+            } catch (e: any) {
+                console.error("Failed to capture Diagram", e);
+                alert(`Erro ao capturar Diagrama: ${e.message}`);
+                return;
             }
-            if (systemChartEl) {
-                const canvas = await html2canvas(systemChartEl, { scale: 2, backgroundColor: '#ffffff' });
-                chart1Img = canvas.toDataURL('image/png');
+
+            try {
+                if (systemChartEl) {
+                    console.log("Capturing System Chart...");
+                    const canvas = await html2canvas(systemChartEl, { scale: 3, backgroundColor: '#ffffff', logging: false });
+                    chart1Img = canvas.toDataURL('image/png');
+                }
+            } catch (e: any) {
+                console.error("Failed to capture System Chart", e);
+                alert(`Erro ao capturar Gráfico do Sistema: ${e.message}`);
+                return;
             }
-            if (npshChartEl) {
-                const canvas = await html2canvas(npshChartEl, { scale: 2, backgroundColor: '#ffffff' });
-                chart2Img = canvas.toDataURL('image/png');
+
+            try {
+                if (npshChartEl) {
+                    console.log("Capturing NPSH Chart...");
+                    const canvas = await html2canvas(npshChartEl, { scale: 3, backgroundColor: '#ffffff', logging: false });
+                    chart2Img = canvas.toDataURL('image/png');
+                }
+            } catch (e: any) {
+                console.error("Failed to capture NPSH Chart", e);
+                alert(`Erro ao capturar Gráfico NPSH: ${e.message}`);
+                return;
             }
 
             // Enrich segments logic for PDF report
@@ -221,9 +246,9 @@ export const SystemDashboard: React.FC = () => {
 
             await generatePDFReport(data);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("PDF Fail", error);
-            alert("Erro ao gerar PDF.");
+            alert(`Erro Geral ao gerar PDF: ${error.message || error}`);
         }
     };
 
@@ -416,13 +441,13 @@ export const SystemDashboard: React.FC = () => {
              */}
             <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1200px', backgroundColor: 'white' }}>
                 <div id="pdf-diagram" style={{ width: '1200px', height: '800px' }}>
-                    {result && <SystemSchematic result={result} />}
+                    {result && <SystemSchematic result={result} printMode={true} />}
                 </div>
-                <div id="pdf-chart-system" style={{ width: '1000px', height: '600px' }}>
-                    <HeadFlowChart data={chartData} operatingPoint={result} />
+                <div id="pdf-chart-system" style={{ width: '1600px', height: '1000px' }}>
+                    <HeadFlowChart data={chartData} operatingPoint={result} printMode={true} />
                 </div>
-                <div id="pdf-chart-npsh" style={{ width: '1000px', height: '600px' }}>
-                    <NPSHChart data={chartData} operatingPoint={result} />
+                <div id="pdf-chart-npsh" style={{ width: '1600px', height: '1000px' }}>
+                    <NPSHChart data={chartData} operatingPoint={result} printMode={true} />
                 </div>
             </div>
         </div>

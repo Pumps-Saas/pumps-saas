@@ -95,6 +95,7 @@ export const generatePDFReport = (data: ReportData) => {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const margin = 14;
+    const chartWidth = pageWidth - (margin * 2);
     let yPos = 20;
 
     // --- PAGE 1: Summary & Tables ---
@@ -247,7 +248,7 @@ export const generatePDFReport = (data: ReportData) => {
         columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
     });
 
-    // --- PAGE 2: Charts & Visuals ---
+    // --- PAGE 2: Charts (Dedicated Page) ---
     if (data.charts) {
         doc.addPage();
         yPos = 20;
@@ -258,82 +259,99 @@ export const generatePDFReport = (data: ReportData) => {
         doc.text("System Analysis & Visualization", margin, yPos);
         yPos += 15;
 
-        // 1. Curve Layout (Side by Side)
-        const chartWidth = (pageWidth - (margin * 3)) / 2;
-        const chartHeight = 70;
+        // Available vertical space for 2 charts
+        // Page Height - Margin Top - Title - Margin Bottom
+        const availableHeight = pageHeight - yPos - margin;
+        // We want 2 charts stacked. Give them each about 45% of available space
+        const chartHeight = availableHeight * 0.45;
 
         if (data.charts.systemCurveImg) {
+            // Center SVG/Image in the width? It is full width.
             doc.addImage(data.charts.systemCurveImg, 'PNG', margin, yPos, chartWidth, chartHeight);
             doc.setFontSize(10);
             doc.setTextColor(0);
+            // Label below chart
             doc.text("System vs Pump Curve", margin, yPos + chartHeight + 5);
+            yPos += chartHeight + 15;
         }
 
         if (data.charts.npshCurveImg) {
-            doc.addImage(data.charts.npshCurveImg, 'PNG', margin + chartWidth + margin, yPos, chartWidth, chartHeight);
-            doc.text("NPSH Available vs Required", margin + chartWidth + margin, yPos + chartHeight + 5);
+            doc.addImage(data.charts.npshCurveImg, 'PNG', margin, yPos, chartWidth, chartHeight);
+            doc.text("NPSH Available vs Required", margin, yPos + chartHeight + 5);
+            yPos += chartHeight + 15;
         }
 
-        yPos += chartHeight + 20;
+        // Page 3 starts here for Data & Diagram
+        doc.addPage();
+        yPos = 20;
+    } else {
+        // If no charts, maybe just continue? 
+        // But logic below assumes new page for Pump Data if it was following charts.
+        // Let's just ensure we are on a fresh page or flowing correctly.
+        // For now, if charts existed, we are on Page 3.
+        doc.addPage();
+        yPos = 20;
+    }
 
-        // 2. Pump Details & Curve Data (Full Width / Centered)
+    // --- PAGE 3: Pump Data & Diagram ---
+
+    // 2. Pump Details & Curve Data (Full Width / Centered)
+    if (yPos + 60 > pageHeight - margin) {
+        doc.addPage();
+        yPos = 20;
+    }
+
+    doc.setFontSize(12);
+    doc.setTextColor(41, 128, 185);
+    doc.text("Pump Curve Data", margin, yPos);
+    yPos += 5;
+
+    // Manufacturer Info
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text(`Manufacturer: ${data.pump.manufacturer || 'Generic'}`, margin, yPos);
+    doc.text(`Model: ${data.pump.model || 'Custom Curve'}`, margin + 100, yPos);
+    yPos += 8;
+
+    // Curve Points Table
+    const curveBody = data.pump.points.map(p => [
+        p.flow.toFixed(2),
+        p.head.toFixed(2),
+        p.efficiency ? p.efficiency.toFixed(1) : '-',
+        p.npshr ? p.npshr.toFixed(2) : 'Opt'
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Flow (m³/h)', 'Head (m)', 'Eff (%)', 'NPSHr (m)']],
+        body: curveBody,
+        theme: 'striped',
+        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+        headStyles: { halign: 'center', fillColor: [41, 128, 185] },
+        margin: { left: margin, right: margin }
+    });
+
+    const tableEndY = doc.lastAutoTable.finalY + 15;
+
+    // 3. Network Diagram (Full Width)
+    if (data.charts.networkDiagramImg) {
+        const diagramHeight = 100;
+        let diagramY = tableEndY;
+
+        // Check if diagram fits
+        if (diagramY + diagramHeight > pageHeight - margin) {
+            doc.addPage();
+            diagramY = 20;
+        }
+
         doc.setFontSize(12);
         doc.setTextColor(41, 128, 185);
-        doc.text("Pump Curve Data", margin, yPos);
-        yPos += 5;
+        doc.text("Calculated Network Diagram", margin, diagramY - 5);
 
-        // Manufacturer Info
-        doc.setFontSize(10);
-        doc.setTextColor(0);
-        doc.text(`Manufacturer: ${data.pump.manufacturer || 'Generic'}`, margin, yPos);
-        doc.text(`Model: ${data.pump.model || 'Custom Curve'}`, margin + 100, yPos); // Better spacing
-        yPos += 8;
-
-        // Curve Points Table
-        const curveBody = data.pump.points.map(p => [
-            p.flow.toFixed(2),
-            p.head.toFixed(2),
-            p.efficiency ? p.efficiency.toFixed(1) : '-',
-            p.npshr ? p.npshr.toFixed(2) : 'Opt'
-        ]);
-
-        autoTable(doc, {
-            startY: yPos,
-            head: [['Flow (m³/h)', 'Head (m)', 'Eff (%)', 'NPSHr (m)']],
-            body: curveBody,
-            theme: 'striped',
-            styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
-            headStyles: { halign: 'center', fillColor: [41, 128, 185] },
-            // Removed margin constraint to let it be full width (or default auto)
-            // Or constrain slightly to center if needed, but default looks okay usually.
-            margin: { left: margin, right: margin }
-        });
-
-        // Track where the table ended
-        const tableEndY = doc.lastAutoTable.finalY + 15;
-
-        // 3. Network Diagram (Bottom - Full Width)
-        if (data.charts.networkDiagramImg) {
-            // Check remaining space
-            const remainingHeight = pageHeight - tableEndY - margin;
-            const diagramHeight = 80;
-
-            let diagramY = tableEndY;
-
-            if (remainingHeight < diagramHeight) {
-                doc.addPage();
-                diagramY = 20;
-            }
-
-            doc.setFontSize(12);
-            doc.setTextColor(41, 128, 185);
-            doc.text("Calculated Network Diagram", margin, diagramY - 5);
-
-            // Full width diagram
-            const diagramWidth = pageWidth - (margin * 2);
-            doc.addImage(data.charts.networkDiagramImg, 'PNG', margin, diagramY, diagramWidth, diagramHeight);
-        }
+        // Full width diagram
+        doc.addImage(data.charts.networkDiagramImg, 'PNG', margin, diagramY, chartWidth, diagramHeight);
     }
+
 
     // Save
     const filename = `pump_analysis_${data.projectName || 'report'}_${new Date().toISOString().split('T')[0]}.pdf`;
