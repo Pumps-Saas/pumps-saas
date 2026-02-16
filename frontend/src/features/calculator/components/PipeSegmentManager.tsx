@@ -129,7 +129,7 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                     {Object.entries(dischargeParallel).map(([branchName, sections]) => (
                         <div key={branchName} className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                             <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
@@ -158,7 +158,7 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
                                 (id, s) => updateSectionInBranch(branchName, id, s),
                                 (id) => removeSectionFromBranch(branchName, id),
                                 "Empty branch.",
-                                true // Compact mode for parallel branches
+                                false // Regular mode for parallel branches (User requested bigger inputs)
                             )}
                         </div>
                     ))}

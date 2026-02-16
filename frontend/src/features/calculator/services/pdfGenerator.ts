@@ -1,12 +1,39 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useReferenceStore } from '../stores/useReferenceStore';
 
 // Extend jsPDF type to include autotable
 interface jsPDFWithAutoTable extends jsPDF {
     lastAutoTable: { finalY: number };
 }
 
-interface ReportData {
+// Helper to find nominal diameter
+const getNominalDiameter = (d_mm: number): string => {
+    const diameters = useReferenceStore.getState().diameters;
+    // Find key where value equals d_mm (or is very close)
+    const entry = Object.entries(diameters).find(([_, info]) => Math.abs(info - d_mm) < 0.1);
+
+    if (entry) {
+        // If key format is like '4" (100mm)', extract '4"'
+        // Or if it is just '4"', return it.
+        const match = entry[0].match(/(\d+(?:\.\d+)?")/);
+        if (match) return match[1];
+        return entry[0].replace(/\s*\(.*?\)/, '').trim(); // Remove (...mm) if present
+    }
+
+    // Fallback: Calculate
+    if (d_mm) {
+        const inches = d_mm / 25.4;
+        // If close to integer, return integer
+        if (Math.abs(inches - Math.round(inches)) < 0.1) {
+            return `${Math.round(inches)}"`;
+        }
+        return `${inches.toFixed(2)}"`;
+    }
+    return '-';
+};
+
+export interface ReportData {
     projectName?: string;
     scenarioName?: string;
     fluid: {
@@ -181,18 +208,19 @@ export const generatePDFReport = (data: ReportData) => {
     const suctionRows = data.suction.segments.map((seg: any) => [
         seg.name,
         `${seg.length_m} m`,
-        `${seg.diameter_mm} mm`,
-        `${seg.roughness_mm} mm`,
-        seg.fittings ? seg.fittings.length : 0
+        getNominalDiameter(seg.diameter_mm), // Use nominal
+        seg.material || '-', // Material instead of Roughness
+        seg.loss_m !== null && seg.loss_m !== undefined ? `${seg.loss_m.toFixed(2)} m` : '-' // Loss instead of Fittings
     ]);
 
     autoTable(doc, {
         startY: yPos,
-        head: [['Segment', 'Length', 'Diameter', 'Roughness', 'Fittings']],
+        head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']], // Updated Headers
         body: suctionRows,
         theme: 'striped',
         headStyles: { fillColor: [52, 152, 219] },
-        styles: { fontSize: 9 }
+        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
     });
     yPos = doc.lastAutoTable.finalY + 8;
 
@@ -204,18 +232,19 @@ export const generatePDFReport = (data: ReportData) => {
     const dischargeRows = data.discharge.segments.map((seg: any) => [
         seg.name,
         `${seg.length_m} m`,
-        `${seg.diameter_mm} mm`,
-        `${seg.roughness_mm} mm`,
-        seg.fittings ? seg.fittings.length : 0
+        getNominalDiameter(seg.diameter_mm), // Use nominal
+        seg.material || '-',
+        seg.loss_m !== null && seg.loss_m !== undefined ? `${seg.loss_m.toFixed(2)} m` : '-'
     ]);
 
     autoTable(doc, {
         startY: yPos,
-        head: [['Segment', 'Length', 'Diameter', 'Roughness', 'Fittings']],
+        head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']],
         body: dischargeRows,
         theme: 'striped',
         headStyles: { fillColor: [52, 152, 219] },
-        styles: { fontSize: 9 }
+        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
     });
 
     // --- PAGE 2: Charts & Visuals ---
@@ -229,10 +258,9 @@ export const generatePDFReport = (data: ReportData) => {
         doc.text("System Analysis & Visualization", margin, yPos);
         yPos += 15;
 
-        // 1. Curve Layout (Top Half)
-        // We'll place System Curve (Left) and NPSH Curve (Right)
+        // 1. Curve Layout (Side by Side)
         const chartWidth = (pageWidth - (margin * 3)) / 2;
-        const chartHeight = 70; // Fixed height for charts
+        const chartHeight = 70;
 
         if (data.charts.systemCurveImg) {
             doc.addImage(data.charts.systemCurveImg, 'PNG', margin, yPos, chartWidth, chartHeight);
@@ -248,7 +276,7 @@ export const generatePDFReport = (data: ReportData) => {
 
         yPos += chartHeight + 20;
 
-        // 2. Pump Details & Curve Data (Middle/Bottom Right)
+        // 2. Pump Details & Curve Data (Full Width / Centered)
         doc.setFontSize(12);
         doc.setTextColor(41, 128, 185);
         doc.text("Pump Curve Data", margin, yPos);
@@ -258,7 +286,7 @@ export const generatePDFReport = (data: ReportData) => {
         doc.setFontSize(10);
         doc.setTextColor(0);
         doc.text(`Manufacturer: ${data.pump.manufacturer || 'Generic'}`, margin, yPos);
-        doc.text(`Model: ${data.pump.model || 'Custom Curve'}`, margin + 80, yPos);
+        doc.text(`Model: ${data.pump.model || 'Custom Curve'}`, margin + 100, yPos); // Better spacing
         yPos += 8;
 
         // Curve Points Table
@@ -275,17 +303,18 @@ export const generatePDFReport = (data: ReportData) => {
             body: curveBody,
             theme: 'striped',
             styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
-            headStyles: { halign: 'center', fillColor: [41, 128, 185] }, // Center headers too
-            margin: { left: margin, right: pageWidth / 2 + 10 } // Constrain width if we want side-by-side or full width
+            headStyles: { halign: 'center', fillColor: [41, 128, 185] },
+            // Removed margin constraint to let it be full width (or default auto)
+            // Or constrain slightly to center if needed, but default looks okay usually.
+            margin: { left: margin, right: margin }
         });
 
         // Track where the table ended
         const tableEndY = doc.lastAutoTable.finalY + 15;
 
-        // 3. Network Diagram (Bottom)
-        // If we have space, put it below.
+        // 3. Network Diagram (Bottom - Full Width)
         if (data.charts.networkDiagramImg) {
-            // Check if we have space on this page, otherwise add new page
+            // Check remaining space
             const remainingHeight = pageHeight - tableEndY - margin;
             const diagramHeight = 80;
 
@@ -300,9 +329,8 @@ export const generatePDFReport = (data: ReportData) => {
             doc.setTextColor(41, 128, 185);
             doc.text("Calculated Network Diagram", margin, diagramY - 5);
 
-            // Center the diagram
+            // Full width diagram
             const diagramWidth = pageWidth - (margin * 2);
-            // Aspect ratio preservation would be ideal, but for now fit to width
             doc.addImage(data.charts.networkDiagramImg, 'PNG', margin, diagramY, diagramWidth, diagramHeight);
         }
     }

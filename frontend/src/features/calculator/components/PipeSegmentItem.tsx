@@ -80,7 +80,7 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                 </div>
             </div>
 
-            <div className={`grid gap-4 ${compact ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+            <div className={`grid gap-4 ${compact ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'}`}>
                 <Input
                     label="Length (m)"
                     type="number"
