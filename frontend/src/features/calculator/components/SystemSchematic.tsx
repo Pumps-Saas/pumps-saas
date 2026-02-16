@@ -18,9 +18,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
     const getResult = (id: string) => result?.details?.find(d => d.section_id === id);
 
     // SVG Constants
-    const PIPE_Y = 150;
-    const COMPONENT_SPACING = 300;
-    const PARALLEL_OFFSET = 100; // Increased to give more room
+
 
     // Style Multipliers (Refined for better balance)
     const textScale = printMode ? 1.8 : 1; // Reduced from 2.5
@@ -50,6 +48,23 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
         const svgElements: React.ReactNode[] = [];
         let cursorX = 50;
 
+        // --- Dynamic Spacing Logic ---
+        // Goal: Keep diagram width constrained so icons remain large.
+        // If we have many segments, we reduce the arrow length.
+        const totalSegments = suction.length + dischargeBefore.length + dischargeAfter.length + (Object.keys(dischargeParallel).length > 0 ? 1 : 0);
+
+        // Increasing distribution to use side white space and fix overlaps.
+        // Base spacing 250 (was 210). Min 130 (was 95).
+        let dynamicSpacing = 250;
+        if (totalSegments > 2) {
+            dynamicSpacing = Math.max(130, 250 - (totalSegments - 2) * 40);
+        }
+
+        const COMPONENT_SPACING = printMode ? 200 : dynamicSpacing;
+        const TANK_WIDTH = 100;
+        const PIPE_Y = 150;
+        const PARALLEL_OFFSET = 100;
+
         // --- 1. Suction Tank (Blue Cylinder) ---
         // Cylinder Body
         svgElements.push(
@@ -65,7 +80,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                 </text>
             </g>
         );
-        cursorX += 100; // Tank Width
+        cursorX += TANK_WIDTH;
 
         // Helper: Draw Pipe Segment
         const drawPipe = (startX: number, endX: number, y: number, name: string, id: string, labelYOffset = -25) => {
@@ -126,7 +141,8 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
         const branchKeys = Object.keys(dischargeParallel);
         if (branchKeys.length > 0) {
             const splitX = cursorX;
-            const branchLength = COMPONENT_SPACING + 150; // More room for labels
+            // Shorter branch length too
+            const branchLength = Math.max(260, COMPONENT_SPACING + 130);
             const mergeX = splitX + branchLength;
 
             // Draw Split Pipe (Vertical)

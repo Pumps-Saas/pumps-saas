@@ -33,7 +33,7 @@ export const SystemDashboard: React.FC = () => {
     const error = useSystemStore(state => state.calculationError);
 
     // UI State
-    const [activeTab, setActiveTab] = useState<'system' | 'npsh' | 'schematic'>('system');
+    const [activeTab, setActiveTab] = useState<'system' | 'npsh'>('system');
     const [minimized, setMinimized] = useState<Record<string, boolean>>({});
     const [systemCurvePoints, setSystemCurvePoints] = useState<any[]>([]);
 
@@ -253,9 +253,9 @@ export const SystemDashboard: React.FC = () => {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-slate-50 text-slate-800 font-sans overflow-hidden">
+        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans">
             {/* 1. Header (Minimalist) */}
-            <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-20 shadow-sm">
+            <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-30 shadow-sm sticky top-0">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center text-white font-bold tracking-tighter shadow-sm">
                         P+
@@ -293,17 +293,17 @@ export const SystemDashboard: React.FC = () => {
                 </div>
             </header>
 
-            {/* 2. Content Grid */}
-            <main className="flex-1 flex flex-col overflow-hidden">
+            {/* 2. Content Grid (Scrollable Main Page) */}
+            <main className="flex-1 w-full max-w-[1920px] mx-auto p-4 flex flex-col gap-6">
 
                 {/* Top Section: Inputs & Charts */}
-                <div className="flex-1 grid grid-cols-12 gap-0 overflow-hidden">
+                <div className="grid grid-cols-12 gap-6 items-start">
 
-                    {/* LEFT COLUMN: Inputs (Scrollable) */}
-                    <aside className="col-span-12 lg:col-span-6 bg-white border-r border-slate-200 flex flex-col overflow-y-auto custom-scrollbar">
+                    {/* LEFT COLUMN: Inputs (Natural Height) */}
+                    <aside className="col-span-12 xl:col-span-6 flex flex-col gap-4">
 
-                        {/* Section: System Conditions (RESTORED) */}
-                        <div className="border-b border-slate-100">
+                        {/* Section: System Conditions */}
+                        <div className="bg-white border boundary-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <CardHeader icon={Settings2} title="System Conditions" minimized={minimized['conditions']} toggle={() => toggleSection('conditions')} />
                             {!minimized['conditions'] && (
                                 <div className="p-4 grid grid-cols-2 gap-4 bg-white">
@@ -328,7 +328,7 @@ export const SystemDashboard: React.FC = () => {
                         </div>
 
                         {/* Section: Fluid */}
-                        <div className="border-b border-slate-100">
+                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <CardHeader icon={Droplets} title="Fluid Properties" minimized={minimized['fluid']} toggle={() => toggleSection('fluid')} />
                             {!minimized['fluid'] && (
                                 <div className="p-4 bg-white">
@@ -337,16 +337,14 @@ export const SystemDashboard: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Section: Pipes (RESTORED SUCTION) */}
-                        <div className="border-b border-slate-100">
+                        {/* Section: Pipes */}
+                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <CardHeader icon={LayoutGrid} title="Piping Network" minimized={minimized['pipes']} toggle={() => toggleSection('pipes')} />
                             {!minimized['pipes'] && (
                                 <div className="p-0">
-                                    {/* Explicitly render Suction Manager */}
                                     <div className="p-4 border-b border-slate-50 bg-slate-50/30">
                                         <PipeSegmentManager type="suction" />
                                     </div>
-                                    {/* Explicitly render Discharge Manager */}
                                     <div className="p-4">
                                         <PipeSegmentManager type="discharge" />
                                     </div>
@@ -355,7 +353,7 @@ export const SystemDashboard: React.FC = () => {
                         </div>
 
                         {/* Section: Pump */}
-                        <div className="border-b border-slate-100 mb-20"> {/* Margin for footer scroll */}
+                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <CardHeader icon={Settings2} title="Pump Curve" minimized={minimized['pump']} toggle={() => toggleSection('pump')} />
                             {!minimized['pump'] && (
                                 <div className="p-4">
@@ -366,78 +364,83 @@ export const SystemDashboard: React.FC = () => {
 
                     </aside>
 
-                    {/* RIGHT COLUMN: Results & Charts (Main Stage) */}
-                    <section className="col-span-12 lg:col-span-6 bg-slate-50/50 flex flex-col overflow-y-auto">
+                    {/* RIGHT COLUMN: Results & Charts (Sticky) */}
+                    <section className="col-span-12 xl:col-span-6 flex flex-col gap-4 sticky top-20">
 
-                        {/* Results & Charts Grid */}
-                        <div className="p-4 flex-1 grid grid-cols-1 gap-4">
+                        {/* Results KPI Bar */}
+                        {result && (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <ResultsDisplay result={result} isCalculating={isCalculating} error={error} />
+                            </div>
+                        )}
 
-                            {/* Results KPI Bar */}
-                            {result && (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <ResultsDisplay result={result} isCalculating={isCalculating} error={error} />
-                                </div>
-                            )}
+                        {/* Charts Tabs (No Schematic) */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[600px]">
+                            <div className="flex border-b border-slate-100">
+                                <button
+                                    onClick={() => setActiveTab('system')}
+                                    className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'system' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+                                >
+                                    System Head Curve
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('npsh')}
+                                    className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'npsh' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+                                >
+                                    NPSH Analysis
+                                </button>
+                            </div>
 
-                            {/* Charts Tabs */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-full min-h-[500px]">
-                                <div className="flex border-b border-slate-100 overflow-x-auto">
-                                    <button
-                                        onClick={() => setActiveTab('schematic')}
-                                        className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 min-w-[120px] ${activeTab === 'schematic' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-                                    >
-                                        System Schematic
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('system')}
-                                        className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 min-w-[120px] ${activeTab === 'system' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-                                    >
-                                        System Head Curve
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('npsh')}
-                                        className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 min-w-[120px] ${activeTab === 'npsh' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-                                    >
-                                        NPSH Analysis
-                                    </button>
-                                </div>
-
-                                <div className="p-4 flex-1 flex flex-col">
-                                    {activeTab === 'schematic' && (
-                                        <div className="flex-1 flex justify-center items-center overflow-hidden bg-slate-50/30 rounded-lg border border-slate-100 p-4">
-                                            <div className="w-full">
-                                                <SystemSchematic result={result} />
-                                            </div>
-                                        </div>
-                                    )}
-                                    {activeTab === 'system' && (
-                                        <div className="h-full w-full min-h-[300px]">
-                                            <HeadFlowChart data={chartData} operatingPoint={result} />
-                                        </div>
-                                    )}
-                                    {activeTab === 'npsh' && (
-                                        <div className="h-full w-full min-h-[300px]">
-                                            <NPSHChart data={chartData} operatingPoint={result} />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {!result && !isCalculating && activeTab !== 'schematic' && (
-                                    <div className="p-4 text-center text-sm text-slate-400 italic bg-slate-50/50">
-                                        Click "Calculate" to view results.
+                            <div className="p-4 flex-1 flex flex-col">
+                                {activeTab === 'system' && (
+                                    <div className="h-full w-full">
+                                        <HeadFlowChart data={chartData} operatingPoint={result} />
+                                    </div>
+                                )}
+                                {activeTab === 'npsh' && (
+                                    <div className="h-full w-full">
+                                        <NPSHChart data={chartData} operatingPoint={result} />
                                     </div>
                                 )}
                             </div>
 
+                            {!result && !isCalculating && (
+                                <div className="p-4 text-center text-sm text-slate-400 italic bg-slate-50/50 border-t border-slate-100">
+                                    Click "Calculate" to view results.
+                                </div>
+                            )}
                         </div>
                     </section>
                 </div>
+
+                {/* Bottom Section: Full Width Schematic */}
+                <section className="w-full bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                    <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
+                        <LayoutGrid className="w-5 h-5 text-sky-600" />
+                        <h3 className="text-base font-bold text-slate-700">System Schematic Visualization</h3>
+                    </div>
+
+                    <div className="w-full h-[600px] bg-slate-50/30 p-4 relative overflow-auto custom-scrollbar">
+                        {result ? (
+                            <div className="min-w-[1000px] h-full mx-auto">
+                                <SystemSchematic result={result} />
+                            </div>
+                        ) : (
+                            <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                                <LayoutGrid className="w-12 h-12 opacity-20" />
+                                <span className="text-sm">Calculate to generate system schematic</span>
+                            </div>
+                        )}
+                    </div>
+                </section>
+
+
 
             </main>
 
             {/*
                 HIDDEN PDF CAPTURE ZONE
-                Render everything needed for PDF here, always visible to html2canvas (but hidden from user via css properties that html2canvas ignores or standard absolute positioning offscreen)
+                Render everything needed for PDF here, always visible to html2canvas
              */}
             <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1200px', backgroundColor: 'white' }}>
                 <div id="pdf-diagram" style={{ width: '1200px', height: '800px' }}>
