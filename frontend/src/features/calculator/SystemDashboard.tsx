@@ -147,8 +147,7 @@ export const SystemDashboard: React.FC = () => {
                 if (diagramEl) {
                     console.log("Capturing Diagram...");
                     // @ts-ignore
-                    // Scale higher for crisp text
-                    const canvas = await html2canvas(diagramEl, { scale: 2.0, backgroundColor: '#ffffff', logging: false });
+                    const canvas = await html2canvas(diagramEl, { scale: 2.0, backgroundColor: '#ffffff', logging: true, useCORS: true, allowTaint: true });
                     diagramImg = canvas.toDataURL('image/jpeg', 0.8);
                     diagramRatio = canvas.width / canvas.height;
                 }
@@ -162,7 +161,7 @@ export const SystemDashboard: React.FC = () => {
                 if (systemChartEl) {
                     console.log("Capturing System Chart...");
                     // @ts-ignore
-                    const canvas = await html2canvas(systemChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
+                    const canvas = await html2canvas(systemChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: true, useCORS: true, allowTaint: true });
                     chart1Img = canvas.toDataURL('image/jpeg', 0.8);
                 }
             } catch (e: any) {
@@ -175,7 +174,7 @@ export const SystemDashboard: React.FC = () => {
                 if (npshChartEl) {
                     console.log("Capturing NPSH Chart...");
                     // @ts-ignore
-                    const canvas = await html2canvas(npshChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
+                    const canvas = await html2canvas(npshChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: true, useCORS: true, allowTaint: true });
                     chart2Img = canvas.toDataURL('image/jpeg', 0.8);
                 }
             } catch (e: any) {
@@ -493,7 +492,7 @@ export const SystemDashboard: React.FC = () => {
                 HIDDEN PDF CAPTURE ZONE
                 Render everything needed for PDF here, always visible to html2canvas
              */}
-            <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1200px', backgroundColor: 'white' }}>
+            <div style={{ position: 'fixed', left: 0, top: 0, width: '1200px', backgroundColor: 'white', zIndex: -9999, opacity: 0, pointerEvents: 'none' }}>
                 <div id="pdf-diagram" style={{ width: '1200px', padding: '20px' }}>
                     {/* User requested Exact Copy of Application -> printMode={false} */}
                     {result && <SystemSchematic result={result} printMode={false} />}
