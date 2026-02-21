@@ -413,26 +413,27 @@ export const generatePDFReport = (data: ReportData) => {
     }
 
 
-    // Save robustly
+    // Clean filename
     const safeName = (data.projectName || 'report').replace(/[^a-zA-Z0-9_\-]/g, '_');
-    const filename = `pump_analysis_${safeName}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const filename = `pump_analysis_${safeName}.pdf`;
 
     try {
-        const blob = doc.output('blob');
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-
-        // Cleanup
-        setTimeout(() => {
-            if (link.parentNode) link.parentNode.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        }, 1000);
-    } catch (e) {
-        console.error("Manual save failed, falling back to doc.save():", e);
+        // Native jsPDF save is generally the most reliable across browsers now
         doc.save(filename);
+    } catch (e) {
+        console.error("doc.save() failed, attempting fallback:", e);
+        try {
+            // Fallback: Open in new tab as Base64 PDF
+            const pdfDataUri = doc.output('datauristring');
+            const newWindow = window.open();
+            if (newWindow) {
+                newWindow.document.write(`<iframe width='100%' height='100%' src='${pdfDataUri}'></iframe>`);
+            } else {
+                alert("Please allow pop-ups to view the PDF.");
+            }
+        } catch (fallbackError) {
+            console.error("Fallback also failed", fallbackError);
+            alert("Failed to generate PDF. See console for details.");
+        }
     }
 };
