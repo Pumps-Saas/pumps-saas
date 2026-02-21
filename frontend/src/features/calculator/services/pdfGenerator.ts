@@ -413,7 +413,26 @@ export const generatePDFReport = (data: ReportData) => {
     }
 
 
-    // Save
-    const filename = `pump_analysis_${data.projectName || 'report'}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
+    // Save robustly
+    const safeName = (data.projectName || 'report').replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const filename = `pump_analysis_${safeName}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+    try {
+        const blob = doc.output('blob');
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        setTimeout(() => {
+            if (link.parentNode) link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }, 1000);
+    } catch (e) {
+        console.error("Manual save failed, falling back to doc.save():", e);
+        doc.save(filename);
+    }
 };
