@@ -24,6 +24,7 @@ class Settings(BaseSettings):
         "http://localhost",
         "http://127.0.0.1",
         "http://PEDRONITRO5:3000",
+        "https://pumps-saas.vercel.app",
     ]
     
     FRONTEND_URL: str | None = None
