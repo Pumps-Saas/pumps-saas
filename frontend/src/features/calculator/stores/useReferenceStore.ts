@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
-import { Material, Fluid } from '@/types/engineering';
+
 
 interface ReferenceStore {
     fluids: Record<string, any>;

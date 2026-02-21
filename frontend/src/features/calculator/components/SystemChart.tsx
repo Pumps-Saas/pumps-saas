@@ -8,7 +8,6 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
-    ReferenceDot,
     ReferenceLine
 } from 'recharts';
 import { OperatingPointResult, PumpCurvePoint } from '@/types/engineering';

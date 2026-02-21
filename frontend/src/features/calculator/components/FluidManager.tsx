@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Droplets, Plus, Trash2, Save } from 'lucide-react';
+import { Trash2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { Fluid } from '@/types/engineering';
+
 import { useSystemStore } from '../stores/useSystemStore';
 import { useReferenceStore } from '../stores/useReferenceStore';
 import { Card } from '@/components/ui/Card';
@@ -19,7 +19,7 @@ export const FluidManager: React.FC = () => {
     const { fluids: standardFluids, fetchStandards } = useReferenceStore();
 
     const [isCustom, setIsCustom] = useState(false);
-    const [selectedStandard, setSelectedStandard] = useState("");
+    const [, setSelectedStandard] = useState("");
     const [customFluids, setCustomFluids] = useState<any[]>([]);
 
     // Custom state

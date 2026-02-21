@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Menu, X } from 'lucide-react';
+import { Activity, Menu } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { ProjectManager } from '../../features/projects/ProjectManager';
 

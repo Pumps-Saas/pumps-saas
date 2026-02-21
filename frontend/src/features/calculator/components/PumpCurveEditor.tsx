@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, FolderOpen, Database } from 'lucide-react';
+import { Plus, Trash2, Save } from 'lucide-react';
 import { useSystemStore } from '../stores/useSystemStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';

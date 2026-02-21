@@ -4,8 +4,6 @@ import ReactFlow, {
     Edge,
     Controls,
     Background,
-    useNodesState,
-    useEdgesState,
     MarkerType
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -15,8 +13,8 @@ import { useSystemStore } from '../stores/useSystemStore';
 // Pump Node, Tank Node, Pipe Segment Edge (with label).
 
 const SystemDiagram: React.FC = () => {
-    const suctionSegments = useSystemStore(state => state.suction_segments);
-    const dischargeSegments = useSystemStore(state => state.discharge_segments);
+    const suctionSegments = useSystemStore(state => state.suction_sections);
+    const dischargeSegments = useSystemStore(state => state.discharge_sections_before);
     const staticHead = useSystemStore(state => state.static_head);
 
     // Dynamic Node/Edge Generation
@@ -57,7 +55,7 @@ const SystemDiagram: React.FC = () => {
         // For Phase 1, the "Segments" are just properties of the line, not necessarily nodal split points unless they are different pipes in series.
         // We will represent them as a single edge connecting Tank -> Pump for now, and label with total length?
 
-        const suctionLength = suctionSegments.reduce((sum, s) => sum + s.length, 0);
+        const suctionLength = suctionSegments.reduce((sum: number, s: any) => sum + s.length, 0);
         generatedEdges.push({
             id: 'e-suction',
             source: 'source-tank',
@@ -68,7 +66,7 @@ const SystemDiagram: React.FC = () => {
             markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' },
         });
 
-        const dischargeLength = dischargeSegments.reduce((sum, s) => sum + s.length, 0);
+        const dischargeLength = dischargeSegments.reduce((sum: number, s: any) => sum + s.length, 0);
         generatedEdges.push({
             id: 'e-discharge',
             source: 'pump',
@@ -81,9 +79,6 @@ const SystemDiagram: React.FC = () => {
 
         return { nodes: generatedNodes, edges: generatedEdges };
     }, [suctionSegments, dischargeSegments, staticHead]);
-
-    const [nodesState, , onNodesChange] = useNodesState(nodes);
-    const [edgesState, , onEdgesChange] = useEdgesState(edges);
 
     // React Flow requires a specific height on container
     return (
