@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: pumps-saas-api
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0 # Standardize python version
+      - key: DATABASE_URL
+        sync: false # User will provide this in the render dashboard
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "https://pumps-saas.vercel.app" # The intended future vercel URL
