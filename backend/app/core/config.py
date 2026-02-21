@@ -14,6 +14,14 @@ class Settings(BaseSettings):
         "http://127.0.0.1",
         "http://PEDRONITRO5:3000",
     ]
+    
+    FRONTEND_URL: str | None = None
+
+    def get_cors_origins(self) -> List[str]:
+        origins = self.BACKEND_CORS_ORIGINS.copy()
+        if self.FRONTEND_URL:
+            origins.append(self.FRONTEND_URL)
+        return origins
 
     class Config:
         case_sensitive = True

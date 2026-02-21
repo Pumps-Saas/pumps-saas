@@ -22,7 +22,8 @@ export const useReferenceStore = create<ReferenceStore>((set) => ({
     fetchStandards: async () => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.get('http://127.0.0.1:8000/api/v1/fluids/standards');
+            const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+            const response = await axios.get(`${API_URL}/fluids/standards`);
             set({
                 fluids: response.data.fluids,
                 materials: response.data.materials,

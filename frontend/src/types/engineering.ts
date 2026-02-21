@@ -49,6 +49,11 @@ export interface SystemState {
     atmospheric_pressure_bar: number;
     altitude_m: number;
 
+    // Energy & Cost Fields
+    efficiency_motor: number; // e.g. 0.90
+    hours_per_day: number;
+    energy_cost_per_kwh: number;
+
     pump_curve: PumpCurvePoint[];
 }
 
@@ -79,4 +84,5 @@ export interface OperatingPointResult {
         friction_head_m: number;
         total_head_m: number;
     };
+    is_extrapolated?: boolean;
 }

@@ -65,8 +65,14 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
 
         const COMPONENT_SPACING = printMode ? 200 : dynamicSpacing;
         const TANK_WIDTH = 100;
-        const PIPE_Y = 150;
-        const PARALLEL_OFFSET = 100;
+
+        const branchKeys = Object.keys(dischargeParallel);
+        const numBranches = branchKeys.length;
+        const branchSpacing = 130;
+        const totalHeight = numBranches > 1 ? (numBranches - 1) * branchSpacing : 0;
+
+        const PIPE_Y = Math.max(150, (totalHeight / 2) + 120);
+        const requiredHeight = PIPE_Y + (totalHeight / 2) + 120;
 
         // --- 1. Suction Tank (Blue Cylinder) ---
         // Cylinder Body
@@ -141,16 +147,15 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
 
 
         // --- 5. Parallel Branches ---
-        const branchKeys = Object.keys(dischargeParallel);
-        if (branchKeys.length > 0) {
+        if (numBranches > 0) {
             const splitX = cursorX;
             // Shorter branch length too
             const branchLength = Math.max(260, COMPONENT_SPACING + 130);
             const mergeX = splitX + branchLength;
 
             // Draw Split Pipe (Vertical)
-            const topY = PIPE_Y - PARALLEL_OFFSET;
-            const bottomY = PIPE_Y + PARALLEL_OFFSET;
+            const topY = PIPE_Y - (totalHeight / 2);
+            const bottomY = PIPE_Y + (totalHeight / 2);
 
             // Vertical Line at Split
             svgElements.push(
@@ -161,10 +166,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
 
 
             branchKeys.forEach((key, bIdx) => {
-                const isTop = bIdx === 0;
-                // If more than 2, this logic needs expansion, but for now 2 is typical.
-                // Improve spacing if we have multiples
-                const branchY = isTop ? topY : bottomY;
+                const branchY = topY + (bIdx * 130);
                 const segments = dischargeParallel[key];
                 const s = segments[0];
 
@@ -212,12 +214,12 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
         cursorX = endTankCenterX + endTankRadius;
 
         // Add extra padding at the end
-        return { svgElements, totalWidth: cursorX + 100 };
+        return { svgElements, totalWidth: cursorX + 100, requiredHeight };
     }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, result, printMode, baseFontSize, headerFontSize, strokeWidth, heavyStroke]);
 
     return (
         <div style={{ width: '100%', background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <svg width="100%" height="auto" viewBox={`0 0 ${elements.totalWidth} 400`} preserveAspectRatio="xMidYMid meet">
+            <svg width="100%" height="auto" viewBox={`0 0 ${elements.totalWidth} ${elements.requiredHeight}`} preserveAspectRatio="xMidYMid meet">
                 {textBgFilter}
                 {elements.svgElements}
             </svg>

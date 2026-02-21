@@ -94,12 +94,20 @@ def find_operating_point(
              # If root passes an array
              return [pump_curve_func(fl) - system_curve(fl) for fl in flow_m3h]
 
-    # Initial guess: 50 m3/h
-    solution = root(error_func, 50.0, method='hybr', options={'xtol': 1e-8})
-
+    # Initial guess: 50 m3/h. Sometimes 'hybr' fails on extrapolated polynomials. 
+    # Let's try multiple initial guesses if the first one fails to ensure we find intersections far out.
+    guesses = [50.0, 10.0, 150.0, 300.0]
+    flow_op = None
     
-    if solution.success and solution.x[0] > 1e-3:
-        flow_op = solution.x[0]
+    for guess in guesses:
+        solution = root(error_func, guess, method='hybr', options={'xtol': 1e-8})
+        if solution.success and solution.x[0] > 1e-3:
+            # Verify it's a real intersection (error is close to 0)
+            if abs(error_func(solution.x[0])) < 0.1:
+                flow_op = solution.x[0]
+                break
+                
+    if flow_op is not None:
         head_op = pump_curve_func(flow_op)
         return flow_op, head_op, system_curve
     

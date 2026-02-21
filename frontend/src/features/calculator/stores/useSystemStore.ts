@@ -14,6 +14,7 @@ interface SystemStore extends SystemState {
     setStaticHead: (head: number) => void;
     setPressure: (field: 'pressure_suction_bar_g' | 'pressure_discharge_bar_g' | 'atmospheric_pressure_bar', value: number) => void;
     setAltitude: (val: number) => void;
+    setEnergyConfig: (field: 'efficiency_motor' | 'hours_per_day' | 'energy_cost_per_kwh', value: number) => void;
 
     // Suction Actions
     addSuctionSection: (section: Omit<PipeSection, 'id'>) => void;
@@ -66,7 +67,7 @@ const DEFAULT_FLUID: Fluid = {
 
 // Import axios here to use in the store action
 import axios from 'axios';
-const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 export const useSystemStore = create<SystemStore>((set, get) => ({
     fluid: DEFAULT_FLUID,
@@ -85,6 +86,11 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     atmospheric_pressure_bar: 1.01325,
     altitude_m: 0,
 
+    // Default Energy parameters
+    efficiency_motor: 0.90, // 90%
+    hours_per_day: 24,
+    energy_cost_per_kwh: 0.80, // 0.80 R$/kWh
+
     // Calculation State
     operatingPoint: null,
     isCalculating: false,
@@ -100,6 +106,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         const patm_bar = patm_pa / 100000;
         set({ altitude_m: val, atmospheric_pressure_bar: patm_bar });
     },
+    setEnergyConfig: (field, value) => set({ [field]: value }),
 
     setPumpDetails: (manufacturer, model) => set({ pump_manufacturer: manufacturer, pump_model: model }),
 
@@ -200,6 +207,10 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
                 pressure_discharge_bar_g: state.pressure_discharge_bar_g,
                 atmospheric_pressure_bar: state.atmospheric_pressure_bar,
 
+                efficiency_motor: state.efficiency_motor,
+                hours_per_day: state.hours_per_day,
+                energy_cost_per_kwh: state.energy_cost_per_kwh,
+
                 pump_curve_points: state.pump_curve
             };
 
@@ -223,6 +234,9 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         pressure_suction_bar_g: 0,
         pressure_discharge_bar_g: 0,
         atmospheric_pressure_bar: 1.01325,
+        efficiency_motor: 0.90,
+        hours_per_day: 24,
+        energy_cost_per_kwh: 0.80,
         operatingPoint: null,
         isCalculating: false,
         calculationError: null

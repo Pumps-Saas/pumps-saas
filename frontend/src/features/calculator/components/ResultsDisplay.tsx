@@ -1,7 +1,7 @@
 import React from 'react';
 import { OperatingPointResult } from '@/types/engineering';
 import { Card } from '@/components/ui/Card';
-import { Gauge, Zap, TrendingUp, AlertTriangle, Droplets } from 'lucide-react';
+import { Gauge, Zap, TrendingUp, AlertTriangle, Droplets, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 interface ResultsDisplayProps {
     result: OperatingPointResult | null;
@@ -19,13 +19,13 @@ interface MetricProps {
 }
 
 const Metric: React.FC<MetricProps> = ({ label, value, unit, icon, color = "bg-blue-50 text-blue-600", alert }) => (
-    <div className={`flex items-start p-4 rounded-xl border ${alert ? 'bg-red-50 border-red-100' : 'bg-white border-slate-100 shadow-sm'}`}>
-        <div className={`p-2 rounded-lg mr-3 ${alert ? 'bg-red-100 text-red-600' : color}`}>
+    <div className={`flex items-start p-4 rounded-xl border min-w-0 ${alert ? 'bg-red-50 border-red-100' : 'bg-white border-slate-100 shadow-sm'}`}>
+        <div className={`p-2 rounded-lg mr-3 shrink-0 ${alert ? 'bg-red-100 text-red-600' : color}`}>
             {icon || <TrendingUp size={20} />}
         </div>
-        <div>
-            <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${alert ? 'text-red-600' : 'text-slate-500'}`}>{label}</p>
-            <p className={`text-2xl font-bold ${alert ? 'text-red-700' : 'text-slate-800'}`}>
+        <div className="min-w-0 flex-1">
+            <p className={`text-xs font-semibold uppercase tracking-wider mb-1 truncate ${alert ? 'text-red-600' : 'text-slate-500'}`} title={label}>{label}</p>
+            <p className={`text-xl font-bold break-words whitespace-normal leading-tight ${alert ? 'text-red-700' : 'text-slate-800'}`} style={{ wordBreak: 'break-word' }} title={String(value)}>
                 {value} <span className="text-sm font-normal text-slate-500">{unit}</span>
             </p>
         </div>
@@ -37,7 +37,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
         return (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 flex items-center">
                 <AlertTriangle className="mr-3 shrink-0" />
-                <span>Calculation Error: {error}</span>
+                <span>{error}</span>
             </div>
         );
     }
@@ -51,7 +51,32 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
     const power = result?.power_kw ? result.power_kw.toFixed(1) : '-';
     const cost = result?.cost_per_year ? result.cost_per_year.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-';
     const eff = result?.efficiency_op ? result.efficiency_op.toFixed(1) : '-';
-    const npsha = result?.npsh_available ? result.npsh_available.toFixed(2) : '-';
+    const npsha = result?.npsh_available || 0;
+    const npshr = result?.npsh_required || 0;
+
+    // NPSH Margin Calculation
+    let npshMarginValue = 0;
+    let npshMarginText = '-';
+    let npshAlertStatus: 'safe' | 'warning' | 'danger' = 'safe';
+    let npshIcon = <CheckCircle2 size={20} />;
+    let npshColor = "bg-emerald-50 text-emerald-600";
+
+    if (result && npshr > 0) {
+        npshMarginValue = (npsha - npshr) / npshr;
+        npshMarginText = `${(npshMarginValue * 100).toFixed(1)} %`;
+
+        if (npshMarginValue < 0) {
+            npshAlertStatus = 'danger';
+            npshIcon = <ShieldAlert size={20} />;
+            npshColor = "bg-red-50 text-red-600";
+        } else if (npshMarginValue < 0.20) {
+            npshAlertStatus = 'warning';
+            npshIcon = <AlertTriangle size={20} />;
+            npshColor = "bg-amber-50 text-amber-600";
+        }
+    } else if (result && npsha > 0) {
+        npshMarginText = `> 100% (No NPSHr)`;
+    }
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -72,12 +97,12 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
                     color="bg-indigo-50 text-indigo-600"
                 />
                 <Metric
-                    label="NPSH Available"
-                    value={npsha}
-                    unit="m"
-                    icon={<Droplets size={20} />}
-                    alert={result?.cavitation_risk} // Highlight if risk
-                    color="bg-cyan-50 text-cyan-600"
+                    label="NPSH Margin"
+                    value={npshMarginText}
+                    unit=""
+                    icon={npshIcon}
+                    alert={npshAlertStatus === 'danger'} // Red border only for danger
+                    color={npshAlertStatus === 'warning' ? "bg-amber-100 text-amber-700" : npshColor} // Warning gets amber, danger handled by alert prop
                 />
                 <Metric
                     label="Pump Efficiency"
@@ -103,7 +128,7 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
             </div>
 
             {/* Alerts */}
-            {result?.natural_flow_m3h && result.natural_flow_m3h > 0 && (
+            {(result?.natural_flow_m3h ?? 0) > 0 && (
                 <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-md">
                     <div className="flex">
                         <div className="flex-shrink-0">
@@ -113,9 +138,25 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
                             <h3 className="text-sm font-medium text-emerald-800">Natural Flow Available</h3>
                             <div className="mt-2 text-sm text-emerald-700">
                                 <p>
-                                    Due to high source pressure or elevation, this system can flow at <strong>{result.natural_flow_m3h.toFixed(1)} m³/h</strong> without a pump.
+                                    Due to high source pressure or elevation, this system can flow at <strong>{result!.natural_flow_m3h!.toFixed(1)} m³/h</strong> without a pump.
                                     The pump is only needed if you require higher flow rates.
                                 </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {result?.is_extrapolated && (
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-md">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-medium text-amber-800">Ponto de Operação Estimado</h3>
+                            <div className="mt-2 text-sm text-amber-700">
+                                <p>O ponto de operação encontrado extrapolou a curva da bomba, ou seja, está fora dos limites dos pontos fornecidos ({result.flow_op.toFixed(1)} m³/h). Os resultados podem sofrer imprecisões no mundo real. Considere validar os dados.</p>
                             </div>
                         </div>
                     </div>
@@ -129,9 +170,25 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ result, isCalcul
                             <AlertTriangle className="h-5 w-5 text-red-500" aria-hidden="true" />
                         </div>
                         <div className="ml-3">
-                            <h3 className="text-sm font-medium text-red-800">Cavitation Risk Detected</h3>
+                            <h3 className="text-sm font-medium text-red-800">Dangerous Cavitation Risk Detected</h3>
                             <div className="mt-2 text-sm text-red-700">
-                                <p>NPSH Available ({npsha}m) is likely lower than NPSH Required by the pump.</p>
+                                <p>NPSH Available ({npsha.toFixed(2)}m) is lower than NPSH Required ({npshr.toFixed(2)}m) by the pump. The pump will cavitate.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {npshAlertStatus === 'warning' && (
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-md">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden="true" />
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-medium text-amber-800">Low NPSH Margin</h3>
+                            <div className="mt-2 text-sm text-amber-700">
+                                <p>The NPSH margin is {npshMarginText}, which is below the recommended 20% safety factor. Consider increasing suction head or reducing pipe losses.</p>
                             </div>
                         </div>
                     </div>

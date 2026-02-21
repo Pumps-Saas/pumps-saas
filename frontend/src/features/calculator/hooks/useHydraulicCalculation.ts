@@ -5,7 +5,7 @@ import { OperatingPointResult } from '@/types/engineering';
 import { useSystemStore } from './../stores/useSystemStore';
 
 // Assuming API is proxied or running on 8000
-const API_URL = 'http://127.0.0.1:8000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 export const useHydraulicCalculation = () => {
     const [isCalculating, setIsCalculating] = useState(false);
@@ -26,6 +26,11 @@ export const useHydraulicCalculation = () => {
     const pDischarge = useSystemStore(state => state.pressure_discharge_bar_g);
     const pAtm = useSystemStore(state => state.atmospheric_pressure_bar);
 
+    // Energy Config
+    const efficiencyMotor = useSystemStore(state => state.efficiency_motor);
+    const hoursPerDay = useSystemStore(state => state.hours_per_day);
+    const energyCost = useSystemStore(state => state.energy_cost_per_kwh);
+
     const calculateOperatingPoint = async () => {
         setIsCalculating(true);
         setError(null);
@@ -42,6 +47,11 @@ export const useHydraulicCalculation = () => {
                 pressure_suction_bar_g: pSuction,
                 pressure_discharge_bar_g: pDischarge,
                 atmospheric_pressure_bar: pAtm,
+
+                // Energy Fields
+                efficiency_motor: efficiencyMotor,
+                hours_per_day: hoursPerDay,
+                energy_cost_per_kwh: energyCost,
 
                 pump_curve_points: pumpCurve
             };

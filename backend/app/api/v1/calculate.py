@@ -169,7 +169,7 @@ def get_operating_point(request: OperatingPointRequest):
     if shut_off_head < total_static_head_m:
         raise HTTPException(
             status_code=400, 
-            detail=f"Pump insufficient: Shut-off head ({shut_off_head:.2f} m) is less than system static head ({total_static_head_m:.2f} m)."
+            detail=f"A Bomba selecionada não tem força suficiente. A Pressão Máxima (Shut-off: {shut_off_head:.1f} m) é menor do que a Altura Estática do Sistema ({total_static_head_m:.1f} m). Por favor, troque de bomba para prosseguir com o cálculo."
         )
 
     flow_op, head_op, _ = find_operating_point(
@@ -185,7 +185,7 @@ def get_operating_point(request: OperatingPointRequest):
     if flow_op is None:
         raise HTTPException(
             status_code=400, 
-            detail="Could not find a valid operating point. The pump curve may not intersect the system curve in a stable region."
+            detail="As curvas não se cruzam! Não foi possível encontrar um ponto de operação válido. A bomba selecionada é muito fraca para a vazão do sistema. Por favor, troque de bomba para prosseguir com o cálculo."
         )
         
     # --- Detailed Analysis ---
@@ -259,6 +259,11 @@ def get_operating_point(request: OperatingPointRequest):
     # Memorial Breakdown
     head_pressure_net = head_pressure_discharge - head_pressure_suction
     
+    is_extrapolated = False
+    if flows:
+        if safe_flow_op < min(flows) or safe_flow_op > max(flows):
+            is_extrapolated = True
+    
     return OperatingPointResponse(
         flow_op=float(safe_flow_op),
         head_op=float(head_op),
@@ -275,5 +280,6 @@ def get_operating_point(request: OperatingPointRequest):
             "pressure_head_m": float(head_pressure_net),
             "friction_head_m": float(head_friction_total),
             "total_head_m": float(request.static_head_m + head_pressure_net + head_friction_total)
-        }
+        },
+        is_extrapolated=is_extrapolated
     )

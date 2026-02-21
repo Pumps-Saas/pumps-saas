@@ -63,8 +63,13 @@ export interface ReportData {
         dutyHead: number;
         efficiency?: number;
         power?: number;
+        costPerYear?: number;
         npshAvailable: number;
         npshRequired?: number;
+        npshMargin?: string;
+        isExtrapolated?: boolean;
+        cavitationRisk?: boolean;
+        lowNpshMarginLevel?: 'warning' | 'danger' | 'safe';
         headBreakdown?: {
             static: number;
             pressure: number;
@@ -87,6 +92,7 @@ export interface ReportData {
         systemCurveImg?: string; // Data URL
         npshCurveImg?: string;   // Data URL
         networkDiagramImg?: string; // Data URL
+        networkDiagramRatio?: number;
     };
 }
 
@@ -131,7 +137,8 @@ export const generatePDFReport = (data: ReportData) => {
     const resultsBody = [
         ['Operating Flow', `${data.results.dutyFlow.toFixed(2)} m³/h`, 'Total Dynamic Head', `${data.results.dutyHead.toFixed(2)} m`],
         ['NPSH Available', `${data.results.npshAvailable.toFixed(2)} m`, 'NPSH Required', data.results.npshRequired ? `${data.results.npshRequired.toFixed(2)} m` : 'N/A'],
-        ['Efficiency', data.results.efficiency ? `${data.results.efficiency.toFixed(1)} %` : '-', 'Shaft Power', data.results.power ? `${data.results.power.toFixed(2)} kW` : '-']
+        ['NPSH Margin', data.results.npshMargin || '-', 'Efficiency', data.results.efficiency ? `${data.results.efficiency.toFixed(1)} %` : '-'],
+        ['Shaft Power', data.results.power ? `${data.results.power.toFixed(2)} kW` : '-', 'Est. Yearly Cost', data.results.costPerYear ? `R$ ${data.results.costPerYear.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-']
     ];
 
     autoTable(doc, {
@@ -244,28 +251,70 @@ export const generatePDFReport = (data: ReportData) => {
         doc.text("System Analysis & Visualization", margin, yPos);
         yPos += 15;
 
-        // Available vertical space for 2 charts
-        const availableHeight = pageHeight - yPos - margin;
-        // Check if 2 charts fit, otherwise use smaller height or add page
-        const chartHeight = Math.min(availableHeight * 0.45, 100); // Limit max height
+        // We want both charts on one page. 
+        // Available vertical space is roughly 297 - 20 (yPos) - 14 (margin) = 263mm
+        // For 2 charts, we previously used 115mm each + padding, which was too tight at the bottom.
+        const chartHeight = 105;
+        // Maintain a 4:3 aspect ratio based on our 1200x900 HTML export
+        const renderWidth = chartHeight * (1200 / 900); // ~153mm
+        // Center the charts horizontally on the 210mm wide A4 page.
+        const xOffset = (pageWidth - renderWidth) / 2;
 
         if (data.charts.systemCurveImg) {
             // Use JPEG format
-            doc.addImage(data.charts.systemCurveImg, 'JPEG', margin, yPos, chartWidth, chartHeight);
+            doc.addImage(data.charts.systemCurveImg, 'JPEG', xOffset, yPos, renderWidth, chartHeight);
+            yPos += chartHeight + 4; // Reduced gap for warning
 
-            yPos += chartHeight + 10; // Reduced spacing
+            // Add Extrapolation Warning under System Curve if applicable
+            if (data.results.isExtrapolated) {
+                // Amber style box
+                doc.setDrawColor(245, 158, 11);
+                doc.setFillColor(255, 251, 235);
+                doc.setLineWidth(0.3);
+                const boxHeight = 10;
+                doc.roundedRect(xOffset, yPos, renderWidth, boxHeight, 1, 1, 'FD');
+
+                doc.setFontSize(9);
+                doc.setTextColor(180, 83, 9);
+                doc.text("WARNING: Estimated Operating Point. The intersection extrapolates the provided pump curve.", pageWidth / 2, yPos + 6.5, { align: 'center' });
+                yPos += boxHeight + 4;
+            } else {
+                yPos += 6; // Normal spacing if no warning
+            }
         }
 
         if (data.charts.npshCurveImg) {
-            // Check fit
-            if (yPos + chartHeight > pageHeight - margin) {
-                doc.addPage();
-                yPos = 20;
+            doc.addImage(data.charts.npshCurveImg, 'JPEG', xOffset, yPos, renderWidth, chartHeight);
+            yPos += chartHeight + 4; // Reduced gap for warnings
+
+            // Add NPSH Warnings under NPSH chart if applicable
+            if (data.results.cavitationRisk) {
+                // Red style box
+                doc.setDrawColor(239, 68, 68);
+                doc.setFillColor(254, 242, 242);
+                doc.setLineWidth(0.3);
+                const boxHeight = 10;
+                doc.roundedRect(xOffset, yPos, renderWidth, boxHeight, 1, 1, 'FD');
+
+                doc.setFontSize(9);
+                doc.setTextColor(185, 28, 28);
+                doc.text("DANGER: CAVITATION RISK! NPSH Available is less than NPSH Required.", pageWidth / 2, yPos + 6.5, { align: 'center' });
+                yPos += boxHeight + 4;
+            } else if (data.results.lowNpshMarginLevel === 'warning') {
+                // Amber style box
+                doc.setDrawColor(245, 158, 11);
+                doc.setFillColor(255, 251, 235);
+                doc.setLineWidth(0.3);
+                const boxHeight = 10;
+                doc.roundedRect(xOffset, yPos, renderWidth, boxHeight, 1, 1, 'FD');
+
+                doc.setFontSize(9);
+                doc.setTextColor(180, 83, 9);
+                doc.text("WARNING: Low NPSH Margin (< 20%). Risk of cavitation under varying conditions.", pageWidth / 2, yPos + 6.5, { align: 'center' });
+                yPos += boxHeight + 4;
+            } else {
+                yPos += 6;
             }
-
-            doc.addImage(data.charts.npshCurveImg, 'JPEG', margin, yPos, chartWidth, chartHeight);
-
-            yPos += chartHeight + 10;
         }
 
         // Start new page for Network Details
@@ -334,20 +383,33 @@ export const generatePDFReport = (data: ReportData) => {
 
     // --- 5. Calculated Network Diagram (Full Width) ---
     if (data.charts?.networkDiagramImg) {
-        const diagramHeight = 100; // Fixed height or proportional
+        // Calculate proportional height based on the physical canvas.
+        const ratio = data.charts.networkDiagramRatio || 2;
+        // The renderWidth matches chartWidth (the page width minus margins)
+        // With proportional height, it guarantees no distortion.
+        let renderWidth = chartWidth;
+        let renderHeight = renderWidth / ratio;
 
-        // Ensure it fits
-        if (yPos + diagramHeight > pageHeight - margin) {
+        // Ensure it fits the page.
+        if (yPos + renderHeight > pageHeight - margin) {
+            // Give it a fresh page if the remaining space is minimal
             doc.addPage();
             yPos = 20;
+
+            // Cap height to max achievable on an A4 page
+            renderHeight = Math.min(renderHeight, pageHeight - margin - yPos - 10);
+            renderWidth = renderHeight * ratio; // Re-adjust width to maintain proportion
         }
+
+        // Center it horizontally if width shrunk due to height cap
+        const xOffset = margin + (chartWidth - renderWidth) / 2;
 
         doc.setFontSize(12);
         doc.setTextColor(41, 128, 185);
         doc.text("Calculated Network Diagram", margin, yPos - 5);
 
         // Usage JPEG
-        doc.addImage(data.charts.networkDiagramImg, 'JPEG', margin, yPos, chartWidth, diagramHeight);
+        doc.addImage(data.charts.networkDiagramImg, 'JPEG', xOffset, yPos, renderWidth, renderHeight);
     }
 
 

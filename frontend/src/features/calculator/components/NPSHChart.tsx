@@ -19,13 +19,17 @@ interface NPSHChartProps {
 }
 
 export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, printMode = false }) => {
-    // Style Constants - High Quality (Scaled for 1500px width)
-    const axisFontSize = printMode ? 28 : 12; // Increased from 24
-    const labelFontSize = printMode ? 32 : 14; // Increased from 28
-    const legendFontSize = printMode ? 32 : 14; // Increased from 26
-    const lineWidth = printMode ? 5 : 2;
-    const dotSize = printMode ? 8 : 4;
+    // Style Constants - High Quality (Scaled for 1200x900)
+    const axisFontSize = printMode ? 24 : 12;
+    const labelFontSize = printMode ? 28 : 14;
+    const legendFontSize = printMode ? 28 : 14;
+    const lineWidth = printMode ? 4 : 2;
+    const dotSize = printMode ? 6 : 4;
     const gridStroke = printMode ? "#ccc" : "#e2e8f0";
+
+    const chartMargins = printMode
+        ? { top: 40, right: 60, left: 100, bottom: 90 }
+        : { top: 20, right: 30, left: 10, bottom: 10 };
 
     const containerClass = printMode
         ? "h-full w-full relative block"
@@ -39,7 +43,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
         <div className={containerClass}>
             {/* Title for both Print and Screen modes, styled differently */}
             {printMode ? (
-                <h3 className="text-xl text-[#2980b9] font-sans mb-4 ml-8" style={{ fontSize: '24px', fontWeight: 'normal' }}>
+                <h3 className="text-[#2980b9] font-sans mb-8 ml-12" style={{ fontSize: '64px', fontWeight: 'bold' }}>
                     NPSH Available vs Required
                 </h3>
             ) : (
@@ -48,23 +52,23 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                 </h4>
             )}
             <div className={innerClass}>
-                <ResponsiveContainer width="95%" height={printMode ? "85%" : "100%"}>
-                    <ComposedChart data={data} margin={{ top: 20, right: 30, left: 50, bottom: 60 }}> {/* Increased margins */}
+                <ResponsiveContainer width="100%" height={printMode ? "85%" : "100%"}>
+                    <ComposedChart data={data} margin={chartMargins}>
                         <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                         <XAxis
                             dataKey="flow"
                             type="number"
                             unit=" m³/h"
                             domain={['dataMin', 'dataMax']}
-                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: -50, style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600 } }} // Larger offset
+                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: printMode ? -60 : -40, style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600 } }}
                             tick={{ fontSize: axisFontSize, fill: '#666' }}
-                            tickMargin={20}
+                            tickMargin={printMode ? 20 : 10}
                         />
                         <YAxis
-                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600, textAnchor: 'middle' }, offset: 15, dx: -30 }} // Adjusted offset
+                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600, textAnchor: 'middle' }, offset: printMode ? 0 : 10, dx: printMode ? -60 : -10 }}
                             domain={[0, 'auto']}
                             tick={{ fontSize: axisFontSize, fill: '#666' }}
-                            tickMargin={10}
+                            tickMargin={printMode ? 15 : 10}
                         />
                         <Tooltip
                             labelFormatter={(value) => `Flow: ${Number(value).toFixed(2)} m³/h`}
@@ -74,7 +78,12 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             ]}
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                         />
-                        <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: legendFontSize, paddingTop: '0px', paddingBottom: '20px' }} />
+                        <Legend
+                            verticalAlign="top"
+                            height={printMode ? 70 : 60}
+                            iconType="circle"
+                            wrapperStyle={{ fontSize: legendFontSize, paddingTop: '0px', paddingBottom: printMode ? '40px' : '20px', display: 'flex', justifyContent: 'center', width: '100%' }}
+                        />
 
                         {/* NPSH Available */}
                         <Line
@@ -114,7 +123,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                     </ComposedChart>
                 </ResponsiveContainer>
                 {operatingPoint && operatingPoint.npsh_available && operatingPoint.npsh_required !== null && (
-                    <div className={`absolute top-2 right-4 bg-white/90 p-1.5 rounded border border-slate-200 shadow-sm text-slate-600 font-medium pointer-events-none ${printMode ? 'text-2xl p-4 border-2' : 'text-xs'}`}>
+                    <div className={`absolute bg-white/90 rounded border shadow-sm text-slate-600 font-medium pointer-events-none ${printMode ? 'border-2 text-slate-700' : 'text-xs'}`} style={printMode ? { fontSize: legendFontSize, top: 40, right: 60, padding: '24px' } : { top: 8, right: 16, padding: '6px' }}>
                         <div>NPSHa: {operatingPoint.npsh_available.toFixed(2)}m</div>
                         <div>NPSHr: {operatingPoint.npsh_required?.toFixed(2)}m</div>
                     </div>

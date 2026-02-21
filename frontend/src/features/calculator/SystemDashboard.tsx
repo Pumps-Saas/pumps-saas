@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/Input';
 import { generatePDFReport, ReportData } from './services/pdfGenerator';
 import html2canvas from 'html2canvas';
 
+import { Zap } from 'lucide-react';
+
 // UI Components for the New Layout
 const CardHeader = ({ icon: Icon, title, minimized, toggle }: { icon: any, title: string, minimized?: boolean, toggle?: () => void }) => (
     <div className="flex items-center justify-between p-3 border-b border-slate-100 bg-slate-50/50 cursor-pointer hover:bg-slate-100 transition-colors" onClick={toggle}>
@@ -56,6 +58,11 @@ export const SystemDashboard: React.FC = () => {
     const setPressure = useSystemStore(state => state.setPressure);
     const setAltitude = useSystemStore(state => state.setAltitude);
 
+    const efficiencyMotor = useSystemStore(state => state.efficiency_motor);
+    const hoursPerDay = useSystemStore(state => state.hours_per_day);
+    const energyCost = useSystemStore(state => state.energy_cost_per_kwh);
+    const setEnergyConfig = useSystemStore(state => state.setEnergyConfig);
+
     const pumpCurve = useSystemStore(state => state.pump_curve);
 
 
@@ -68,7 +75,8 @@ export const SystemDashboard: React.FC = () => {
                     ? Math.max(...pumpCurve.map(p => p.flow)) * 1.2
                     : 100;
 
-                const response = await axios.post('http://127.0.0.1:8000/api/v1/calculate/system-curve', {
+                const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
+                const response = await axios.post(`${API_URL}/calculate/system-curve`, {
                     suction_sections: suction,
                     discharge_sections_before: dischargeBefore,
                     discharge_parallel_sections: dischargeParallel,
@@ -131,15 +139,18 @@ export const SystemDashboard: React.FC = () => {
             const npshChartEl = document.getElementById('pdf-chart-npsh');
 
             let diagramImg, chart1Img, chart2Img;
+            let diagramRatio = 1;
 
             console.log("Starting PDF generation...");
 
             try {
                 if (diagramEl) {
                     console.log("Capturing Diagram...");
-                    // Reduced scale to 1.5 and use JPEG for compression
-                    const canvas = await html2canvas(diagramEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
+                    // @ts-ignore
+                    // Scale higher for crisp text
+                    const canvas = await html2canvas(diagramEl, { scale: 2.0, backgroundColor: '#ffffff', logging: false });
                     diagramImg = canvas.toDataURL('image/jpeg', 0.8);
+                    diagramRatio = canvas.width / canvas.height;
                 }
             } catch (e: any) {
                 console.error("Failed to capture Diagram", e);
@@ -150,6 +161,7 @@ export const SystemDashboard: React.FC = () => {
             try {
                 if (systemChartEl) {
                     console.log("Capturing System Chart...");
+                    // @ts-ignore
                     const canvas = await html2canvas(systemChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
                     chart1Img = canvas.toDataURL('image/jpeg', 0.8);
                 }
@@ -162,6 +174,7 @@ export const SystemDashboard: React.FC = () => {
             try {
                 if (npshChartEl) {
                     console.log("Capturing NPSH Chart...");
+                    // @ts-ignore
                     const canvas = await html2canvas(npshChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
                     chart2Img = canvas.toDataURL('image/jpeg', 0.8);
                 }
@@ -217,8 +230,25 @@ export const SystemDashboard: React.FC = () => {
                     dutyHead: result?.head_op || 0,
                     efficiency: result?.efficiency_op,
                     power: result?.power_kw,
-                    npshAvailable: result?.npsha_op || 0,
-                    npshRequired: result?.npshr_op,
+                    costPerYear: result?.cost_per_year,
+                    npshAvailable: result?.npsh_available || 0,
+                    npshRequired: result?.npsh_required,
+                    npshMargin: (() => {
+                        const a = result?.npsh_available || 0;
+                        const r = result?.npsh_required || 0;
+                        if (r > 0) return `${(((a - r) / r) * 100).toFixed(1)} %`;
+                        if (a > 0) return '> 100%';
+                        return '-';
+                    })(),
+                    isExtrapolated: result?.is_extrapolated,
+                    cavitationRisk: result?.cavitation_risk,
+                    lowNpshMarginLevel: (() => {
+                        if (!result?.npsh_required || !result?.npsh_available || result.npsh_required <= 0) return 'safe';
+                        const marginPercent = ((result.npsh_available - result.npsh_required) / result.npsh_required) * 100;
+                        if (marginPercent < 0) return 'danger';
+                        if (marginPercent < 20) return 'warning';
+                        return 'safe';
+                    })(),
                     headBreakdown: result ? {
                         static: result.head_breakdown?.static_head_m,
                         pressure: result.head_breakdown?.pressure_head_m,
@@ -241,7 +271,8 @@ export const SystemDashboard: React.FC = () => {
                 charts: {
                     systemCurveImg: chart1Img,
                     npshCurveImg: chart2Img,
-                    networkDiagramImg: diagramImg
+                    networkDiagramImg: diagramImg,
+                    networkDiagramRatio: diagramRatio
                 }
             };
 
@@ -304,7 +335,7 @@ export const SystemDashboard: React.FC = () => {
                     <aside className="col-span-12 xl:col-span-6 flex flex-col gap-4">
 
                         {/* Section: System Conditions */}
-                        <div className="bg-white border boundary-slate-200 rounded-lg shadow-sm overflow-hidden">
+                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <CardHeader icon={Settings2} title="System Conditions" minimized={minimized['conditions']} toggle={() => toggleSection('conditions')} />
                             {!minimized['conditions'] && (
                                 <div className="p-4 grid grid-cols-2 gap-4 bg-white">
@@ -323,6 +354,27 @@ export const SystemDashboard: React.FC = () => {
                                     <div>
                                         <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Discharge Press. (bar)</label>
                                         <Input type="number" value={pDischarge} onChange={e => setPressure('pressure_discharge_bar_g', Number(e.target.value))} />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Section: Energy & Cost */}
+                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                            <CardHeader icon={Zap} title="Energy & Cost Configuration" minimized={minimized['energy']} toggle={() => toggleSection('energy')} />
+                            {!minimized['energy'] && (
+                                <div className="p-4 grid grid-cols-3 gap-4 bg-white">
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Motor Eff. (%)</label>
+                                        <Input type="number" step="0.1" value={efficiencyMotor * 100} onChange={e => setEnergyConfig('efficiency_motor', Number(e.target.value) / 100)} />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Hours/Day</label>
+                                        <Input type="number" value={hoursPerDay} onChange={e => setEnergyConfig('hours_per_day', Number(e.target.value))} />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Cost (R$/kWh)</label>
+                                        <Input type="number" step="0.01" value={energyCost} onChange={e => setEnergyConfig('energy_cost_per_kwh', Number(e.target.value))} />
                                     </div>
                                 </div>
                             )}
@@ -369,11 +421,9 @@ export const SystemDashboard: React.FC = () => {
                     <section className="col-span-12 xl:col-span-6 flex flex-col gap-4 sticky top-20">
 
                         {/* Results KPI Bar */}
-                        {result && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <ResultsDisplay result={result} isCalculating={isCalculating} error={error} />
-                            </div>
-                        )}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <ResultsDisplay result={result} isCalculating={isCalculating} error={error} />
+                        </div>
 
                         {/* Charts Tabs (No Schematic) */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[600px]">
@@ -443,16 +493,16 @@ export const SystemDashboard: React.FC = () => {
                 HIDDEN PDF CAPTURE ZONE
                 Render everything needed for PDF here, always visible to html2canvas
              */}
-            <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1000px', backgroundColor: 'white' }}>
-                <div id="pdf-diagram" style={{ width: '1000px', height: '600px' }}>
+            <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1200px', backgroundColor: 'white' }}>
+                <div id="pdf-diagram" style={{ width: '1200px', padding: '20px' }}>
                     {/* User requested Exact Copy of Application -> printMode={false} */}
                     {result && <SystemSchematic result={result} printMode={false} />}
                 </div>
                 {/* Reduced Chart dimensions to reasonable print size */}
-                <div id="pdf-chart-system" style={{ width: '1500px', height: '900px' }}> {/* Increased for High Quality (Print 1 style) */}
+                <div id="pdf-chart-system" style={{ width: '1200px', height: '900px' }}> {/* Boxier Aspect Ratio */}
                     <HeadFlowChart data={chartData} operatingPoint={result} printMode={true} />
                 </div>
-                <div id="pdf-chart-npsh" style={{ width: '1500px', height: '900px' }}>
+                <div id="pdf-chart-npsh" style={{ width: '1200px', height: '900px' }}>
                     <NPSHChart data={chartData} operatingPoint={result} printMode={true} />
                 </div>
             </div>

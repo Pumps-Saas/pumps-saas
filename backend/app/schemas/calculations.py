@@ -94,3 +94,4 @@ class OperatingPointResponse(BaseModel):
     # Phase 6: Advanced Analysis
     natural_flow_m3h: Optional[float] = None
     head_breakdown: Optional[Dict[str, float]] = None
+    is_extrapolated: bool = False
