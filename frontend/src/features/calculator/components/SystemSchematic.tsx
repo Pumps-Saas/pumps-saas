@@ -23,22 +23,25 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
     // Style Multipliers (Refined for better balance)
     const textScale = printMode ? 1.8 : 1; // Reduced from 2.5
     const strokeScale = printMode ? 2.0 : 1;
-    const baseFontSize = 10 * textScale;
-    const headerFontSize = 12 * textScale;
+    const baseFontSize = 14.5 * textScale; // Increased another 20% (12 -> 14.5)
+    const headerFontSize = 17 * textScale; // Increased proportionally (14 -> 17)
     const strokeWidth = 1.5 * strokeScale;
     const heavyStroke = 2 * strokeScale;
 
     // Background Filter for Text (to prevent overlap)
+    const uniqueId = useMemo(() => Math.random().toString(36).substr(2, 9), []);
+    const markerId = `arrowhead-${printMode ? 'print' : 'screen'}-${uniqueId}`;
+
     const textBgFilter = (
         <defs>
-            <filter x="-0.1" y="0" width="1.2" height="1" id="solid-bg">
+            <filter x="-0.1" y="0" width="1.2" height="1" id={`solid-bg-${uniqueId}`}>
                 <feFlood floodColor="white" result="bg" />
                 <feMerge>
                     <feMergeNode in="bg" />
                     <feMergeNode in="SourceGraphic" />
                 </feMerge>
             </filter>
-            <marker id="arrowhead" markerWidth={10 * strokeScale} markerHeight={7 * strokeScale} refX={9 * strokeScale} refY={3.5 * strokeScale} orient="auto">
+            <marker id={markerId} markerWidth={10 * strokeScale} markerHeight={7 * strokeScale} refX={9 * strokeScale} refY={3.5 * strokeScale} orient="auto">
                 <polygon points={`0 0, ${10 * strokeScale} ${3.5 * strokeScale}, 0 ${7 * strokeScale}`} fill="black" />
             </marker>
         </defs>
@@ -89,14 +92,14 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
 
             // Line
             svgElements.push(
-                <line key={`pipe-${id}`} x1={startX} y1={y} x2={endX} y2={y} stroke="black" strokeWidth={strokeWidth} markerEnd="url(#arrowhead)" />
+                <line key={`pipe-${id}`} x1={startX} y1={y} x2={endX} y2={y} stroke="black" strokeWidth={strokeWidth} markerEnd={`url(#${markerId})`} />
             );
 
             // Label Box
             const currentLabelOffset = printMode ? labelYOffset * 1.8 : labelYOffset;
 
             svgElements.push(
-                <text key={`label-${id}`} x={midX} y={y + currentLabelOffset} textAnchor="middle" fontSize={baseFontSize} fill="black" filter="url(#solid-bg)">
+                <text key={`label-${id}`} x={midX} y={y + currentLabelOffset} textAnchor="middle" fontSize={baseFontSize} fill="black" filter={`url(#solid-bg-${uniqueId})`}>
                     <tspan x={midX} dy="0" fontWeight="bold">{name}</tspan>
                     {res && (
                         <>
@@ -173,7 +176,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                         <line key={`branch-empty-${key}`} x1={splitX} y1={branchY} x2={mergeX} y2={branchY} stroke="#94a3b8" strokeWidth={strokeWidth} strokeDasharray="4 4" />
                     );
                     svgElements.push(
-                        <text key={`label-empty-${key}`} x={(splitX + mergeX) / 2} y={branchY - 10} textAnchor="middle" fontSize={baseFontSize} fill="#94a3b8" fontStyle="italic" filter="url(#solid-bg)">
+                        <text key={`label-empty-${key}`} x={(splitX + mergeX) / 2} y={branchY - 10} textAnchor="middle" fontSize={baseFontSize} fill="#94a3b8" fontStyle="italic" filter={`url(#solid-bg-${uniqueId})`}>
                             {key} (Empty)
                         </text>
                     );

@@ -19,12 +19,12 @@ interface NPSHChartProps {
 }
 
 export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, printMode = false }) => {
-    // Style Constants
-    const axisFontSize = printMode ? 30 : 12;
-    const labelFontSize = printMode ? 36 : 14;
-    const legendFontSize = printMode ? 32 : 14;
+    // Style Constants - High Quality (Scaled for 1500px width)
+    const axisFontSize = printMode ? 28 : 12; // Increased from 24
+    const labelFontSize = printMode ? 32 : 14; // Increased from 28
+    const legendFontSize = printMode ? 32 : 14; // Increased from 26
     const lineWidth = printMode ? 5 : 2;
-    const dotSize = printMode ? 10 : 4;
+    const dotSize = printMode ? 8 : 4;
     const gridStroke = printMode ? "#ccc" : "#e2e8f0";
 
     const containerClass = printMode
@@ -32,31 +32,36 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
         : "h-full w-full relative flex flex-col";
 
     const innerClass = printMode
-        ? "h-full w-full relative"
+        ? "h-full w-full relative flex flex-col items-center justify-center"
         : "flex-1 min-h-0 w-full relative";
 
     return (
         <div className={containerClass}>
-            {!printMode && (
+            {/* Title for both Print and Screen modes, styled differently */}
+            {printMode ? (
+                <h3 className="text-xl text-[#2980b9] font-sans mb-4 ml-8" style={{ fontSize: '24px', fontWeight: 'normal' }}>
+                    NPSH Available vs Required
+                </h3>
+            ) : (
                 <h4 className="text-sm font-semibold text-slate-500 mb-2 text-center uppercase tracking-wider flex-none">
                     NPSH Analysis
                 </h4>
             )}
             <div className={innerClass}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                <ResponsiveContainer width="95%" height={printMode ? "85%" : "100%"}>
+                    <ComposedChart data={data} margin={{ top: 20, right: 30, left: 50, bottom: 60 }}> {/* Increased margins */}
                         <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                         <XAxis
                             dataKey="flow"
                             type="number"
                             unit=" m³/h"
                             domain={['dataMin', 'dataMax']}
-                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: -10, style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600 } }}
+                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: -50, style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600 } }} // Larger offset
                             tick={{ fontSize: axisFontSize, fill: '#666' }}
-                            tickMargin={10}
+                            tickMargin={20}
                         />
                         <YAxis
-                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600 }, offset: 10 }}
+                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600, textAnchor: 'middle' }, offset: 15, dx: -30 }} // Adjusted offset
                             domain={[0, 'auto']}
                             tick={{ fontSize: axisFontSize, fill: '#666' }}
                             tickMargin={10}
@@ -69,7 +74,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             ]}
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                         />
-                        <Legend verticalAlign="top" iconType="circle" wrapperStyle={{ fontSize: legendFontSize, paddingTop: printMode ? '20px' : '0' }} />
+                        <Legend verticalAlign="top" height={60} iconType="circle" wrapperStyle={{ fontSize: legendFontSize, paddingTop: '0px', paddingBottom: '20px' }} />
 
                         {/* NPSH Available */}
                         <Line

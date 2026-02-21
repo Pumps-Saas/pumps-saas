@@ -68,7 +68,7 @@ export const SystemDashboard: React.FC = () => {
                     ? Math.max(...pumpCurve.map(p => p.flow)) * 1.2
                     : 100;
 
-                const response = await axios.post('http://localhost:8000/api/v1/calculate/system-curve', {
+                const response = await axios.post('http://127.0.0.1:8000/api/v1/calculate/system-curve', {
                     suction_sections: suction,
                     discharge_sections_before: dischargeBefore,
                     discharge_parallel_sections: dischargeParallel,
@@ -137,8 +137,9 @@ export const SystemDashboard: React.FC = () => {
             try {
                 if (diagramEl) {
                     console.log("Capturing Diagram...");
-                    const canvas = await html2canvas(diagramEl, { scale: 2, backgroundColor: '#ffffff', logging: false });
-                    diagramImg = canvas.toDataURL('image/png');
+                    // Reduced scale to 1.5 and use JPEG for compression
+                    const canvas = await html2canvas(diagramEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
+                    diagramImg = canvas.toDataURL('image/jpeg', 0.8);
                 }
             } catch (e: any) {
                 console.error("Failed to capture Diagram", e);
@@ -149,8 +150,8 @@ export const SystemDashboard: React.FC = () => {
             try {
                 if (systemChartEl) {
                     console.log("Capturing System Chart...");
-                    const canvas = await html2canvas(systemChartEl, { scale: 3, backgroundColor: '#ffffff', logging: false });
-                    chart1Img = canvas.toDataURL('image/png');
+                    const canvas = await html2canvas(systemChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
+                    chart1Img = canvas.toDataURL('image/jpeg', 0.8);
                 }
             } catch (e: any) {
                 console.error("Failed to capture System Chart", e);
@@ -161,8 +162,8 @@ export const SystemDashboard: React.FC = () => {
             try {
                 if (npshChartEl) {
                     console.log("Capturing NPSH Chart...");
-                    const canvas = await html2canvas(npshChartEl, { scale: 3, backgroundColor: '#ffffff', logging: false });
-                    chart2Img = canvas.toDataURL('image/png');
+                    const canvas = await html2canvas(npshChartEl, { scale: 1.5, backgroundColor: '#ffffff', logging: false });
+                    chart2Img = canvas.toDataURL('image/jpeg', 0.8);
                 }
             } catch (e: any) {
                 console.error("Failed to capture NPSH Chart", e);
@@ -442,14 +443,16 @@ export const SystemDashboard: React.FC = () => {
                 HIDDEN PDF CAPTURE ZONE
                 Render everything needed for PDF here, always visible to html2canvas
              */}
-            <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1200px', backgroundColor: 'white' }}>
-                <div id="pdf-diagram" style={{ width: '1200px', height: '800px' }}>
-                    {result && <SystemSchematic result={result} printMode={true} />}
+            <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '1000px', backgroundColor: 'white' }}>
+                <div id="pdf-diagram" style={{ width: '1000px', height: '600px' }}>
+                    {/* User requested Exact Copy of Application -> printMode={false} */}
+                    {result && <SystemSchematic result={result} printMode={false} />}
                 </div>
-                <div id="pdf-chart-system" style={{ width: '1600px', height: '1000px' }}>
+                {/* Reduced Chart dimensions to reasonable print size */}
+                <div id="pdf-chart-system" style={{ width: '1500px', height: '900px' }}> {/* Increased for High Quality (Print 1 style) */}
                     <HeadFlowChart data={chartData} operatingPoint={result} printMode={true} />
                 </div>
-                <div id="pdf-chart-npsh" style={{ width: '1600px', height: '1000px' }}>
+                <div id="pdf-chart-npsh" style={{ width: '1500px', height: '900px' }}>
                     <NPSHChart data={chartData} operatingPoint={result} printMode={true} />
                 </div>
             </div>

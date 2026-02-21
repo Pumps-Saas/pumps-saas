@@ -90,6 +90,8 @@ def interpolate_npshr(flow: float, points: List[Any]) -> Optional[float]:
     npshr_points = [p for p in points if get_val(p, 'npshr') is not None]
     if len(npshr_points) < 2:
         return None
+    # np.interp requires x-coordinates to be sorted
+    npshr_points.sort(key=lambda p: get_val(p, 'flow'))
     flows = [get_val(p, 'flow') for p in npshr_points]
     npshrs = [get_val(p, 'npshr') for p in npshr_points]
     # Simple linear interpolation for now
@@ -103,6 +105,8 @@ def interpolate_efficiency(flow: float, points: List[Any]) -> Optional[float]:
     eff_points = [p for p in points if get_val(p, 'efficiency') is not None]
     if len(eff_points) < 2:
         return None
+    # np.interp requires x-coordinates to be sorted
+    eff_points.sort(key=lambda p: get_val(p, 'flow'))
     flows = [get_val(p, 'flow') for p in eff_points]
     effs = [get_val(p, 'efficiency') for p in eff_points]
     return float(np.interp(flow, flows, effs))

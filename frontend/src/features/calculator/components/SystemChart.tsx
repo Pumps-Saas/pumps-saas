@@ -45,7 +45,7 @@ export const SystemChart: React.FC<SystemChartProps> = ({ pumpCurve, operatingPo
                     ? Math.max(...pumpCurve.map(p => p.flow)) * 1.2
                     : 100;
 
-                const response = await axios.post('http://localhost:8000/api/v1/calculate/system-curve', {
+                const response = await axios.post('http://127.0.0.1:8000/api/v1/calculate/system-curve', {
                     suction_sections: suction,
                     discharge_sections_before: dischargeBefore,
                     discharge_parallel_sections: dischargeParallel,

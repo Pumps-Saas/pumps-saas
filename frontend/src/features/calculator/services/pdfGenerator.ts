@@ -196,119 +196,19 @@ export const generatePDFReport = (data: ReportData) => {
     });
     yPos = doc.lastAutoTable.finalY + 10;
 
-    // --- 3. Pipe Network ---
-    doc.setFontSize(14);
-    doc.text("3. Pipe Network Details", margin, yPos);
-    yPos += 8;
-
-    // Suction Table
-    doc.setFontSize(11);
-    doc.text("Suction Line", margin, yPos);
-    yPos += 4;
-
-    const suctionRows = data.suction.segments.map((seg: any) => [
-        seg.name,
-        `${seg.length_m} m`,
-        getNominalDiameter(seg.diameter_mm), // Use nominal
-        seg.material || '-', // Material instead of Roughness
-        seg.loss_m !== null && seg.loss_m !== undefined ? `${seg.loss_m.toFixed(2)} m` : '-' // Loss instead of Fittings
-    ]);
-
-    autoTable(doc, {
-        startY: yPos,
-        head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']], // Updated Headers
-        body: suctionRows,
-        theme: 'striped',
-        headStyles: { fillColor: [52, 152, 219] },
-        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
-    });
-    yPos = doc.lastAutoTable.finalY + 8;
-
-    // Discharge Table
-    doc.setFontSize(11);
-    doc.text("Discharge Line", margin, yPos);
-    yPos += 4;
-
-    const dischargeRows = data.discharge.segments.map((seg: any) => [
-        seg.name,
-        `${seg.length_m} m`,
-        getNominalDiameter(seg.diameter_mm), // Use nominal
-        seg.material || '-',
-        seg.loss_m !== null && seg.loss_m !== undefined ? `${seg.loss_m.toFixed(2)} m` : '-'
-    ]);
-
-    autoTable(doc, {
-        startY: yPos,
-        head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']],
-        body: dischargeRows,
-        theme: 'striped',
-        headStyles: { fillColor: [52, 152, 219] },
-        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
-    });
-
-    // --- PAGE 2: Charts (Dedicated Page) ---
-    if (data.charts) {
-        doc.addPage();
-        yPos = 20;
-
-        // Header Page 2
-        doc.setFontSize(16);
-        doc.setTextColor(41, 128, 185);
-        doc.text("System Analysis & Visualization", margin, yPos);
-        yPos += 15;
-
-        // Available vertical space for 2 charts
-        // Page Height - Margin Top - Title - Margin Bottom
-        const availableHeight = pageHeight - yPos - margin;
-        // We want 2 charts stacked. Give them each about 45% of available space
-        const chartHeight = availableHeight * 0.45;
-
-        if (data.charts.systemCurveImg) {
-            // Center SVG/Image in the width? It is full width.
-            doc.addImage(data.charts.systemCurveImg, 'PNG', margin, yPos, chartWidth, chartHeight);
-            doc.setFontSize(10);
-            doc.setTextColor(0);
-            // Label below chart
-            doc.text("System vs Pump Curve", margin, yPos + chartHeight + 5);
-            yPos += chartHeight + 15;
-        }
-
-        if (data.charts.npshCurveImg) {
-            doc.addImage(data.charts.npshCurveImg, 'PNG', margin, yPos, chartWidth, chartHeight);
-            doc.text("NPSH Available vs Required", margin, yPos + chartHeight + 5);
-            yPos += chartHeight + 15;
-        }
-
-        // Page 3 starts here for Data & Diagram
-        doc.addPage();
-        yPos = 20;
-    } else {
-        // If no charts, maybe just continue? 
-        // But logic below assumes new page for Pump Data if it was following charts.
-        // Let's just ensure we are on a fresh page or flowing correctly.
-        // For now, if charts existed, we are on Page 3.
-        doc.addPage();
-        yPos = 20;
-    }
-
-    // --- PAGE 3: Pump Data & Diagram ---
-
-    // 2. Pump Details & Curve Data (Full Width / Centered)
+    // --- 3. Pump Details & Curve Data (Moved Here) ---
+    // Check if enough space, else add page
     if (yPos + 60 > pageHeight - margin) {
         doc.addPage();
         yPos = 20;
     }
 
-    doc.setFontSize(12);
-    doc.setTextColor(41, 128, 185);
-    doc.text("Pump Curve Data", margin, yPos);
-    yPos += 5;
+    doc.setFontSize(14);
+    doc.text("3. Pump Curve Data", margin, yPos);
+    yPos += 8;
 
     // Manufacturer Info
     doc.setFontSize(10);
-    doc.setTextColor(0);
     doc.text(`Manufacturer: ${data.pump.manufacturer || 'Generic'}`, margin, yPos);
     doc.text(`Model: ${data.pump.model || 'Custom Curve'}`, margin + 100, yPos);
     yPos += 8;
@@ -330,26 +230,124 @@ export const generatePDFReport = (data: ReportData) => {
         headStyles: { halign: 'center', fillColor: [41, 128, 185] },
         margin: { left: margin, right: margin }
     });
+    yPos = doc.lastAutoTable.finalY + 15;
 
-    const tableEndY = doc.lastAutoTable.finalY + 15;
 
-    // 3. Network Diagram (Full Width)
-    if (data.charts.networkDiagramImg) {
-        const diagramHeight = 100;
-        let diagramY = tableEndY;
+    // --- PAGE 2: Charts (Dedicated Page) ---
+    if (data.charts) {
+        doc.addPage();
+        yPos = 20;
 
-        // Check if diagram fits
-        if (diagramY + diagramHeight > pageHeight - margin) {
+        // Header Page 2
+        doc.setFontSize(16);
+        doc.setTextColor(41, 128, 185);
+        doc.text("System Analysis & Visualization", margin, yPos);
+        yPos += 15;
+
+        // Available vertical space for 2 charts
+        const availableHeight = pageHeight - yPos - margin;
+        // Check if 2 charts fit, otherwise use smaller height or add page
+        const chartHeight = Math.min(availableHeight * 0.45, 100); // Limit max height
+
+        if (data.charts.systemCurveImg) {
+            // Use JPEG format
+            doc.addImage(data.charts.systemCurveImg, 'JPEG', margin, yPos, chartWidth, chartHeight);
+
+            yPos += chartHeight + 10; // Reduced spacing
+        }
+
+        if (data.charts.npshCurveImg) {
+            // Check fit
+            if (yPos + chartHeight > pageHeight - margin) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.addImage(data.charts.npshCurveImg, 'JPEG', margin, yPos, chartWidth, chartHeight);
+
+            yPos += chartHeight + 10;
+        }
+
+        // Start new page for Network Details
+        doc.addPage();
+        yPos = 20;
+    } else {
+        doc.addPage();
+        yPos = 20;
+    }
+
+    // --- 4. Pipe Network Details (Moved Here) ---
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.text("4. Pipe Network Details", margin, yPos);
+    yPos += 8;
+
+    // Suction Table
+    doc.setFontSize(11);
+    doc.text("Suction Line", margin, yPos);
+    yPos += 4;
+
+    const suctionRows = data.suction.segments.map((seg: any) => [
+        seg.name,
+        `${seg.length_m} m`,
+        getNominalDiameter(seg.diameter_mm),
+        seg.material || '-',
+        seg.loss_m !== null && seg.loss_m !== undefined ? `${seg.loss_m.toFixed(2)} m` : '-'
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']],
+        body: suctionRows,
+        theme: 'striped',
+        headStyles: { fillColor: [52, 152, 219] },
+        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
+    });
+    yPos = doc.lastAutoTable.finalY + 8;
+
+    // Discharge Table
+    doc.setFontSize(11);
+    doc.text("Discharge Line", margin, yPos);
+    yPos += 4;
+
+    const dischargeRows = data.discharge.segments.map((seg: any) => [
+        seg.name,
+        `${seg.length_m} m`,
+        getNominalDiameter(seg.diameter_mm),
+        seg.material || '-',
+        seg.loss_m !== null && seg.loss_m !== undefined ? `${seg.loss_m.toFixed(2)} m` : '-'
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']],
+        body: dischargeRows,
+        theme: 'striped',
+        headStyles: { fillColor: [52, 152, 219] },
+        styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
+        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
+    });
+
+    yPos = doc.lastAutoTable.finalY + 15;
+
+
+    // --- 5. Calculated Network Diagram (Full Width) ---
+    if (data.charts?.networkDiagramImg) {
+        const diagramHeight = 100; // Fixed height or proportional
+
+        // Ensure it fits
+        if (yPos + diagramHeight > pageHeight - margin) {
             doc.addPage();
-            diagramY = 20;
+            yPos = 20;
         }
 
         doc.setFontSize(12);
         doc.setTextColor(41, 128, 185);
-        doc.text("Calculated Network Diagram", margin, diagramY - 5);
+        doc.text("Calculated Network Diagram", margin, yPos - 5);
 
-        // Full width diagram
-        doc.addImage(data.charts.networkDiagramImg, 'PNG', margin, diagramY, chartWidth, diagramHeight);
+        // Usage JPEG
+        doc.addImage(data.charts.networkDiagramImg, 'JPEG', margin, yPos, chartWidth, diagramHeight);
     }
 
 

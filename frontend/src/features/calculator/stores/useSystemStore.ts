@@ -66,7 +66,7 @@ const DEFAULT_FLUID: Fluid = {
 
 // Import axios here to use in the store action
 import axios from 'axios';
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
 export const useSystemStore = create<SystemStore>((set, get) => ({
     fluid: DEFAULT_FLUID,

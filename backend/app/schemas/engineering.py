@@ -33,6 +33,7 @@ class PumpCurvePoint(BaseModel):
     flow: float = Field(..., ge=0, description="Flow rate in m3/h")
     head: float = Field(..., ge=0, description="Head in meters")
     efficiency: float = Field(0.0, ge=0, le=100, description="Efficiency in %")
+    npshr: Optional[float] = Field(None, ge=0, description="NPSH Required in meters")
 
 # --- System Configuration ---
 
@@ -69,5 +70,6 @@ class OperatingPointResult(BaseModel):
     power_kw: Optional[float]
     cost_per_year: Optional[float]
     npsh_available: Optional[float]
+    npsh_required: Optional[float] = None
     cavitation_risk: bool = False
     details: List[SegmentResult]
