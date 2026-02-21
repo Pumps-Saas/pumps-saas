@@ -1,9 +1,20 @@
 from pydantic_settings import BaseSettings
 from typing import List
+import os
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Pumps SaaS v2.0"
+    PROJECT_NAME: str = "Pumps SaaS"
     API_V1_STR: str = "/api/v1"
+    VERSION: str = "1.0.0"
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "dummy-secret-key-for-dev")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
+    
+    # Supabase PostgreSQL URI (IPv4 Transaction Pooler)
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", 
+        "postgresql://postgres.vuatlnwjhvyfqcguealn:PumpsSaaS2026Master!Secure@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+    )
+
     # CORS Configuration
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",

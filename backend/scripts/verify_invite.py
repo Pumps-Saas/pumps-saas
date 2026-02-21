@@ -1,22 +1,18 @@
-import sys
 import os
-from sqlmodel import Session, select, create_engine, SQLModel
-from app.models import Invite
+import sys
+from pathlib import Path
 
-# Add backend directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the 'backend' directory to the Python path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from sqlmodel import Session, select, SQLModel
+from app.models import Invite
+from app.core.config import settings
+from sqlalchemy import create_engine
+
+engine = create_engine(settings.DATABASE_URL)
 
 def verify_invite(code):
-    db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pumps.db")
-    print(f"Checking DB at: {db_path}")
-    
-    if not os.path.exists(db_path):
-        print("DB file not found!")
-        return
-
-    sqlite_url = f"sqlite:///{db_path}"
-    engine = create_engine(sqlite_url)
-    
     with Session(engine) as session:
         invite = session.get(Invite, code)
         if invite:

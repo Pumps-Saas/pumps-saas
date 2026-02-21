@@ -1,20 +1,21 @@
 import sys
 import os
 import uuid
+from datetime import timedelta
+import random
+import string
+from pathlib import Path
 
-# Add the backend directory to sys.path so we can import app modules
-# Adjust based on where this script is located: backend/scripts/generate_invite.py
-current_dir = os.path.dirname(os.path.abspath(__file__))
-backend_dir = os.path.dirname(current_dir)
-sys.path.append(backend_dir)
+# Add the 'backend' directory to the Python path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlmodel import Session, select, create_engine
-from app.models import User, Invite
+from sqlmodel import Session, select
+from app.models import Invite
+from datetime import datetime
+from app.core.config import settings
+from sqlalchemy import create_engine
 
-# Re-create engine here to avoid import issues with app.core.db if config is tricky
-sqlite_file_name = "pumps.db"
-sqlite_url = f"sqlite:///{backend_dir}/{sqlite_file_name}"
-engine = create_engine(sqlite_url)
+engine = create_engine(settings.DATABASE_URL)
 
 def generate_invite():
     with Session(engine) as session:

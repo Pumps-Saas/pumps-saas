@@ -1,14 +1,17 @@
 import sys
 import os
-import uuid
+from pathlib import Path
+
+# Add the 'backend' directory to the Python path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from sqlmodel import Session, select, SQLModel
-
-# Add backend directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app.core.db import engine
-from app.models import Invite, User
+from app.models import User
 from app.core.security import get_password_hash
+from app.core.config import settings
+from sqlalchemy import create_engine
+
+engine = create_engine(settings.DATABASE_URL)
 
 def create_first_user():
     # Ensure tables exist
