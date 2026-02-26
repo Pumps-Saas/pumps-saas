@@ -418,10 +418,26 @@ export const generatePDFReport = (data: ReportData) => {
     const filename = `pump_analysis_${safeName}.pdf`;
 
     try {
-        // Native jsPDF save is generally the most reliable across browsers now
-        doc.save(filename);
+        const pdfBlob = doc.output('blob');
+        // Convert to octet-stream to bypass Chrome's built-in PDF viewer intercept, which strips the `download` attribute upon async creation
+        const downloadBlob = new Blob([pdfBlob], { type: 'application/octet-stream' });
+        const url = window.URL.createObjectURL(downloadBlob);
+
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+
+        link.click();
+
+        // Give browser plenty of time to read the Blob before revoking (fixes Chrome network error)
+        setTimeout(() => {
+            if (link.parentNode) link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }, 15000);
     } catch (e) {
-        console.error("doc.save() failed, attempting fallback:", e);
+        console.error("Manual save failed, attempting fallback:", e);
         try {
             // Fallback: Open in new tab as Base64 PDF
             const pdfDataUri = doc.output('datauristring');
