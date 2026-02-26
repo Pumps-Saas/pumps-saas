@@ -550,34 +550,26 @@ export const SystemDashboard: React.FC = () => {
                                         className="flex-1 bg-sky-600 text-white hover:bg-sky-700"
                                         onClick={() => {
                                             if (pdfDocRef.current) {
-                                                const blob = pdfDocRef.current.output('blob');
-                                                // Create a File object instead of a bare Blob to carry explicit filename and MIME data for Chrome
-                                                const file = new File([blob], pdfFilename, { type: 'application/pdf' });
-                                                const url = URL.createObjectURL(file);
+                                                // Generate raw Base64 Data URI (e.g. data:application/pdf;filename=generated.pdf;base64,JV...)
+                                                const pdfDataUri = pdfDocRef.current.output('datauristring', { filename: pdfFilename });
+
+                                                // Force browser to download instead of opening by altering the MIME type in the string
+                                                const octetUri = pdfDataUri.replace('application/pdf', 'application/octet-stream');
 
                                                 const a = document.createElement('a');
                                                 a.style.display = 'none';
-                                                a.href = url;
+                                                a.href = octetUri;
                                                 a.download = pdfFilename; // Force extension explicitly
                                                 document.body.appendChild(a);
 
-                                                // Use a full MouseEvent to emulate true user gesture natively, 
-                                                // thwarting Chrome's synthetic click PDF interception
-                                                const evt = new MouseEvent('click', {
-                                                    view: window,
-                                                    bubbles: true,
-                                                    cancelable: true
-                                                });
-                                                a.dispatchEvent(evt);
+                                                a.click();
 
                                                 setPdfStatus('idle');
                                                 pdfDocRef.current = null;
 
-                                                // Clean up after enough time for large file read
                                                 setTimeout(() => {
                                                     document.body.removeChild(a);
-                                                    URL.revokeObjectURL(url);
-                                                }, 5000);
+                                                }, 1000);
                                             }
                                         }}
                                     >
