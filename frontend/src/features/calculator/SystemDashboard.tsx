@@ -39,6 +39,10 @@ export const SystemDashboard: React.FC = () => {
     const [minimized, setMinimized] = useState<Record<string, boolean>>({});
     const [systemCurvePoints, setSystemCurvePoints] = useState<any[]>([]);
 
+    // PDF State
+    const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'ready'>('idle');
+    const [pdfData, setPdfData] = useState<{ url: string; filename: string } | null>(null);
+
     const toggleSection = (id: string) => setMinimized(prev => ({ ...prev, [id]: !prev[id] }));
 
     // Store Accessors
@@ -132,6 +136,7 @@ export const SystemDashboard: React.FC = () => {
 
 
     const handleGeneratePDF = async () => {
+        setPdfStatus('generating');
         try {
             // Capture elements from the hidden render zone
             const diagramEl = document.getElementById('pdf-diagram');
@@ -275,9 +280,13 @@ export const SystemDashboard: React.FC = () => {
                 }
             };
 
-            await generatePDFReport(data);
+            const { blob, filename } = generatePDFReport(data);
+            const url = URL.createObjectURL(blob);
+            setPdfData({ url, filename });
+            setPdfStatus('ready');
 
         } catch (error: any) {
+            setPdfStatus('idle');
             console.error("PDF Fail", error);
             alert(`Erro Geral ao gerar PDF: ${error.message || error}`);
         }
@@ -505,6 +514,61 @@ export const SystemDashboard: React.FC = () => {
                     <NPSHChart data={chartData} operatingPoint={result} printMode={true} />
                 </div>
             </div>
+
+            {/* PDF Generate Modal */}
+            {pdfStatus !== 'idle' && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-xl w-[400px] p-6 flex flex-col items-center animate-in zoom-in-95 duration-200">
+                        {pdfStatus === 'generating' ? (
+                            <>
+                                <Sparkles className="w-10 h-10 text-sky-600 animate-spin mb-4" />
+                                <h3 className="text-lg font-bold text-slate-800">Gerando Relatório...</h3>
+                                <p className="text-sm text-slate-500 mt-2 text-center">
+                                    Aguarde enquanto os gráficos são renderizados. Isso pode levar alguns segundos.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <FileText className="w-12 h-12 text-emerald-500 mb-4" />
+                                <h3 className="text-lg font-bold text-slate-800">Relatório Pronto!</h3>
+                                <p className="text-sm text-slate-500 mt-2 text-center mb-6">
+                                    O seu PDF foi gerado e está pronto para download com o formato correto.
+                                </p>
+                                <div className="flex gap-3 w-full">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => {
+                                            setPdfStatus('idle');
+                                            if (pdfData) URL.revokeObjectURL(pdfData.url);
+                                        }}
+                                    >
+                                        Fechar
+                                    </Button>
+                                    <Button
+                                        className="flex-1 bg-sky-600 text-white hover:bg-sky-700"
+                                        onClick={() => {
+                                            if (pdfData) {
+                                                const a = document.createElement('a');
+                                                a.href = pdfData.url;
+                                                a.download = pdfData.filename;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+
+                                                setPdfStatus('idle');
+                                                setTimeout(() => URL.revokeObjectURL(pdfData.url), 2000);
+                                            }
+                                        }}
+                                    >
+                                        Baixar PDF
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
