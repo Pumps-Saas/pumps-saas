@@ -418,7 +418,7 @@ export const generatePDFReport = (data: ReportData) => {
     const filename = `pump_analysis_${safeName}.pdf`;
 
     return {
-        blob: doc.output('blob'),
+        doc,
         filename
     };
 };

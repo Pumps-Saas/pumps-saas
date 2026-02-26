@@ -41,7 +41,8 @@ export const SystemDashboard: React.FC = () => {
 
     // PDF State
     const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'ready'>('idle');
-    const [pdfData, setPdfData] = useState<{ url: string; filename: string } | null>(null);
+    const [pdfFilename, setPdfFilename] = useState<string>('');
+    const pdfDocRef = React.useRef<any>(null); // To store the jsPDF instance
 
     const toggleSection = (id: string) => setMinimized(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -280,9 +281,9 @@ export const SystemDashboard: React.FC = () => {
                 }
             };
 
-            const { blob, filename } = generatePDFReport(data);
-            const url = URL.createObjectURL(blob);
-            setPdfData({ url, filename });
+            const { doc, filename } = generatePDFReport(data);
+            pdfDocRef.current = doc;
+            setPdfFilename(filename);
             setPdfStatus('ready');
 
         } catch (error: any) {
@@ -540,7 +541,7 @@ export const SystemDashboard: React.FC = () => {
                                         className="flex-1"
                                         onClick={() => {
                                             setPdfStatus('idle');
-                                            if (pdfData) URL.revokeObjectURL(pdfData.url);
+                                            pdfDocRef.current = null;
                                         }}
                                     >
                                         Fechar
@@ -548,16 +549,10 @@ export const SystemDashboard: React.FC = () => {
                                     <Button
                                         className="flex-1 bg-sky-600 text-white hover:bg-sky-700"
                                         onClick={() => {
-                                            if (pdfData) {
-                                                const a = document.createElement('a');
-                                                a.href = pdfData.url;
-                                                a.download = pdfData.filename;
-                                                document.body.appendChild(a);
-                                                a.click();
-                                                document.body.removeChild(a);
-
+                                            if (pdfDocRef.current) {
+                                                pdfDocRef.current.save(pdfFilename);
                                                 setPdfStatus('idle');
-                                                setTimeout(() => URL.revokeObjectURL(pdfData.url), 2000);
+                                                pdfDocRef.current = null;
                                             }
                                         }}
                                     >
