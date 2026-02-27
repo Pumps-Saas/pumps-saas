@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from typing import List
 import os
 
@@ -22,6 +23,13 @@ class Settings(BaseSettings):
         "DATABASE_URL", 
         "postgresql://postgres.vuatlnwjhvyfqcguealn:PumpsSaaS2026Master!Secure@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
     ).strip()
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_db_connection(cls, v: str) -> str:
+        if isinstance(v, str):
+            return v.strip().replace("\n", "").replace("\r", "")
+        return v
 
     # CORS Configuration
     BACKEND_CORS_ORIGINS: List[str] = [
