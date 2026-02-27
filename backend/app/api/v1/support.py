@@ -1,7 +1,7 @@
 from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from app.api.deps import get_db, get_current_active_user
+from app.api.deps import get_session, get_current_active_user
 from app.models import (
     User,
     SupportTicket,
@@ -18,7 +18,7 @@ router = APIRouter()
 
 @router.get("/", response_model=List[SupportTicketReadWithMessages])
 def read_tickets(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
     skip: int = 0,
     limit: int = 100,
@@ -37,7 +37,7 @@ def read_tickets(
 @router.post("/", response_model=SupportTicketRead)
 async def create_ticket(
     *,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_session),
     ticket_in: SupportTicketCreate,
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
