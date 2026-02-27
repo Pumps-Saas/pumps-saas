@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
         "postgresql://postgres.vuatlnwjhvyfqcguealn:PumpsSaaS2026Master!Secure@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
-    )
+    ).strip()
 
     # CORS Configuration
     BACKEND_CORS_ORIGINS: List[str] = [
