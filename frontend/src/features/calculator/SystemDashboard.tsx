@@ -13,6 +13,7 @@ import { Play, Sparkles, LayoutGrid, FileText, Settings2, Droplets, ArrowRight }
 import { Input } from '@/components/ui/Input';
 import { generatePDFReport, ReportData } from './services/pdfGenerator';
 import html2canvas from 'html2canvas';
+import { saveAs } from 'file-saver';
 
 import { Zap } from 'lucide-react';
 
@@ -550,26 +551,11 @@ export const SystemDashboard: React.FC = () => {
                                         className="flex-1 bg-sky-600 text-white hover:bg-sky-700"
                                         onClick={() => {
                                             if (pdfDocRef.current) {
-                                                // Generate raw Base64 Data URI (e.g. data:application/pdf;filename=generated.pdf;base64,JV...)
-                                                const pdfDataUri = pdfDocRef.current.output('datauristring', { filename: pdfFilename });
-
-                                                // Force browser to download instead of opening by altering the MIME type in the string
-                                                const octetUri = pdfDataUri.replace('application/pdf', 'application/octet-stream');
-
-                                                const a = document.createElement('a');
-                                                a.style.display = 'none';
-                                                a.href = octetUri;
-                                                a.download = pdfFilename; // Force extension explicitly
-                                                document.body.appendChild(a);
-
-                                                a.click();
+                                                const blob = pdfDocRef.current.output('blob');
+                                                saveAs(blob, pdfFilename);
 
                                                 setPdfStatus('idle');
                                                 pdfDocRef.current = null;
-
-                                                setTimeout(() => {
-                                                    document.body.removeChild(a);
-                                                }, 1000);
                                             }
                                         }}
                                     >
