@@ -9,6 +9,14 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "dummy-secret-key-for-dev")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
+    # SMTP Email Configuration
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 465))
+    SMTP_USER: str = os.getenv("SMTP_USER", "suporte@pumps-saas.com")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    EMAILS_FROM_EMAIL: str = os.getenv("EMAILS_FROM_EMAIL", "suporte@pumps-saas.com")
+    EMAILS_FROM_NAME: str = "Pumps SaaS Support"
+    
     # Supabase PostgreSQL URI (IPv4 Transaction Pooler)
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 

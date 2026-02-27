@@ -18,6 +18,7 @@ class User(UserBase, table=True):
     fluids: List["CustomFluid"] = Relationship(back_populates="user")
     pumps: List["Pump"] = Relationship(back_populates="user")
     invites_created: List["Invite"] = Relationship(back_populates="creator", sa_relationship_kwargs={"primaryjoin": "User.id==Invite.created_by_id"})
+    tickets: List["SupportTicket"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 class Token(SQLModel):
     access_token: str
@@ -122,3 +123,51 @@ class PumpCreate(PumpBase):
 class PumpRead(PumpBase):
     id: int
     created_at: datetime
+
+# --- Support Workflow Models ---
+
+class SupportTicketBase(SQLModel):
+    subject: str
+    status: str = Field(default="open") # "open", "closed"
+
+class SupportTicket(SupportTicketBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    user: "User" = Relationship(back_populates="tickets")
+    messages: List["TicketMessage"] = Relationship(back_populates="ticket", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+
+class SupportTicketCreate(SupportTicketBase):
+    message: str # the initial message content
+    attachment_url: Optional[str] = None
+
+class SupportTicketRead(SupportTicketBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+class TicketMessageBase(SQLModel):
+    sender_type: str = Field(default="user") # "user" or "admin"
+    message: str
+    attachment_url: Optional[str] = None
+
+class TicketMessage(TicketMessageBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    ticket_id: int = Field(foreign_key="supportticket.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    ticket: "SupportTicket" = Relationship(back_populates="messages")
+
+class TicketMessageCreate(TicketMessageBase):
+    pass
+
+class TicketMessageRead(TicketMessageBase):
+    id: int
+    ticket_id: int
+    created_at: datetime
+
+class SupportTicketReadWithMessages(SupportTicketRead):
+    messages: List[TicketMessageRead] = []

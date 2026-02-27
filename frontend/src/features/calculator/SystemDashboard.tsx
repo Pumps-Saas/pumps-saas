@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/Input';
 import { generatePDFReport, ReportData } from './services/pdfGenerator';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
+import { SupportModal } from '../support/SupportModal';
+import { NotificationPanel } from '../support/NotificationPanel';
 
 import { Zap } from 'lucide-react';
 
@@ -44,6 +46,9 @@ export const SystemDashboard: React.FC = () => {
     const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'ready'>('idle');
     const [pdfFilename, setPdfFilename] = useState<string>('');
     const pdfDocRef = React.useRef<any>(null); // To store the jsPDF instance
+
+    // Support Modal State
+    const [isSupportOpen, setIsSupportOpen] = useState(false);
 
     const toggleSection = (id: string) => setMinimized(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -324,6 +329,20 @@ export const SystemDashboard: React.FC = () => {
                     </Button>
 
                     <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-slate-600 hover:text-sky-600 gap-2 border-slate-200"
+                        onClick={() => setIsSupportOpen(true)}
+                    >
+                        Suporte
+                    </Button>
+
+                    {/* Add vertical divider */}
+                    <div className="h-6 w-px bg-slate-200 mx-1"></div>
+
+                    <NotificationPanel />
+
+                    <Button
                         onClick={() => calculate()}
                         disabled={isCalculating}
                         className="bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-600/20 transition-all active:scale-95"
@@ -567,6 +586,11 @@ export const SystemDashboard: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <SupportModal
+                isOpen={isSupportOpen}
+                onClose={() => setIsSupportOpen(false)}
+            />
         </div>
     );
 };

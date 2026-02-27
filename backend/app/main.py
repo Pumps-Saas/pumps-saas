@@ -23,10 +23,16 @@ if origins:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+import asyncio
+
 @app.on_event("startup")
 def on_startup():
     from app.core.db import create_db_and_tables
+    from app.core.email_poller import email_poller_task
     create_db_and_tables()
+    
+    # Launch background task for IMAP Support email polling
+    asyncio.create_task(email_poller_task())
 
 @app.get("/")
 def root():
