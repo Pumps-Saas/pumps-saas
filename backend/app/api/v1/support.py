@@ -71,7 +71,7 @@ async def create_ticket(
     email_subject = f"[Ticket #{ticket.id}] {ticket.subject}"
     
     await send_email(
-        email_to=settings.SMTP_USER,
+        email_to=settings.EMAILS_FROM_EMAIL,
         subject=email_subject,
         text_content=internal_message,
         reply_to=current_user.email  # The user's email so support can hit 'Reply'
