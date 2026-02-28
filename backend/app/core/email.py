@@ -34,13 +34,17 @@ async def send_email(
     print(f"Connecting to SMTP {settings.SMTP_HOST}:{settings.SMTP_PORT} as {settings.SMTP_USER}")
 
     try:
+        use_tls_flag = getattr(settings, "SMTP_PORT", 587) == 465
+        start_tls_flag = not use_tls_flag
+
         await aiosmtplib.send(
             message,
             hostname=settings.SMTP_HOST,
             port=settings.SMTP_PORT,
             username=settings.SMTP_USER,
             password=settings.SMTP_PASSWORD,
-            use_tls=True,
+            use_tls=use_tls_flag,
+            start_tls=start_tls_flag,
         )
         print(f"Email sent successfully to {email_to}")
     except Exception as e:

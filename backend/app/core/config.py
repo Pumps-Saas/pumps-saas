@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     
     # SMTP Email Configuration
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 465))
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
     SMTP_USER: str = os.getenv("SMTP_USER", "suporte@pumps-saas.com")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
     EMAILS_FROM_EMAIL: str = os.getenv("EMAILS_FROM_EMAIL", "suporte@pumps-saas.com")
