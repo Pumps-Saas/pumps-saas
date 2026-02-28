@@ -32,7 +32,7 @@ async def poll_support_emails():
     if not mail:
         return
 
-    mail.select("inbox")
+    mail.select(settings.IMAP_FOLDER)
     # Search for unread emails sent from the Admin team themselves
     # or just any unread emails for simplicity in this MVP
     status, messages = mail.search(None, 'UNSEEN')

@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
     EMAILS_FROM_EMAIL: str = os.getenv("EMAILS_FROM_EMAIL", "suporte@pumps-saas.com")
     EMAILS_FROM_NAME: str = "Pumps SaaS Support"
+    IMAP_FOLDER: str = os.getenv("IMAP_FOLDER", "inbox")
     
     # Supabase PostgreSQL URI (IPv4 Transaction Pooler)
     DATABASE_URL: str = os.getenv(
