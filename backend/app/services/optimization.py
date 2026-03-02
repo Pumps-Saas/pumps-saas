@@ -17,6 +17,10 @@ def calculate_parallel_loss(
     if num_branches < 2:
         return 0.0, {}
 
+    # Fast-path for zero flow to prevent SciPy bounds crash (0,0) bounds are invalid
+    if total_flow_m3h <= 1e-6:
+        return 0.0, {name: 0.0 for name in parallel_sections.keys()}
+
     branch_names = list(parallel_sections.keys())
     branch_lists = list(parallel_sections.values())
 
