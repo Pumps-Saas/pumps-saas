@@ -24,40 +24,59 @@ def calculate_parallel_loss(
     branch_names = list(parallel_sections.keys())
     branch_lists = list(parallel_sections.values())
 
-    # We solve for N-1 flow rates. The last one is determined by continuity.
-    def equations(partial_flows_m3h):
-        last_flow = total_flow_m3h - np.sum(partial_flows_m3h)
-        all_flows = np.append(partial_flows_m3h, last_flow)
-        losses = []
-        for branch, flow in zip(branch_lists, all_flows):
-            loss = calculate_series_loss(branch, flow, fluid)
-            losses.append(loss)
-        
-        # Equations: Loss in branch[i] - Loss in last branch = 0
-        errors = [losses[i] - losses[-1] for i in range(num_branches - 1)]
-        return errors
+    from scipy.optimize import root_scalar
 
-    initial_guess = np.full(num_branches - 1, total_flow_m3h / num_branches)
+    # Pre-calculate loss at zero flow for each branch (this represents the minimum pressure drop to open the line)
+    losses_at_zero = [calculate_series_loss(branch, 0.0, fluid) for branch in branch_lists]
     
-    # Use least_squares which inherently supports physical bounds (0 <= flow <= total_flow)
-    solution = least_squares(
-        equations, 
-        initial_guess, 
-        bounds=(0, total_flow_m3h),
-        xtol=1e-8
-    )
+    # Pre-calculate loss if ALL flow went through each branch (absolute max pressure drop bounding)
+    losses_at_total = [calculate_series_loss(branch, total_flow_m3h, fluid) for branch in branch_lists]
 
-    if not solution.success:
+    def get_branch_flow(branch_idx: int, target_head: float) -> float:
+        min_loss = losses_at_zero[branch_idx]
+        if min_loss >= target_head:
+            # Branch is blocked by high resistance compared to available pressure
+            return 0.0
+            
+        # Establish bracket for flow optimization
+        q_high = total_flow_m3h if total_flow_m3h > 0 else 1.0
+        while calculate_series_loss(branch_lists[branch_idx], q_high, fluid) < target_head:
+            q_high *= 2.0
+            
+        def err(q: float) -> float:
+            return calculate_series_loss(branch_lists[branch_idx], q, fluid) - target_head
+            
+        res = root_scalar(err, bracket=[0, q_high], method='brentq')
+        return res.root
+
+    def total_flow_error(target_head: float) -> float:
+        q_sum = sum(get_branch_flow(i, target_head) for i in range(num_branches))
+        return q_sum - total_flow_m3h
+
+    # The manifold pressure drop must be between the easiest branch to open and the hardest branch at full flow
+    H_min = min(losses_at_zero)
+    H_max = max(losses_at_total)
+    
+    if H_max <= H_min:
+        H_max = H_min + 1.0
+        
+    # Expand bracket iteratively if needed to ensure valid root finding
+    while total_flow_error(H_max) < 0:
+        H_max *= 2.0
+
+    try:
+        # Solve for the exact manifold pressure drop that perfectly satisfies mass conservation
+        res_H = root_scalar(total_flow_error, bracket=[H_min, H_max], method='brentq')
+        H_final = res_H.root
+    except Exception:
         return -1.0, {}
 
-    final_flows = np.append(solution.x, total_flow_m3h - np.sum(solution.x))
-    
-    # Calculate final loss using the first branch (all should be equal)
-    final_loss = calculate_series_loss(branch_lists[0], final_flows[0], fluid)
+    # Calculate final flows based on this exact unified pressure drop
+    final_flows = [get_branch_flow(i, H_final) for i in range(num_branches)]
     
     flow_distribution = {name: flow for name, flow in zip(branch_names, final_flows)}
     
-    return final_loss, flow_distribution
+    return H_final, flow_distribution
 
 def find_operating_point(
     suction_sections: List[PipeSection],
