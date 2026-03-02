@@ -171,6 +171,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                 const s = segments[0];
 
                 if (s) {
+                    const res = getResult(s.id);
                     const branchFlow = res?.velocity_m_s ? res.velocity_m_s * Math.PI * Math.pow((s.diameter_mm || 0) / 1000, 2) / 4 * 3600 : 0;
                     drawPipe(splitX, mergeX, branchY, `${key}`, s.id, -20, branchFlow);
                 } else {
