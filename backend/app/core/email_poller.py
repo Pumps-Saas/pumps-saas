@@ -3,6 +3,7 @@ import email
 from email.header import decode_header
 import re
 import asyncio
+from datetime import datetime, timedelta
 from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.db import engine
@@ -33,9 +34,11 @@ async def poll_support_emails():
         return
 
     mail.select(settings.IMAP_FOLDER)
-    # Search for unread emails sent from the Admin team themselves
-    # or just any unread emails for simplicity in this MVP
-    status, messages = mail.search(None, 'UNSEEN')
+    
+    # Due to Gmail's auto-read behavior when replying from an alias, 
+    # we search for recent emails rather than solely 'UNSEEN' and deduplicate them in the DB.
+    date_since = (datetime.now() - timedelta(days=2)).strftime("%d-%b-%Y")
+    status, messages = mail.search(None, f'(SINCE "{date_since}")')
     
     if status != "OK":
         mail.logout()
@@ -98,6 +101,19 @@ async def poll_support_emails():
                         # Determine if reply is from user or admin
                         # If user's email is in the From header, it's the user
                         sender_type = "user" if ticket.user.email in sender else "admin"
+
+                        # Deduplication check: Has this exact message been saved already?
+                        existing_msg = db.exec(
+                            select(TicketMessage).where(
+                                TicketMessage.ticket_id == ticket.id,
+                                TicketMessage.message == reply_text,
+                                TicketMessage.sender_type == sender_type
+                            )
+                        ).first()
+
+                        if existing_msg:
+                            # We already processed this email previously. Skip it safely.
+                            continue
 
                         new_msg = TicketMessage(
                             ticket_id=ticket.id,
