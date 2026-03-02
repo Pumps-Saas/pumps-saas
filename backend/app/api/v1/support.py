@@ -74,7 +74,8 @@ async def create_ticket(
         email_to=settings.EMAILS_FROM_EMAIL,
         subject=email_subject,
         text_content=internal_message,
-        reply_to=current_user.email  # The user's email so support can hit 'Reply'
+        reply_to=settings.EMAILS_FROM_EMAIL,  # Force reply to the system so DB records it
+        headers={"X-Pumps-Notification": "Original"}
     )
     
     return ticket

@@ -45,9 +45,16 @@ async def poll_support_emails():
     
     for email_id in email_ids:
         res, msg_data = mail.fetch(email_id, '(RFC822)')
+        mark_as_read = True
         for response_part in msg_data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
+                
+                if msg.get("X-Pumps-Notification") == "Original":
+                    # Leave the original ticket notification UNREAD for the Admin to see
+                    mark_as_read = False
+                    continue
+                
                 subject, encoding = decode_header(msg["Subject"])[0]
                 if isinstance(subject, bytes):
                     subject = subject.decode(encoding if encoding else "utf-8")
@@ -75,33 +82,42 @@ async def poll_support_emails():
                 else:
                     body = msg.get_payload(decode=True).decode()
                     
-                # Clean up body to remove previous quoted emails (Gmail creates quotes after "Em qui., 27 de fev. de 2026...")
-                # A very rudimentary way to grab the top reply:
+                # Clean up body to remove previous quoted emails
                 reply_text = body.split("\r\n\r\n> ")[0]
                 reply_text = reply_text.split("Em ")[0] # Basic Portuguese Gmail quote detection
+                reply_text = reply_text.split("On ")[0] # English quote detection
                 reply_text = reply_text.strip()
+                
+                # Identify sender
+                sender = str(msg.get("From", ""))
                 
                 # Save to database
                 with Session(engine) as db:
                     ticket = db.get(SupportTicket, ticket_id)
                     if ticket:
+                        # Determine if reply is from user or admin
+                        # If user's email is in the From header, it's the user
+                        sender_type = "user" if ticket.user.email in sender else "admin"
+
                         new_msg = TicketMessage(
                             ticket_id=ticket.id,
-                            sender_type="admin",
+                            sender_type=sender_type,
                             message=reply_text
                         )
                         db.add(new_msg)
                         db.commit()
                         
-                        # Forward the reply back to the user via email
-                        asyncio.create_task(send_email(
-                            email_to=ticket.user.email,
-                            subject=f"Re: [Ticket #{ticket.id}] {ticket.subject}",
-                            text_content=f"Você recebeu uma resposta da equipe de suporte:\n\n{reply_text}\n\n--\nPumps SaaS"
-                        ))
+                        # If the reply was sent by the Admin, forward it back to the User's email!
+                        if sender_type == "admin":
+                            asyncio.create_task(send_email(
+                                email_to=ticket.user.email,
+                                subject=f"Re: [Ticket #{ticket.id}] {ticket.subject}",
+                                text_content=f"Você recebeu uma resposta da equipe de suporte:\n\n{reply_text}\n\n--\nPumps SaaS",
+                                reply_to=settings.EMAILS_FROM_EMAIL
+                            ))
         
-        # Mark as read (already done implicitly by fetch without PEEK but to be safe)
-        mail.store(email_id, '+FLAGS', '\Seen')
+        if mark_as_read:
+            mail.store(email_id, '+FLAGS', '\Seen')
 
     mail.logout()
 

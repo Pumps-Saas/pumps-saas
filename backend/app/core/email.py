@@ -8,7 +8,8 @@ async def send_email(
     email_to: str,
     subject: str,
     text_content: str,
-    reply_to: str | None = None
+    reply_to: str | None = None,
+    headers: dict | None = None
 ) -> None:
     """
     Asynchronously sends an email using SMTP.
@@ -25,6 +26,10 @@ async def send_email(
     message["From"] = f"{settings.EMAILS_FROM_NAME} <{settings.EMAILS_FROM_EMAIL}>"
     message["To"] = email_to
     message["Subject"] = subject
+    
+    if headers:
+        for k, v in headers.items():
+            message[k] = v
     
     if reply_to:
         message["Reply-To"] = reply_to
