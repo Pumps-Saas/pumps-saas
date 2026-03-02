@@ -92,7 +92,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
         cursorX += TANK_WIDTH;
 
         // Helper: Draw Pipe Segment
-        const drawPipe = (startX: number, endX: number, y: number, name: string, id: string, labelYOffset = -25) => {
+        const drawPipe = (startX: number, endX: number, y: number, name: string, id: string, labelYOffset = -25, customFlow?: number) => {
             const res = getResult(id);
             const midX = (startX + endX) / 2;
 
@@ -109,7 +109,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                     <tspan x={midX} dy="0" fontWeight="bold">{name}</tspan>
                     {res && (
                         <>
-                            <tspan x={midX} dy={baseFontSize * 1.2}>{result?.flow_op.toFixed(1)} m³/h</tspan>
+                            <tspan x={midX} dy={baseFontSize * 1.2}>{(customFlow !== undefined ? customFlow : result?.flow_op || 0).toFixed(1)} m³/h</tspan>
                             <tspan x={midX} dy={baseFontSize * 1.2}>{res.velocity_m_s.toFixed(2)} m/s</tspan>
                             <tspan x={midX} dy={baseFontSize * 1.2}>Perda: {res.total_loss_m.toFixed(2)} m</tspan>
                         </>
@@ -171,7 +171,8 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                 const s = segments[0];
 
                 if (s) {
-                    drawPipe(splitX, mergeX, branchY, `${key}`, s.id, -20);
+                    const branchFlow = result?.flow_op ? result.flow_op / numBranches : 0;
+                    drawPipe(splitX, mergeX, branchY, `${key}`, s.id, -20, branchFlow);
                 } else {
                     // Empty Branch
                     svgElements.push(
