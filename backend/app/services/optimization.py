@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import root
+from scipy.optimize import least_squares, root
 from typing import List, Dict, Optional, Tuple, Callable
 from ..schemas.calculations import PipeSection, FluidProperties
 from .fluid_mechanics import calculate_series_loss
@@ -23,11 +23,6 @@ def calculate_parallel_loss(
     # We solve for N-1 flow rates. The last one is determined by continuity.
     def equations(partial_flows_m3h):
         last_flow = total_flow_m3h - np.sum(partial_flows_m3h)
-        
-        # Penalty for negative flow (physically impossible in this simple model context)
-        if last_flow < -0.01:
-            return [1e12] * (num_branches - 1)
-
         all_flows = np.append(partial_flows_m3h, last_flow)
         losses = []
         for branch, flow in zip(branch_lists, all_flows):
@@ -39,7 +34,14 @@ def calculate_parallel_loss(
         return errors
 
     initial_guess = np.full(num_branches - 1, total_flow_m3h / num_branches)
-    solution = root(equations, initial_guess, method='hybr', options={'xtol': 1e-8})
+    
+    # Use least_squares which inherently supports physical bounds (0 <= flow <= total_flow)
+    solution = least_squares(
+        equations, 
+        initial_guess, 
+        bounds=(0, total_flow_m3h),
+        xtol=1e-8
+    )
 
     if not solution.success:
         return -1.0, {}
