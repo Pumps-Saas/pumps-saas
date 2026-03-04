@@ -26,7 +26,8 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 import time
 import asyncio
 from fastapi import Request
-from app.db.session import SessionLocal
+from sqlmodel import Session
+from app.core.db import engine
 from app.models import SystemLog
 
 @app.middleware("http")
@@ -42,7 +43,7 @@ async def log_kpi_middleware(request: Request, call_next):
         
         if is_calc_route or is_error:
             # Run db save in background to avoid slowing down the response
-            db = SessionLocal()
+            db = Session(engine)
             try:
                 # We don't have the error body easily accessible here without consuming the stream, 
                 # but we know the status code.
@@ -60,7 +61,7 @@ async def log_kpi_middleware(request: Request, call_next):
         return response
     except Exception as e:
         process_time_ms = (time.time() - start_time) * 1000
-        db = SessionLocal()
+        db = Session(engine)
         try:
             log = SystemLog(
                 endpoint=request.url.path,

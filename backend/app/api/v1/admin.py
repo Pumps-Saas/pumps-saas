@@ -4,8 +4,7 @@ from typing import List, Any
 from datetime import datetime, timedelta
 
 from app.api.deps import get_current_active_admin, get_session
-from app.models.user import User
-from app.models import Project, Scenario, SupportTicket, Pump, CustomFluid, SystemLog, Invite
+from app.models import User, Project, Scenario, SupportTicket, Pump, CustomFluid, SystemLog, Invite
 import secrets
 
 router = APIRouter()
