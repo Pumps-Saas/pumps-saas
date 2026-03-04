@@ -16,7 +16,7 @@ from app.core.config import settings
 
 router = APIRouter()
 
-@router.get("/", response_model=List[SupportTicketReadWithMessages])
+@router.get("/tickets", response_model=List[SupportTicketReadWithMessages])
 def read_tickets(
     db: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
@@ -34,7 +34,7 @@ def read_tickets(
     tickets = db.exec(statement).all()
     return tickets
 
-@router.post("/", response_model=SupportTicketRead)
+@router.post("/tickets", response_model=SupportTicketRead)
 async def create_ticket(
     *,
     db: Session = Depends(get_session),

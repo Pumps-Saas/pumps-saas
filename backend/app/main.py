@@ -84,6 +84,6 @@ def on_startup():
     # Launch background task for IMAP Support email polling
     asyncio.create_task(email_poller_task())
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "POST", "HEAD", "OPTIONS"])
 def root():
     return {"message": "Welcome to Pumps SaaS v2.0 API"}
