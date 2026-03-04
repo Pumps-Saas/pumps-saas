@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Activity, Menu } from 'lucide-react';
+import { Activity, Menu, Shield } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { ProjectManager } from '../../features/projects/ProjectManager';
+import { useNavigate } from 'react-router-dom';
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -10,6 +11,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     const { user, logout } = useAuth();
     const [showProjects, setShowProjects] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -32,6 +34,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </div>
 
                     <div className="flex items-center space-x-4">
+                        {user?.role === 'admin' && (
+                            <button
+                                onClick={() => navigate('/admin')}
+                                className="flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors bg-blue-50 px-3 py-1.5 rounded-md"
+                            >
+                                <Shield className="h-4 w-4 mr-1.5" />
+                                Admin Panel
+                            </button>
+                        )}
                         <span className="text-sm text-gray-700 hidden sm:block">{user?.email}</span>
                         <button
                             onClick={logout}

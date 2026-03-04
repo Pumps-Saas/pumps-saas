@@ -9,6 +9,9 @@ class UserBase(SQLModel):
     email: str = Field(unique=True, index=True)
     role: str = Field(default="user") # "admin" or "user"
     is_active: bool = Field(default=True)
+    subscription_status: str = Field(default="trial") # "active", "trial", "expired"
+    subscription_end_date: Optional[datetime] = Field(default=None)
+    total_access_time_minutes: int = Field(default=0)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -171,3 +174,13 @@ class TicketMessageRead(TicketMessageBase):
 
 class SupportTicketReadWithMessages(SupportTicketRead):
     messages: List[TicketMessageRead] = []
+
+# --- Monitoring Models ---
+
+class SystemLog(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    endpoint: str
+    response_time_ms: float
+    status_code: int
+    error_message: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
