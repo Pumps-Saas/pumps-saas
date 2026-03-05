@@ -122,7 +122,7 @@ async def poll_support_emails():
                         )
                         db.add(new_msg)
                         
-                        if sender_type == \"admin\":
+                        if sender_type == "admin":
                             ticket.status = \"closed\"
                             db.add(ticket)
                             
