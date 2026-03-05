@@ -81,6 +81,21 @@ def on_startup():
     from app.core.email_poller import email_poller_task
     create_db_and_tables()
     
+    # Retroactively close open tickets that were replied to by admin while service was broken
+    try:
+        from app.core.db import engine
+        from sqlmodel import Session, select
+        from app.models import SupportTicket
+        with Session(engine) as session:
+            tickets = session.exec(select(SupportTicket).where(SupportTicket.status == "open")).all()
+            for t in tickets:
+                if t.messages and t.messages[-1].sender_type == "admin":
+                    t.status = "closed"
+                    session.add(t)
+            session.commit()
+    except Exception as e:
+        print(f"Error updating legacy tickets: {e}")
+    
     # Launch background task for IMAP Support email polling
     asyncio.create_task(email_poller_task())
 

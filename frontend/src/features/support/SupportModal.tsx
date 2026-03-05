@@ -24,7 +24,7 @@ export const SupportModal = ({ isOpen, onClose }: SupportModalProps) => {
         setIsSubmitting(true);
         try {
             // Wait for the new Support endpoint logic
-            await apiClient.post('/support/', {
+            await apiClient.post('/support/tickets', {
                 subject,
                 message,
             });

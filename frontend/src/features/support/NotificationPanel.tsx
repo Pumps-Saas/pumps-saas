@@ -10,7 +10,7 @@ export const NotificationPanel = () => {
     const fetchTickets = async () => {
         try {
             setIsLoading(true);
-            const res = await apiClient.get('/support/');
+            const res = await apiClient.get('/support/tickets');
             // Sort by newest first
             const sorted = res.data.sort((a: any, b: any) =>
                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
