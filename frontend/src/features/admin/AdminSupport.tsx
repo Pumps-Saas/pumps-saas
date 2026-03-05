@@ -29,12 +29,9 @@ export const AdminSupport: React.FC = () => {
                 user_email: userMap[t.user_id] || "Unknown"
             }));
 
-            // Group by user, then by newest
+            // Sort by newest globally
             const sorted = processedTickets.sort((a: any, b: any) => {
-                if (a.user_id === b.user_id) {
-                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                }
-                return a.user_id - b.user_id;
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
             });
 
             setTickets(sorted);
@@ -105,7 +102,7 @@ export const AdminSupport: React.FC = () => {
                                                     </h4>
                                                 </div>
                                                 <div className="mt-1 flex items-center text-sm text-slate-500">
-                                                    <span className="font-medium text-slate-700 mr-2">From User ID: {ticket.user_id}</span>
+                                                    <span className="font-medium text-slate-700 mr-2">From User ID: {ticket.user_id} ({ticket.user_email})</span>
                                                 </div>
 
                                                 <div className="mt-4 space-y-4">
