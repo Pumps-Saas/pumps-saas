@@ -14,9 +14,30 @@ export const AdminSupport: React.FC = () => {
 
     const fetchTickets = async () => {
         try {
-            // Reusing the standard GET /support/tickets endpoint since Admin sees all.
-            const response = await apiClient.get('/support/tickets');
-            setTickets(response.data);
+            const [ticketsRes, usersRes] = await Promise.all([
+                apiClient.get('/support/tickets'),
+                apiClient.get('/admin/users')
+            ]);
+
+            const userMap = usersRes.data.reduce((acc: any, u: any) => {
+                acc[u.id] = u.email;
+                return acc;
+            }, {});
+
+            const processedTickets = ticketsRes.data.map((t: any) => ({
+                ...t,
+                user_email: userMap[t.user_id] || "Unknown"
+            }));
+
+            // Group by user, then by newest
+            const sorted = processedTickets.sort((a: any, b: any) => {
+                if (a.user_id === b.user_id) {
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                }
+                return a.user_id - b.user_id;
+            });
+
+            setTickets(sorted);
         } catch (error) {
             console.error(error);
             addToast('Failed to load tickets', 'error');

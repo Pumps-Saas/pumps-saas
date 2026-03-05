@@ -55,6 +55,7 @@ export const AdminUsers: React.FC = () => {
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">User / Contact</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Subscription</th>
                                 <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Activity Stats</th>
+                                <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Storage (Est)</th>
                                 <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Access Control</th>
                             </tr>
                         </thead>
@@ -108,6 +109,12 @@ export const AdminUsers: React.FC = () => {
                                                 <span className="text-lg font-bold text-blue-600">{user.stats.tickets}</span>
                                                 <span className="text-[10px] text-slate-400 uppercase tracking-wide">Tickets</span>
                                             </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-center bg-slate-50 border-x border-slate-100">
+                                        <div className="flex flex-col items-center justify-center h-full">
+                                            <span className="text-lg font-bold text-purple-700">{user.stats.storage_kb || 0} KB</span>
+                                            <span className="text-[10px] text-slate-500 uppercase tracking-wide mt-1">DB Size</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">

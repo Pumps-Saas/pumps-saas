@@ -6,6 +6,9 @@ from datetime import datetime, timedelta
 from app.api.deps import get_current_active_admin, get_session
 from app.models import User, Project, Scenario, SupportTicket, Pump, CustomFluid, SystemLog, Invite
 import secrets
+from sqlalchemy import text
+import os
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -42,7 +45,8 @@ def get_admin_users(
             "stats": {
                 "projects": projects_count,
                 "scenarios": scenarios_count,
-                "tickets": tickets_count
+                "tickets": tickets_count,
+                "storage_kb": 10 + (projects_count * 5) + (scenarios_count * 15) + (tickets_count * 2)
             }
         })
         
@@ -156,9 +160,24 @@ def get_system_kpis(
         
     error_rate = (error_count / len(logs)) * 100 if logs else 0.0
     
+    db_size_mb = 0.0
+    try:
+        from sqlalchemy import text
+        import os
+        from app.core.config import settings
+        if "postgres" in settings.DATABASE_URL:
+            db_size_bytes = session.exec(text("SELECT pg_database_size(current_database())")).one()[0]
+            db_size_mb = db_size_bytes / (1024 * 1024)
+        else:
+            path_file = settings.DATABASE_URL.replace("sqlite:///", "")
+            if os.path.exists(path_file):
+                db_size_mb = os.path.getsize(path_file) / (1024 * 1024)
+    except Exception:
+        pass
+
     return {
         "users": {"total": total_users, "active": active_users},
-        "database": {"total_projects": total_projects, "total_scenarios": total_scenarios},
+        "database": {"total_projects": total_projects, "total_scenarios": total_scenarios, "size_mb": round(db_size_mb, 2)},
         "performance": {"avg_response_time_ms": round(avg_response_time, 2), "error_rate_percent": round(error_rate, 2)},
         "recent_errors": [
             {"endpoint": log.endpoint, "status": log.status_code, "error": log.error_message, "time": log.created_at}

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '../../api/client';
-import { Users, LayoutTemplate, CopyPlus, Zap, AlertTriangle } from 'lucide-react';
+import { Users, LayoutTemplate, CopyPlus, Zap, AlertTriangle, Database } from 'lucide-react';
 
 interface KPIs {
     users: { total: number; active: number };
-    database: { total_projects: number; total_scenarios: number };
+    database: { total_projects: number; total_scenarios: number; size_mb?: number };
     performance: { avg_response_time_ms: number; error_rate_percent: number };
     recent_errors: any[];
 }
@@ -38,6 +38,7 @@ export const AdminDashboard: React.FC = () => {
         { label: 'Total Scenarios', value: kpis.database.total_scenarios, icon: CopyPlus, color: 'text-purple-600', bg: 'bg-purple-100' },
         { label: 'Avg Calculation Time', value: `${kpis.performance.avg_response_time_ms}ms`, icon: Zap, color: 'text-emerald-600', bg: 'bg-emerald-100' },
         { label: 'Algorithm Error Rate', value: `${kpis.performance.error_rate_percent}%`, icon: AlertTriangle, color: kpis.performance.error_rate_percent > 5 ? 'text-red-600' : 'text-amber-500', bg: kpis.performance.error_rate_percent > 5 ? 'bg-red-100' : 'bg-amber-100' },
+        { label: 'DB Storage Used', value: `${kpis.database.size_mb !== undefined ? kpis.database.size_mb : 0} MB`, icon: Database, color: 'text-rose-600', bg: 'bg-rose-100' },
     ];
 
     return (

@@ -121,6 +121,11 @@ async def poll_support_emails():
                             message=reply_text
                         )
                         db.add(new_msg)
+                        
+                        if sender_type == \"admin\":
+                            ticket.status = \"closed\"
+                            db.add(ticket)
+                            
                         db.commit()
                         
                         # If the reply was sent by the Admin, forward it back to the User's email!
