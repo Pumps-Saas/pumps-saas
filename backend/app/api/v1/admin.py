@@ -4,13 +4,27 @@ from typing import List, Any
 from datetime import datetime, timedelta
 
 from app.api.deps import get_current_active_admin, get_session
-from app.models import User, Project, Scenario, SupportTicket, Pump, CustomFluid, SystemLog, Invite
+from app.models import User, Project, Scenario, SupportTicket, SupportTicketReadWithMessages, Pump, CustomFluid, SystemLog, Invite
 import secrets
 from sqlalchemy import text
 import os
 from app.core.config import settings
 
 router = APIRouter()
+
+@router.get("/tickets", response_model=List[SupportTicketReadWithMessages])
+def get_all_tickets(
+    session: Session = Depends(get_session),
+    current_admin: User = Depends(get_current_active_admin),
+    skip: int = 0,
+    limit: int = 500,
+) -> Any:
+    """
+    Get all support tickets for the admin panel.
+    """
+    statement = select(SupportTicket).offset(skip).limit(limit)
+    return session.exec(statement).all()
+
 
 @router.get("/users")
 def get_admin_users(

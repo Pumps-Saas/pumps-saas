@@ -15,7 +15,7 @@ export const AdminSupport: React.FC = () => {
     const fetchTickets = async () => {
         try {
             const [ticketsRes, usersRes] = await Promise.all([
-                apiClient.get('/support/tickets'),
+                apiClient.get('/admin/tickets'),
                 apiClient.get('/admin/users')
             ]);
 

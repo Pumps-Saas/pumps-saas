@@ -24,13 +24,9 @@ def read_tickets(
     limit: int = 100,
 ) -> Any:
     """
-    Retrieve user tickets. Admin users can see all tickets.
+    Retrieve user tickets.
     """
-    if current_user.role == "admin":
-        statement = select(SupportTicket).offset(skip).limit(limit)
-    else:
-        statement = select(SupportTicket).where(SupportTicket.user_id == current_user.id).offset(skip).limit(limit)
-        
+    statement = select(SupportTicket).where(SupportTicket.user_id == current_user.id).offset(skip).limit(limit)
     tickets = db.exec(statement).all()
     return tickets
 
