@@ -1,17 +1,16 @@
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
-from ..db import get_session
-from ..core.config import settings
-from ..core.security import get_current_user
-from ..models import User
+from app.api import deps
+from app.core.config import settings
+from app.models import User
 
 router = APIRouter()
 
 stripe.api_key = settings.STRIPE_API_KEY
 
 @router.post("/create-checkout-session")
-async def create_checkout_session(plan: str, db: Session = Depends(get_session), current_user: User = Depends(get_current_user)):
+async def create_checkout_session(plan: str, db: Session = Depends(deps.get_session), current_user: User = Depends(deps.get_current_active_user)):
     try:
         # In a real app we would map `plan` to a Stripe Price ID
         # For this MVP, we will use a generic mode or mock price IDs.
@@ -42,7 +41,7 @@ async def create_checkout_session(plan: str, db: Session = Depends(get_session),
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/webhook")
-async def stripe_webhook(request: Request, db: Session = Depends(get_session)):
+async def stripe_webhook(request: Request, db: Session = Depends(deps.get_session)):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
 
