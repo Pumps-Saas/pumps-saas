@@ -93,7 +93,7 @@ Mensagem:
 {contact.message}
 """)
         msg["Subject"] = "Nova mensagem via Formulário de Vendas"
-        msg["From"] = f"Pumps SaaS Sales <{settings.SMTP_USER}>"
+        msg["From"] = "Pumps SaaS Sales <vendas@pumps-saas.com>"
         msg["To"] = "vendas@pumps-saas.com"
         msg["Reply-To"] = contact.email
 
