@@ -12,6 +12,7 @@ import { AdminUsers } from './features/admin/AdminUsers';
 import { AdminResources } from './features/admin/AdminResources';
 import { AdminInvites } from './features/admin/AdminInvites';
 import { AdminSupport } from './features/admin/AdminSupport';
+import { LandingPage } from './pages/LandingPage';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -34,8 +35,9 @@ function App() {
                         <Routes>
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
+                            <Route path="/" element={<LandingPage />} />
                             <Route
-                                path="/"
+                                path="/dashboard/*"
                                 element={
                                     <ProtectedRoute>
                                         <MainLayout>

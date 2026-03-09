@@ -23,7 +23,7 @@ export const Login = () => {
         try {
             await login(params);
             addToast("Sign in successful!", 'success');
-            navigate('/');
+            navigate('/dashboard');
         } catch (err: any) {
             console.error("Login error:", err);
             const detail = err.response?.data?.detail;

@@ -311,13 +311,13 @@ export const SystemDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-slate-100 rounded-md px-3 py-1.5 border border-slate-200">
+                    <div className="hidden md:flex items-center gap-2 bg-slate-100 rounded-md px-3 py-1.5 border border-slate-200">
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Patm</span>
                         <div className="text-sm font-medium w-16 text-right px-2">{pAtm.toFixed(3)}</div>
                         <span className="text-xs text-slate-400">bar</span>
                     </div>
 
-                    <div className="h-6 w-px bg-slate-200 mx-1"></div>
+                    <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
 
                     <Button
                         variant="ghost"
@@ -325,20 +325,20 @@ export const SystemDashboard: React.FC = () => {
                         className="text-slate-600 hover:text-sky-600 gap-2"
                         onClick={handleGeneratePDF}
                     >
-                        <FileText className="w-4 h-4" /> PDF
+                        <FileText className="w-4 h-4" /> <span className="hidden sm:inline">PDF</span>
                     </Button>
 
                     <Button
                         variant="outline"
                         size="sm"
-                        className="text-slate-600 hover:text-sky-600 gap-2 border-slate-200"
+                        className="text-slate-600 hover:text-sky-600 gap-2 border-slate-200 hidden sm:flex"
                         onClick={() => setIsSupportOpen(true)}
                     >
                         Suporte
                     </Button>
 
                     {/* Add vertical divider */}
-                    <div className="h-6 w-px bg-slate-200 mx-1"></div>
+                    <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
                     <NotificationPanel />
 
@@ -367,7 +367,7 @@ export const SystemDashboard: React.FC = () => {
                         <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <CardHeader icon={Settings2} title="System Conditions" minimized={minimized['conditions']} toggle={() => toggleSection('conditions')} />
                             {!minimized['conditions'] && (
-                                <div className="p-4 grid grid-cols-2 gap-4 bg-white">
+                                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white">
                                     <div>
                                         <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Static Head (m)</label>
                                         <Input type="number" value={staticHead} onChange={e => setStaticHead(Number(e.target.value))} />
@@ -392,7 +392,7 @@ export const SystemDashboard: React.FC = () => {
                         <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                             <CardHeader icon={Zap} title="Energy & Cost Configuration" minimized={minimized['energy']} toggle={() => toggleSection('energy')} />
                             {!minimized['energy'] && (
-                                <div className="p-4 grid grid-cols-3 gap-4 bg-white">
+                                <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white">
                                     <div>
                                         <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Motor Eff. (%)</label>
                                         <Input type="number" step="0.1" value={efficiencyMotor * 100} onChange={e => setEnergyConfig('efficiency_motor', Number(e.target.value) / 100)} />

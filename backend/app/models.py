@@ -11,6 +11,8 @@ class UserBase(SQLModel):
     is_active: bool = Field(default=True)
     subscription_status: str = Field(default="trial") # "active", "trial", "expired"
     subscription_end_date: Optional[datetime] = Field(default=None)
+    subscription_tier: str = Field(default="basic") # "basic", "pro", "enterprise"
+    stripe_customer_id: Optional[str] = Field(default=None)
     total_access_time_minutes: int = Field(default=0)
 
 class User(UserBase, table=True):

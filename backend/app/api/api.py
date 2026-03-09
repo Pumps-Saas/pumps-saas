@@ -8,13 +8,14 @@ from app.api.v1 import fluids
 api_router.include_router(calculate.router, prefix="/calculate", tags=["calculation"])
 api_router.include_router(fluids.router, prefix="/fluids", tags=["fluids"])
 
-from app.api.v1 import auth, projects, pumps, support, admin
+from app.api.v1 import auth, projects, pumps, support, admin, payments
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
 api_router.include_router(pumps.router, prefix="/pumps", tags=["pumps"])
 api_router.include_router(support.router, prefix="/support", tags=["support"])
+api_router.include_router(payments.router, prefix="/payments", tags=["payments"])
 
 @api_router.get("/health")
 def health_check():

@@ -19,11 +19,15 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: str = "Pumps SaaS Support"
     IMAP_FOLDER: str = os.getenv("IMAP_FOLDER", "inbox")
     
-    # Supabase PostgreSQL URI (IPv4 Transaction Pooler)
+    # Supabase PostgreSQL URI (IPv4 Transaction Pooler) or Local SQLite fallback
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
-        "postgresql://postgres.vuatlnwjhvyfqcguealn:PumpsSaaS2026Master!Secure@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+        "sqlite:///./pumps.db" # Default safely to local sqlite
     ).strip()
+
+    # Stripe Configuration
+    STRIPE_API_KEY: str = os.getenv("STRIPE_API_KEY", "")
+    STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
@@ -38,10 +42,13 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
-        "http://localhost",
         "http://127.0.0.1",
         "http://PEDRONITRO5:3000",
         "https://pumps-saas.vercel.app",
+        "https://pumps-saas.app",
+        "https://www.pumps-saas.app",
+        "https://pumps-saas.com",
+        "https://www.pumps-saas.com"
     ]
     
     FRONTEND_URL: str | None = None
@@ -54,5 +61,6 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
+        env_file = ".env"
 
 settings = Settings()

@@ -16,7 +16,7 @@ const AdminLayout: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     if (user?.role !== 'admin') {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/dashboard" replace />;
     }
 
     const navItems = [
@@ -83,7 +83,7 @@ const AdminLayout: React.FC = () => {
 
                     <div className="flex items-center space-x-3">
                         <NavLink
-                            to="/"
+                            to="/dashboard"
                             className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors mr-4"
                         >
                             Back to App

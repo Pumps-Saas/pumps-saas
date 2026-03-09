@@ -61,9 +61,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
                 {/* Project Manager Sidebar (Desktop: Toggleable / Mobile: Overlay) */}
                 {showProjects && (
-                    <aside className="w-80 flex-shrink-0 h-[calc(100vh-8rem)] sticky top-24">
-                        <ProjectManager />
-                    </aside>
+                    <>
+                        {/* Mobile Overlay */}
+                        <div
+                            className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm"
+                            onClick={() => setShowProjects(false)}
+                            aria-hidden="true"
+                        />
+
+                        {/* Sidebar Panel */}
+                        <aside className="fixed inset-y-0 left-0 z-50 w-[280px] sm:w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out lg:static lg:h-[calc(100vh-8rem)] lg:shadow-none lg:sticky lg:top-24 overflow-y-auto border-r border-slate-200">
+                            {/* Mobile Close Button Container */}
+                            <div className="flex items-center justify-between p-4 border-b border-slate-100 lg:hidden bg-slate-50">
+                                <span className="font-semibold text-slate-700">Meus Projetos</span>
+                                <button
+                                    onClick={() => setShowProjects(false)}
+                                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <div className="p-4 lg:p-0 h-full">
+                                <ProjectManager />
+                            </div>
+                        </aside>
+                    </>
                 )}
 
                 {/* Content */}
