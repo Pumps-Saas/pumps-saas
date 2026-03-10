@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { api } from '../../api/client';
 import { useAuth } from './AuthContext';
 import { useToast } from '../../components/ui/Toast';
 
@@ -10,6 +11,7 @@ export const Login = () => {
     const { login } = useAuth();
     const { addToast } = useToast();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -22,7 +24,26 @@ export const Login = () => {
 
         try {
             await login(params);
-            addToast("Sign in successful!", 'success');
+
+            // Handle Stripe Checkout Redirect if 'plan' is in URL
+            const urlParams = new URLSearchParams(location.search);
+            const plan = urlParams.get('plan');
+            if (plan) {
+                addToast("Creating secure checkout session...", 'success');
+                try {
+                    const response = await api.payments.createCheckoutSession(plan);
+                    if (response.data && response.data.url) {
+                        window.location.href = response.data.url;
+                        return;
+                    }
+                } catch (checkoutErr: any) {
+                    console.error("Checkout session error:", checkoutErr);
+                    addToast("Error preparing checkout. Please contact support.", 'error');
+                }
+            } else {
+                addToast("Sign in successful!", 'success');
+            }
+
             navigate('/dashboard');
         } catch (err: any) {
             console.error("Login error:", err);
@@ -90,8 +111,8 @@ export const Login = () => {
                     </div>
                 </form>
                 <div className="text-center">
-                    <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-                        Don't have an account? Register (Invite Only)
+                    <Link to={`/register${location.search}`} className="font-medium text-indigo-600 hover:text-indigo-500">
+                        Don't have an account? Register
                     </Link>
                 </div>
             </div>

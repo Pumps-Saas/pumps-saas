@@ -16,7 +16,7 @@ class Token(UserBase):
 
 class UserCreate(UserBase):
     password: str
-    invite_code: str
+    invite_code: str | None = None
 
 class UserResponse(UserBase):
     id: int
@@ -56,12 +56,12 @@ def register_user(
     """
     Register a new user. REQUIRES VALID INVITE CODE.
     """
-    # 1. Check Invite Code
-    invite = session.get(Invite, user_in.invite_code)
-    if not invite:
-        raise HTTPException(status_code=400, detail="Invalid invite code")
-    if invite.used_by_id:
-        raise HTTPException(status_code=400, detail="Invite code already used")
+    # 1. Check Invite Code (Optional now, bypassing if not provided)
+    invite = None
+    if user_in.invite_code:
+        invite = session.get(Invite, user_in.invite_code)
+        if invite and invite.used_by_id:
+            raise HTTPException(status_code=400, detail="Invite code already used")
     
     # 2. Check Exists
     user = session.exec(select(User).where(User.email == user_in.email)).first()
@@ -83,9 +83,10 @@ def register_user(
     session.refresh(user)
 
     # 4. Mark Invite Used
-    invite.used_by_id = user.id
-    session.add(invite)
-    session.commit()
+    if invite:
+        invite.used_by_id = user.id
+        session.add(invite)
+        session.commit()
 
     return user
 

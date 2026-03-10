@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useToast } from '../../components/ui/Toast';
 
 export const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [inviteCode, setInviteCode] = useState('');
     const [error, setError] = useState('');
     const { register } = useAuth();
     const { addToast } = useToast();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         try {
-            await register({ email, password, invite_code: inviteCode });
+            await register({ email, password });
             addToast("Registration successful! Please login.", 'success');
-            navigate('/login');
+            navigate(`/login${location.search}`);
         } catch (err: any) {
             const msg = err.response?.data?.detail || 'Registration failed';
             setError(msg);
@@ -34,7 +34,7 @@ export const Register = () => {
                         Create your account
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
-                        Registration is <span className="font-bold text-indigo-600">Invite Only</span>.
+                        Fill in your details below.
                     </p>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -60,16 +60,6 @@ export const Register = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
-                        <div>
-                            <input
-                                type="text"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Invite Code"
-                                value={inviteCode}
-                                onChange={(e) => setInviteCode(e.target.value)}
-                            />
-                        </div>
                     </div>
 
                     {error && (
@@ -86,7 +76,7 @@ export const Register = () => {
                     </div>
                 </form>
                 <div className="text-center">
-                    <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                    <Link to={`/register${location.search}`} className="font-medium text-indigo-600 hover:text-indigo-500">
                         Already have an account? Sign in
                     </Link>
                 </div>

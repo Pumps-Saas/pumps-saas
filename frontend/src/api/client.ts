@@ -51,5 +51,8 @@ export const api = {
     calculate: {
         operatingPoint: (data: any) => apiClient.post('/calculate/operating-point', data),
         systemCurve: (data: any) => apiClient.post('/calculate/system-curve', data),
+    },
+    payments: {
+        createCheckoutSession: (plan: string) => apiClient.post(`/payments/create-checkout-session?plan=${plan}`)
     }
 };
