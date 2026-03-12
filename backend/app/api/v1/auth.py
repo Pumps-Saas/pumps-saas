@@ -54,16 +54,34 @@ def register_user(
     user_in: UserCreate,
 ) -> Any:
     """
-    Register a new user. REQUIRES VALID INVITE CODE.
+    Register a new user. Supports Pre-created accounts from Stripe Webhooks.
     """
-    # 1. Check Invite Code (Optional now, bypassing if not provided)
     invite = None
     if user_in.invite_code:
         invite = session.get(Invite, user_in.invite_code)
-        if invite and invite.used_by_id:
+        if not invite:
+            raise HTTPException(status_code=400, detail="Invalid invite code")
+        if invite.used_by_id:
             raise HTTPException(status_code=400, detail="Invite code already used")
+            
+        # Check if this invite belongs to a pre-created Stripe customer
+        pre_user = session.get(User, invite.created_by_id)
+        if pre_user and pre_user.hashed_password == "TEMP_WAITING_REGISTRATION":
+            if pre_user.email.lower() != user_in.email.lower():
+                raise HTTPException(status_code=400, detail=f"Please use the email address associated with your purchase: {pre_user.email}")
+                
+            # Activate pre-created user
+            pre_user.hashed_password = security.get_password_hash(user_in.password)
+            pre_user.is_active = True
+            session.add(pre_user)
+            
+            invite.used_by_id = pre_user.id
+            session.add(invite)
+            session.commit()
+            session.refresh(pre_user)
+            return pre_user
     
-    # 2. Check Exists
+    # 2. Check Exists (Regular Trial Registration fallback)
     user = session.exec(select(User).where(User.email == user_in.email)).first()
     if user:
         raise HTTPException(
@@ -76,7 +94,8 @@ def register_user(
         email=user_in.email,
         hashed_password=security.get_password_hash(user_in.password),
         role="user",
-        is_active=True
+        is_active=True,
+        subscription_status="trial"
     )
     session.add(user)
     session.commit()
