@@ -12,6 +12,7 @@ stripe.api_key = settings.STRIPE_API_KEY
 @router.post("/create-checkout-session")
 async def create_checkout_session(plan: str, db: Session = Depends(deps.get_session), current_user: User = Depends(deps.get_current_active_user)):
     try:
+        frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         checkout_session = stripe.checkout.Session.create(
             customer_email=current_user.email,
             payment_method_types=['card', 'boleto', 'pix'],
@@ -29,8 +30,8 @@ async def create_checkout_session(plan: str, db: Session = Depends(deps.get_sess
                 },
             ],
             mode='subscription',
-            success_url=settings.FRONTEND_URL + "/dashboard?success=true",
-            cancel_url=settings.FRONTEND_URL + "/dashboard?canceled=true",
+            success_url=frontend_url + "/dashboard?success=true",
+            cancel_url=frontend_url + "/dashboard?canceled=true",
             metadata={'user_id': current_user.id, 'plan': plan}
         )
         return {"id": checkout_session.id, "url": checkout_session.url}
@@ -40,6 +41,7 @@ async def create_checkout_session(plan: str, db: Session = Depends(deps.get_sess
 @router.post("/create-checkout-session-public")
 async def create_checkout_session_public(plan: str):
     try:
+        frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card', 'boleto', 'pix'],
             line_items=[
@@ -56,8 +58,8 @@ async def create_checkout_session_public(plan: str):
                 },
             ],
             mode='subscription',
-            success_url=settings.FRONTEND_URL + "/register?success=true",
-            cancel_url=settings.FRONTEND_URL + "/?canceled=true",
+            success_url=frontend_url + "/register?success=true",
+            cancel_url=frontend_url + "/?canceled=true",
             metadata={'plan': plan}
         )
         return {"id": checkout_session.id, "url": checkout_session.url}
@@ -133,7 +135,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                     )
                     
                     # Send Email to Customer with Activation Link
-                    invite_url = f"{settings.FRONTEND_URL}/register?invite_code={invite_code}&email={customer_email}"
+                    frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
+                    invite_url = f"{frontend_url}/register?invite_code={invite_code}&email={customer_email}"
                     send_email(
                         email_to=customer_email,
                         subject="Seu Acesso ao Pumps SaaS Foi Liberado!",
