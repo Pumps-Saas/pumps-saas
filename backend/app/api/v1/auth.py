@@ -56,32 +56,36 @@ def register_user(
     """
     Register a new user. Supports Pre-created accounts from Stripe Webhooks.
     """
-    invite = None
-    if user_in.invite_code:
-        invite = session.get(Invite, user_in.invite_code)
-        if not invite:
-            raise HTTPException(status_code=400, detail="Invalid invite code")
-        if invite.used_by_id:
-            raise HTTPException(status_code=400, detail="Invite code already used")
+    if not user_in.invite_code:
+        raise HTTPException(
+            status_code=400,
+            detail="Registration requires an invite code. Please purchase a plan first."
+        )
+
+    invite = session.get(Invite, user_in.invite_code)
+    if not invite:
+        raise HTTPException(status_code=400, detail="Invalid invite code")
+    if invite.used_by_id:
+        raise HTTPException(status_code=400, detail="Invite code already used")
+        
+    # Check if this invite belongs to a pre-created Stripe customer
+    pre_user = session.get(User, invite.created_by_id)
+    if pre_user and pre_user.hashed_password == "TEMP_WAITING_REGISTRATION":
+        if pre_user.email.lower() != user_in.email.lower():
+            raise HTTPException(status_code=400, detail=f"Please use the email address associated with your purchase: {pre_user.email}")
             
-        # Check if this invite belongs to a pre-created Stripe customer
-        pre_user = session.get(User, invite.created_by_id)
-        if pre_user and pre_user.hashed_password == "TEMP_WAITING_REGISTRATION":
-            if pre_user.email.lower() != user_in.email.lower():
-                raise HTTPException(status_code=400, detail=f"Please use the email address associated with your purchase: {pre_user.email}")
-                
-            # Activate pre-created user
-            pre_user.hashed_password = security.get_password_hash(user_in.password)
-            pre_user.is_active = True
-            session.add(pre_user)
-            
-            invite.used_by_id = pre_user.id
-            session.add(invite)
-            session.commit()
-            session.refresh(pre_user)
-            return pre_user
+        # Activate pre-created user
+        pre_user.hashed_password = security.get_password_hash(user_in.password)
+        pre_user.is_active = True
+        session.add(pre_user)
+        
+        invite.used_by_id = pre_user.id
+        session.add(invite)
+        session.commit()
+        session.refresh(pre_user)
+        return pre_user
     
-    # 2. Check Exists (Regular Trial Registration fallback)
+    # 2. Check Exists (Regular Registration via Admin Invite fallback)
     user = session.exec(select(User).where(User.email == user_in.email)).first()
     if user:
         raise HTTPException(
@@ -89,23 +93,23 @@ def register_user(
             detail="The user with this username already exists in the system.",
         )
     
-    # 3. Create User
+    # 3. Create User (Authorized by Invite)
     user = User(
         email=user_in.email,
         hashed_password=security.get_password_hash(user_in.password),
         role="user",
         is_active=True,
-        subscription_status="trial"
+        subscription_status="active",
+        subscription_tier="basic"
     )
     session.add(user)
     session.commit()
     session.refresh(user)
 
     # 4. Mark Invite Used
-    if invite:
-        invite.used_by_id = user.id
-        session.add(invite)
-        session.commit()
+    invite.used_by_id = user.id
+    session.add(invite)
+    session.commit()
 
     return user
 

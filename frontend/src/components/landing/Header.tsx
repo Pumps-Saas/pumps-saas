@@ -19,9 +19,9 @@ export const Header = () => {
                 </nav>
                 <div className="flex items-center gap-4">
                     <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Entrar</Link>
-                    <Link to="/register" className="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-700 disabled:pointer-events-none disabled:opacity-50">
-                        Começar Agora
-                    </Link>
+                    <a href="#pricing" className="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-700 disabled:pointer-events-none disabled:opacity-50">
+                        Começar agora
+                    </a>
                 </div>
             </div>
         </header>

@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Activity, Zap, Shield } from 'lucide-react';
+import { Activity, Zap, Shield } from 'lucide-react';
 
 export const HeroSection = () => {
     return (
@@ -23,10 +22,10 @@ export const HeroSection = () => {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <Link to="/register" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-8 py-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all">
-                        Comece seu teste grátis
-                        <ArrowRight className="w-4 h-4" />
-                    </Link>
+                    <a href="#pricing" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-8 py-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all">
+                        Inicie seu teste grátis
+                        <span aria-hidden="true">&rarr;</span>
+                    </a>
                     <a href="#features" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-white px-8 py-4 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-all">
                         Ver funcionalidades
                     </a>

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useToast } from '../../components/ui/Toast';
 
@@ -90,9 +89,9 @@ export const Login = () => {
                     </div>
                 </form>
                 <div className="text-center">
-                    <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-                        Don't have an account? Register
-                    </Link>
+                    <a href="/#pricing" className="font-medium text-indigo-600 hover:text-indigo-500">
+                        Don't have an account? Subscribe to a plan
+                    </a>
                 </div>
             </div>
         </div>
