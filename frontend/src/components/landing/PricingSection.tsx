@@ -8,7 +8,8 @@ const tiers = [
         name: 'Básico',
         id: 'tier-basic',
         href: '/register?plan=basic',
-        priceMonthly: 'R$ 99',
+        priceMonthly: 'R$ 299',
+        priceYearly: 'R$ 99',
         description: 'Ideal para engenheiros autônomos.',
         features: [
             'Cálculos básicos de NPSH e perda de carga',
@@ -22,7 +23,8 @@ const tiers = [
         name: 'Profissional',
         id: 'tier-pro',
         href: '/register?plan=pro',
-        priceMonthly: 'R$ 199',
+        priceMonthly: 'R$ 599',
+        priceYearly: 'R$ 199',
         description: 'Perfeito para pequenas equipes de engenharia.',
         features: [
             'Tudo do plano Básico',
@@ -38,6 +40,7 @@ const tiers = [
         id: 'tier-enterprise',
         href: '#contact',
         priceMonthly: 'Personalizado',
+        priceYearly: 'Personalizado',
         description: 'Para grandes empresas com necessidades complexas.',
         features: [
             'Tudo do plano Profissional',
@@ -51,6 +54,7 @@ const tiers = [
 ];
 
 export const PricingSection = () => {
+    const [isAnnual, setIsAnnual] = useState(true);
     const [loadingTier, setLoadingTier] = useState<string | null>(null);
     const { addToast } = useToast();
 
@@ -61,9 +65,10 @@ export const PricingSection = () => {
         setLoadingTier(planId);
         
         const planName = planId.replace('tier-', '');
+        const interval = isAnnual ? 'year' : 'month';
         
         try {
-            const response = await api.payments.createCheckoutSessionPublic(planName);
+            const response = await api.payments.createCheckoutSessionPublic(planName, interval);
             if (response.data && response.data.url) {
                 window.location.href = response.data.url;
             }
@@ -88,7 +93,34 @@ export const PricingSection = () => {
                     Escolha o plano ideal para as necessidades do seu projeto. Teste gratuitamente por 14 dias em qualquer plano.
                 </p>
 
-                <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 xl:gap-x-12">
+                <div className="mt-16 flex justify-center">
+                    <div className="flex items-center gap-3">
+                        <span className={`text-sm font-semibold ${!isAnnual ? 'text-slate-900' : 'text-slate-500'}`}>
+                            Mensal
+                        </span>
+                        <button
+                            type="button"
+                            className={`${
+                                isAnnual ? 'bg-blue-600' : 'bg-slate-200'
+                            } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2`}
+                            role="switch"
+                            aria-checked={isAnnual}
+                            onClick={() => setIsAnnual(!isAnnual)}
+                        >
+                            <span
+                                aria-hidden="true"
+                                className={`${
+                                    isAnnual ? 'translate-x-5' : 'translate-x-0'
+                                } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                            />
+                        </button>
+                        <span className={`text-sm font-semibold ${isAnnual ? 'text-slate-900' : 'text-slate-500'}`}>
+                            Anual <span className="ml-1 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Desconto!</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div className="isolate mx-auto mt-12 grid max-w-md grid-cols-1 gap-y-8 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 xl:gap-x-12">
                     {tiers.map((tier) => (
                         <div
                             key={tier.id}
@@ -103,7 +135,7 @@ export const PricingSection = () => {
                             <h3 className="text-lg font-semibold leading-8 text-slate-900">{tier.name}</h3>
                             <p className="mt-4 text-sm leading-6 text-slate-600">{tier.description}</p>
                             <p className="mt-6 flex items-baseline gap-x-1">
-                                <span className="text-4xl font-bold tracking-tight text-slate-900">{tier.priceMonthly}</span>
+                                <span className="text-4xl font-bold tracking-tight text-slate-900">{isAnnual ? tier.priceYearly : tier.priceMonthly}</span>
                                 {tier.priceMonthly !== 'Personalizado' && <span className="text-sm font-semibold leading-6 text-slate-600">/mês</span>}
                             </p>
                             <a

@@ -53,7 +53,7 @@ export const api = {
         systemCurve: (data: any) => apiClient.post('/calculate/system-curve', data),
     },
     payments: {
-        createCheckoutSession: (plan: string) => apiClient.post(`/payments/create-checkout-session?plan=${plan}`),
-        createCheckoutSessionPublic: (plan: string) => apiClient.post(`/payments/create-checkout-session-public?plan=${plan}`)
+        createCheckoutSession: (plan: string, interval: string = 'year') => apiClient.post(`/payments/create-checkout-session?plan=${plan}&interval=${interval}`),
+        createCheckoutSessionPublic: (plan: string, interval: string = 'year') => apiClient.post(`/payments/create-checkout-session-public?plan=${plan}&interval=${interval}`)
     }
 };

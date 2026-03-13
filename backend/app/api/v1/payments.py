@@ -10,9 +10,15 @@ router = APIRouter()
 stripe.api_key = settings.STRIPE_API_KEY
 
 @router.post("/create-checkout-session")
-async def create_checkout_session(plan: str, db: Session = Depends(deps.get_session), current_user: User = Depends(deps.get_current_active_user)):
+async def create_checkout_session(plan: str, interval: str = "year", db: Session = Depends(deps.get_session), current_user: User = Depends(deps.get_current_active_user)):
     try:
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
+        
+        if plan == 'basic':
+            amount = 9900 * 12 if interval == 'year' else 29900
+        else:
+            amount = 19900 * 12 if interval == 'year' else 59900
+            
         checkout_session = stripe.checkout.Session.create(
             customer_email=current_user.email,
             line_items=[
@@ -20,10 +26,10 @@ async def create_checkout_session(plan: str, db: Session = Depends(deps.get_sess
                     'price_data': {
                         'currency': 'brl',
                         'product_data': {
-                            'name': f'Pumps SaaS - Plano {plan.capitalize()}',
+                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({interval.capitalize()})',
                         },
-                        'unit_amount': 9900 if plan == 'basic' else 19900,
-                        'recurring': {'interval': 'month'}
+                        'unit_amount': amount,
+                        'recurring': {'interval': interval}
                     },
                     'quantity': 1,
                 },
@@ -38,19 +44,25 @@ async def create_checkout_session(plan: str, db: Session = Depends(deps.get_sess
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/create-checkout-session-public")
-async def create_checkout_session_public(plan: str):
+async def create_checkout_session_public(plan: str, interval: str = "year"):
     try:
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
+        
+        if plan == 'basic':
+            amount = 9900 * 12 if interval == 'year' else 29900
+        else:
+            amount = 19900 * 12 if interval == 'year' else 59900
+
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
                     'price_data': {
                         'currency': 'brl',
                         'product_data': {
-                            'name': f'Pumps SaaS - Plano {plan.capitalize()}',
+                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({interval.capitalize()})',
                         },
-                        'unit_amount': 9900 if plan == 'basic' else 19900,
-                        'recurring': {'interval': 'month'}
+                        'unit_amount': amount,
+                        'recurring': {'interval': interval}
                     },
                     'quantity': 1,
                 },
