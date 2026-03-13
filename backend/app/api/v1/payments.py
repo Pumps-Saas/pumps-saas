@@ -15,7 +15,6 @@ async def create_checkout_session(plan: str, db: Session = Depends(deps.get_sess
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         checkout_session = stripe.checkout.Session.create(
             customer_email=current_user.email,
-            payment_method_types=['card', 'boleto', 'pix'],
             line_items=[
                 {
                     'price_data': {
@@ -43,7 +42,6 @@ async def create_checkout_session_public(plan: str):
     try:
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card', 'boleto', 'pix'],
             line_items=[
                 {
                     'price_data': {
