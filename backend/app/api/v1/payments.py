@@ -29,12 +29,11 @@ async def create_checkout_session(plan: str, interval: str = "year", db: Session
                             'name': f'Pumps SaaS - Plano {plan.capitalize()} ({interval.capitalize()})',
                         },
                         'unit_amount': amount,
-                        'recurring': {'interval': interval}
                     },
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode='payment',
             success_url=frontend_url + "/dashboard?success=true",
             cancel_url=frontend_url + "/dashboard?canceled=true",
             metadata={'user_id': current_user.id, 'plan': plan}
@@ -62,12 +61,11 @@ async def create_checkout_session_public(plan: str, interval: str = "year"):
                             'name': f'Pumps SaaS - Plano {plan.capitalize()} ({interval.capitalize()})',
                         },
                         'unit_amount': amount,
-                        'recurring': {'interval': interval}
                     },
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode='payment',
             success_url=frontend_url + "/register?success=true",
             cancel_url=frontend_url + "/?canceled=true",
             metadata={'plan': plan}
