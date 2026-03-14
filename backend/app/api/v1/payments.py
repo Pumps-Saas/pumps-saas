@@ -15,9 +15,9 @@ async def create_checkout_session(plan: str, interval: str = "year", db: Session
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         
         if plan == 'basic':
-            amount = 9900 * 12 if interval == 'year' else 29900
+            amount = 9900 if interval == 'year' else 29900
         else:
-            amount = 19900 * 12 if interval == 'year' else 59900
+            amount = 19900 if interval == 'year' else 59900
             
         checkout_session = stripe.checkout.Session.create(
             customer_email=current_user.email,
@@ -26,10 +26,10 @@ async def create_checkout_session(plan: str, interval: str = "year", db: Session
                     'price_data': {
                         'currency': 'brl',
                         'product_data': {
-                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({interval.capitalize()})',
+                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({ "Fidelidade de 12 Meses" if interval == "year" else "Mensal Sem Fidelidade" })',
                         },
                         'unit_amount': amount,
-                        'recurring': {'interval': interval}
+                        'recurring': {'interval': 'month'}
                     },
                     'quantity': 1,
                 },
@@ -49,9 +49,9 @@ async def create_checkout_session_public(plan: str, interval: str = "year"):
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         
         if plan == 'basic':
-            amount = 9900 * 12 if interval == 'year' else 29900
+            amount = 9900 if interval == 'year' else 29900
         else:
-            amount = 19900 * 12 if interval == 'year' else 59900
+            amount = 19900 if interval == 'year' else 59900
 
         checkout_session = stripe.checkout.Session.create(
             line_items=[
@@ -59,10 +59,10 @@ async def create_checkout_session_public(plan: str, interval: str = "year"):
                     'price_data': {
                         'currency': 'brl',
                         'product_data': {
-                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({interval.capitalize()})',
+                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({ "Fidelidade de 12 Meses" if interval == "year" else "Mensal Sem Fidelidade" })',
                         },
                         'unit_amount': amount,
-                        'recurring': {'interval': interval}
+                        'recurring': {'interval': 'month'}
                     },
                     'quantity': 1,
                 },
