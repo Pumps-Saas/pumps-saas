@@ -18,26 +18,32 @@ async def create_checkout_session(plan: str, interval: str = "year", db: Session
             amount = 9900 if interval == 'year' else 29900
         else:
             amount = 19900 if interval == 'year' else 59900
+        price_data = {
+            'currency': 'brl',
+            'product_data': {
+                'name': f'Pumps SaaS - Plano {plan.capitalize()} ({ "Fidelidade de 12 Meses" if interval == "year" else "Passe Mensal Avulso" })',
+            },
+            'unit_amount': amount,
+        }
+        
+        if interval == 'year':
+            price_data['recurring'] = {'interval': 'month'}
+            mode = 'subscription'
+        else:
+            mode = 'payment'
             
         checkout_session = stripe.checkout.Session.create(
             customer_email=current_user.email,
             line_items=[
                 {
-                    'price_data': {
-                        'currency': 'brl',
-                        'product_data': {
-                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({ "Fidelidade de 12 Meses" if interval == "year" else "Mensal Sem Fidelidade" })',
-                        },
-                        'unit_amount': amount,
-                        'recurring': {'interval': 'month'}
-                    },
+                    'price_data': price_data,
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode=mode,
             success_url=frontend_url + "/dashboard?success=true",
             cancel_url=frontend_url + "/dashboard?canceled=true",
-            metadata={'user_id': current_user.id, 'plan': plan}
+            metadata={'user_id': current_user.id, 'plan': plan, 'interval': interval}
         )
         return {"id": checkout_session.id, "url": checkout_session.url}
     except Exception as e:
@@ -53,24 +59,31 @@ async def create_checkout_session_public(plan: str, interval: str = "year"):
         else:
             amount = 19900 if interval == 'year' else 59900
 
+        price_data = {
+            'currency': 'brl',
+            'product_data': {
+                'name': f'Pumps SaaS - Plano {plan.capitalize()} ({ "Fidelidade de 12 Meses" if interval == "year" else "Passe Mensal Avulso" })',
+            },
+            'unit_amount': amount,
+        }
+        
+        if interval == 'year':
+            price_data['recurring'] = {'interval': 'month'}
+            mode = 'subscription'
+        else:
+            mode = 'payment'
+
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
-                    'price_data': {
-                        'currency': 'brl',
-                        'product_data': {
-                            'name': f'Pumps SaaS - Plano {plan.capitalize()} ({ "Fidelidade de 12 Meses" if interval == "year" else "Mensal Sem Fidelidade" })',
-                        },
-                        'unit_amount': amount,
-                        'recurring': {'interval': 'month'}
-                    },
+                    'price_data': price_data,
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode=mode,
             success_url=frontend_url + "/register?success=true",
             cancel_url=frontend_url + "/?canceled=true",
-            metadata={'plan': plan}
+            metadata={'plan': plan, 'interval': interval}
         )
         return {"id": checkout_session.id, "url": checkout_session.url}
     except Exception as e:
@@ -95,7 +108,11 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
         
         user_id = session.get('metadata', {}).get('user_id')
         plan = session.get('metadata', {}).get('plan')
+        interval = session.get('metadata', {}).get('interval', 'year')
         customer_id = session.get('customer')
+        
+        from datetime import datetime, timedelta
+        end_date = datetime.utcnow() + timedelta(days=30) if interval == 'month' else None
         
         if user_id:
             user = db.get(User, int(user_id))
@@ -103,6 +120,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                 user.stripe_customer_id = customer_id
                 user.subscription_status = "active"
                 user.subscription_tier = plan or "basic"
+                user.subscription_end_date = end_date
                 db.add(user)
                 db.commit()
         else:
@@ -161,6 +179,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                     # User already existed (Reactivating / Upgrading)
                     user.subscription_status = "active"
                     user.subscription_tier = plan or "basic"
+                    user.subscription_end_date = end_date
                     user.stripe_customer_id = customer_id
                     db.add(user)
                     db.commit()

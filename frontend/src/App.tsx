@@ -15,8 +15,15 @@ import { AdminSupport } from './features/admin/AdminSupport';
 import { LandingPage } from './pages/LandingPage';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, user } = useAuth();
+    
     if (loading) return <div>Loading...</div>;
+    
+    if (isAuthenticated && user?.subscription_status === 'expired') {
+        window.location.href = '/?expired=true#pricing';
+        return <></>;
+    }
+    
     return isAuthenticated ? children : <Navigate to="/login" />;
 };
 

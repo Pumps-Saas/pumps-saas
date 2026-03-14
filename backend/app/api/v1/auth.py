@@ -44,7 +44,8 @@ def login_access_token(
         "token_type": "bearer",
         "email": user.email,
         "role": user.role,
-        "is_active": user.is_active
+        "is_active": user.is_active,
+        "subscription_status": user.subscription_status
     }
 
 @router.post("/register", response_model=UserResponse)

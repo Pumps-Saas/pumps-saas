@@ -6,6 +6,7 @@ interface User {
     email: string;
     role: string; // 'admin' | 'user'
     is_active: boolean;
+    subscription_status?: string;
 }
 
 interface AuthContextType {

@@ -31,9 +31,18 @@ def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Dep
         raise credentials_exception
     return user
 
-def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+def get_current_active_user(current_user: User = Depends(get_current_user), session: Session = Depends(get_session)) -> User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+        
+    from datetime import datetime
+    if current_user.subscription_end_date and current_user.subscription_end_date < datetime.utcnow():
+        if current_user.subscription_status != "expired":
+            current_user.subscription_status = "expired"
+            session.add(current_user)
+            session.commit()
+            session.refresh(current_user)
+            
     return current_user
 
 def get_current_active_admin(current_user: User = Depends(get_current_active_user)) -> User:
