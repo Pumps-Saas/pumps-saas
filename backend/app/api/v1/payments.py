@@ -120,7 +120,13 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
         from datetime import datetime, timedelta
         end_date = datetime.utcnow() + timedelta(days=30) if interval == 'month' else None
         
+        frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
+        customer_email_to_notify = None
+        is_new_user = False
+        invite_link = None
+        
         if user_id:
+            # Logged-in user purchase
             user = db.get(User, int(user_id))
             if user:
                 user.stripe_customer_id = customer_id
@@ -129,13 +135,16 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                 user.subscription_end_date = end_date
                 db.add(user)
                 db.commit()
+                customer_email_to_notify = user.email
         else:
             # Public Checkout Flow handling
             customer_email = session.get('customer_details', {}).get('email')
             if customer_email:
+                customer_email_to_notify = customer_email
                 user = db.exec(select(User).where(User.email == customer_email)).first()
                 if not user:
                     # Pre-create user waiting for registration
+                    is_new_user = True
                     user = User(
                         email=customer_email,
                         hashed_password="TEMP_WAITING_REGISTRATION",
@@ -149,7 +158,6 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                     db.commit()
                     db.refresh(user)
                     
-                    # Create generic Invite tied to this user
                     import secrets
                     from app.models import Invite
                     invite_code = secrets.token_urlsafe(8)
@@ -159,38 +167,42 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                     )
                     db.add(invite)
                     db.commit()
-                    
-                    # Send internal Notification Email
-                    from app.core.email import send_email
-                    await send_email(
-                        email_to="vendas@pumps-saas.com",
-                        subject="💸 Nova Venda Realizada - Ação Automática",
-                        text_content=f"O cliente {customer_email} comprou o plano {plan}. Um convite de acesso foi enviado."
-                    )
-                    
-                    # Send Email to Customer with Activation Link
-                    frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
-                    invite_url = f"{frontend_url}/register?invite_code={invite_code}&email={customer_email}"
-                    await send_email(
-                        email_to=customer_email,
-                        subject="Seu Acesso ao Pumps SaaS Foi Liberado!",
-                        text_content=f"Bem vindo ao Pumps SaaS!\n\nSeu pagamento foi aprovado e sua assinatura {plan.capitalize()} está ativa.\n\nPara criar sua senha e entrar no aplicativo, acesse o link abaixo:\n{invite_url}"
-                    )
+                    invite_link = f"{frontend_url}/register?invite_code={invite_code}&email={customer_email}"
                 else:
-                    # User already existed (Reactivating / Upgrading)
+                    # User already existed (Reactivating / Upgrading without logging in)
                     user.subscription_status = "active"
                     user.subscription_tier = plan or "basic"
                     user.subscription_end_date = end_date
-                    user.stripe_customer_id = customer_id
+                    if not user.stripe_customer_id:
+                        user.stripe_customer_id = customer_id
                     db.add(user)
                     db.commit()
-                    
-                    from app.core.email import send_email
-                    await send_email(
-                        email_to=customer_email,
-                        subject="Assinatura Pumps SaaS Atualizada",
-                        text_content="Sua compra foi confirmada e sua assinatura está ativa. Você já pode fazer login na plataforma para utilizar seus recursos."
-                    )
+        
+        # Now send the emails based on the flags
+        if customer_email_to_notify:
+            from app.core.email import send_email
+            
+            # 1) ALWAYS send internal Notification Email to Vendas
+            await send_email(
+                email_to="vendas@pumps-saas.com",
+                subject="💸 Nova Venda Realizada - Ação Automática",
+                text_content=f"O cliente {customer_email_to_notify} comprou o plano {plan}. O sistema processou a liberação."
+            )
+            
+            # 2) Send correct email to customer
+            if is_new_user:
+                await send_email(
+                    email_to=customer_email_to_notify,
+                    subject="Seu Acesso ao Pumps SaaS Foi Liberado!",
+                    text_content=f"Bem vindo ao Pumps SaaS!\n\nSeu pagamento foi aprovado e sua assinatura {plan.capitalize()} está ativa.\n\nPara criar sua senha e entrar no aplicativo de forma segura, acesse o link de Convite exclusivo abaixo:\n{invite_link}\n\nAtenciosamente,\nEquipe Pumps SaaS"
+                )
+            else:
+                login_url = f"{frontend_url}/login"
+                await send_email(
+                    email_to=customer_email_to_notify,
+                    subject="Assinatura Pumps SaaS Atualizada",
+                    text_content=f"Sua compra foi confirmada e sua assinatura {plan.capitalize()} está ativa!\n\nVocê já pode fazer login na plataforma para utilizar seus recursos. Acesse sua conta diretamente pelo link abaixo para entrar:\n{login_url}\n\nAtenciosamente,\nEquipe Pumps SaaS"
+                )
 
 import smtplib
 from email.message import EmailMessage
