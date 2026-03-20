@@ -14,7 +14,10 @@ async def create_checkout_session(plan: str, interval: str = "year", db: Session
     try:
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         
-        if plan == 'basic':
+        if plan == 'teste':
+            amount = 3000
+            interval = 'month' # acts as single payment
+        elif plan == 'basic':
             amount = 9900 if interval == 'year' else 29900
         else:
             amount = 19900 if interval == 'year' else 59900
@@ -54,7 +57,10 @@ async def create_checkout_session_public(plan: str, interval: str = "year"):
     try:
         frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
         
-        if plan == 'basic':
+        if plan == 'teste':
+            amount = 3000
+            interval = 'month'
+        elif plan == 'basic':
             amount = 9900 if interval == 'year' else 29900
         else:
             amount = 19900 if interval == 'year' else 59900
