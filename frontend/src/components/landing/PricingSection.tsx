@@ -161,6 +161,18 @@ export const PricingSection = () => {
                         </div>
                     ))}
                 </div>
+                
+                {/* Botão de Teste Temporário */}
+                <div className="mt-12 text-center">
+                    <button
+                        onClick={(e) => handleCheckout(e, 'tier-teste', '')}
+                        disabled={loadingTier === 'tier-teste'}
+                        className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600 underline"
+                    >
+                        {loadingTier === 'tier-teste' && <Loader2 className="w-3 h-3 animate-spin" />}
+                        [Admin] Realizar Compra Teste (R$ 30,00)
+                    </button>
+                </div>
             </div>
         </section>
     );
