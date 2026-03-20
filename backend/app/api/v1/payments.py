@@ -162,24 +162,19 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                     
                     # Send internal Notification Email
                     from app.core.email import send_email
-                    send_email(
+                    await send_email(
                         email_to="vendas@pumps-saas.com",
                         subject="💸 Nova Venda Realizada - Ação Automática",
-                        html_content=f"O cliente <b>{customer_email}</b> comprou o plano <b>{plan}</b>. Um convite de acesso foi enviado."
+                        text_content=f"O cliente {customer_email} comprou o plano {plan}. Um convite de acesso foi enviado."
                     )
                     
                     # Send Email to Customer with Activation Link
                     frontend_url = settings.FRONTEND_URL or "https://pumps-saas.com"
                     invite_url = f"{frontend_url}/register?invite_code={invite_code}&email={customer_email}"
-                    send_email(
+                    await send_email(
                         email_to=customer_email,
                         subject="Seu Acesso ao Pumps SaaS Foi Liberado!",
-                        html_content=f"""
-                            <h2>Bem vindo ao Pumps SaaS!</h2>
-                            <p>Seu pagamento foi aprovado e sua assinatura {plan.capitalize()} está ativa.</p>
-                            <p><b>Para criar sua senha e entrar no aplicativo, clique no link abaixo:</b></p>
-                            <a href="{invite_url}" style="padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">Ativar Minha Conta</a>
-                        """
+                        text_content=f"Bem vindo ao Pumps SaaS!\n\nSeu pagamento foi aprovado e sua assinatura {plan.capitalize()} está ativa.\n\nPara criar sua senha e entrar no aplicativo, acesse o link abaixo:\n{invite_url}"
                     )
                 else:
                     # User already existed (Reactivating / Upgrading)
@@ -191,10 +186,10 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                     db.commit()
                     
                     from app.core.email import send_email
-                    send_email(
+                    await send_email(
                         email_to=customer_email,
                         subject="Assinatura Pumps SaaS Atualizada",
-                        html_content="<p>Sua compra foi confirmada e sua assinatura está ativa. Você já pode fazer login na plataforma.</p>"
+                        text_content="Sua compra foi confirmada e sua assinatura está ativa. Você já pode fazer login na plataforma para utilizar seus recursos."
                     )
 
 import smtplib
