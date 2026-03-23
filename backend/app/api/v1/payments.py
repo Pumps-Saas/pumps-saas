@@ -146,6 +146,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                         is_active=False,
                         subscription_status="active",
                         subscription_tier=plan or "basic",
+                        subscription_end_date=end_date,
                         stripe_customer_id=customer_id
                     )
                     db.add(user)
@@ -197,6 +198,29 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
                     subject="Assinatura Pumps SaaS Atualizada",
                     text_content=f"Sua compra foi confirmada e sua assinatura {plan.capitalize()} está ativa!\n\nVocê já pode fazer login na plataforma para utilizar seus recursos. Acesse sua conta diretamente pelo link abaixo para entrar:\n{login_url}\n\nAtenciosamente,\nEquipe Pumps SaaS"
                 )
+
+    elif event['type'] in ['charge.refunded', 'customer.subscription.deleted', 'customer.subscription.canceled']:
+        data_object = event['data']['object']
+        customer_id = data_object.get('customer')
+        
+        if customer_id:
+            from sqlmodel import select
+            user = db.exec(select(User).where(User.stripe_customer_id == customer_id)).first()
+            if user:
+                from datetime import datetime
+                user.subscription_status = "expired"
+                user.subscription_end_date = datetime.utcnow()
+                db.add(user)
+                db.commit()
+                
+                from app.core.email import send_email
+                await send_email(
+                    email_to="vendas@pumps-saas.com",
+                    subject="⚠️ Assinatura Cancelada / Reembolsada",
+                    text_content=f"Atenção: O sistema identificou um reembolso ou cancelamento no Stripe.\n\nO cliente {user.email} teve sua assinatura bloqueada e o acesso foi revogado automaticamente."
+                )
+
+    return {"status": "success"}
 
 import smtplib
 from email.message import EmailMessage
