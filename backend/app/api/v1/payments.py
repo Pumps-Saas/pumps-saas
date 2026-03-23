@@ -202,23 +202,31 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
     elif event['type'] in ['charge.refunded', 'customer.subscription.deleted', 'customer.subscription.canceled']:
         data_object = event['data']['object']
         customer_id = data_object.get('customer')
+        customer_email = data_object.get('billing_details', {}).get('email') or data_object.get('receipt_email')
+        
+        from sqlmodel import select
+        user = None
         
         if customer_id:
-            from sqlmodel import select
             user = db.exec(select(User).where(User.stripe_customer_id == customer_id)).first()
-            if user:
-                from datetime import datetime
-                user.subscription_status = "expired"
-                user.subscription_end_date = datetime.utcnow()
-                db.add(user)
-                db.commit()
+            
+        if not user and customer_email:
+            # Fallback for one-time payments where customer_id might be null
+            user = db.exec(select(User).where(User.email == customer_email)).first()
+            
+        if user:
+            from datetime import datetime
+            user.subscription_status = "expired"
+            user.subscription_end_date = datetime.utcnow()
+            db.add(user)
+            db.commit()
                 
-                from app.core.email import send_email
-                await send_email(
-                    email_to="vendas@pumps-saas.com",
-                    subject="⚠️ Assinatura Cancelada / Reembolsada",
-                    text_content=f"Atenção: O sistema identificou um reembolso ou cancelamento no Stripe.\n\nO cliente {user.email} teve sua assinatura bloqueada e o acesso foi revogado automaticamente."
-                )
+            from app.core.email import send_email
+            await send_email(
+                email_to="vendas@pumps-saas.com",
+                subject="⚠️ Assinatura Cancelada / Reembolsada",
+                text_content=f"Atenção: O sistema identificou um reembolso ou cancelamento no Stripe.\n\nO cliente {user.email} teve sua assinatura bloqueada e o acesso foi revogado automaticamente."
+            )
 
     return {"status": "success"}
 
