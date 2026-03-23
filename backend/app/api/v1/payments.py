@@ -218,6 +218,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(deps.get_sessio
             from datetime import datetime
             user.subscription_status = "expired"
             user.subscription_end_date = datetime.utcnow()
+            user.is_active = False
             db.add(user)
             db.commit()
                 
