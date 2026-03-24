@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Menu, Shield } from 'lucide-react';
+import { Activity, Menu, Shield, LogOut } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { ProjectManager } from '../../features/projects/ProjectManager';
 import { useNavigate } from 'react-router-dom';
@@ -37,18 +37,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         {user?.role === 'admin' && (
                             <button
                                 onClick={() => navigate('/admin')}
-                                className="flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors bg-blue-50 px-3 py-1.5 rounded-md"
+                                className="flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors sm:bg-blue-50 sm:px-3 sm:py-1.5 p-2 rounded-md"
+                                title="Admin Panel"
                             >
-                                <Shield className="h-4 w-4 mr-1.5" />
-                                Admin Panel
+                                <Shield className="h-4 w-4 sm:mr-1.5" />
+                                <span className="hidden sm:inline">Admin Panel</span>
                             </button>
                         )}
                         <span className="text-sm text-gray-700 hidden sm:block">{user?.email}</span>
                         <button
                             onClick={logout}
-                            className="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors"
+                            className="flex items-center text-sm font-medium text-slate-500 hover:text-red-600 transition-colors p-2 sm:p-0"
+                            title="Logout"
                         >
-                            Logout
+                            <LogOut className="h-4 w-4 sm:hidden" />
+                            <span className="hidden sm:inline">Logout</span>
                         </button>
                         <div className="h-8 w-8 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-xs font-bold text-indigo-700">
                             {user?.email?.charAt(0).toUpperCase()}

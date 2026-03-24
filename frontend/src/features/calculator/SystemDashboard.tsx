@@ -310,7 +310,7 @@ export const SystemDashboard: React.FC = () => {
                     <h1 className="text-lg font-bold text-slate-800 tracking-tight">Pumps<span className="text-sky-600">SaaS</span></h1>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 sm:gap-3">
                     <div className="hidden md:flex items-center gap-2 bg-slate-100 rounded-md px-3 py-1.5 border border-slate-200">
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Patm</span>
                         <div className="text-sm font-medium w-16 text-right px-2">{pAtm.toFixed(3)}</div>
@@ -457,7 +457,7 @@ export const SystemDashboard: React.FC = () => {
                         </div>
 
                         {/* Charts Tabs (No Schematic) */}
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[600px]">
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[450px] sm:h-[600px]">
                             <div className="flex border-b border-slate-100">
                                 <button
                                     onClick={() => setActiveTab('system')}
@@ -502,9 +502,9 @@ export const SystemDashboard: React.FC = () => {
                         <h3 className="text-base font-bold text-slate-700">System Schematic Visualization</h3>
                     </div>
 
-                    <div className="w-full h-[600px] bg-slate-50/30 p-4 relative overflow-auto custom-scrollbar">
+                    <div className="w-full h-[600px] bg-slate-50/30 p-4 relative overflow-x-auto overflow-y-hidden custom-scrollbar">
                         {result ? (
-                            <div className="min-w-[1000px] h-full mx-auto">
+                            <div className="w-[800px] sm:w-[1000px] h-full mx-auto flex-shrink-0">
                                 <SystemSchematic result={result} />
                             </div>
                         ) : (

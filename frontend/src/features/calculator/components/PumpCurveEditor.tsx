@@ -179,10 +179,10 @@ export const PumpCurveEditor: React.FC = () => {
                     <table className="min-w-full divide-y divide-slate-200">
                         <thead>
                             <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Flow (m³/h)</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Head (m)</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Eff (%)</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">NPSHr (m)</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[80px]">Flow (m³/h)</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[80px]">Head (m)</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px]">Eff (%)</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px]">NPSHr (m)</th>
                                 <th className="px-3 py-2 w-10"></th>
                             </tr>
                         </thead>
