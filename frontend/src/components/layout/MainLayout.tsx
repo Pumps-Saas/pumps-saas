@@ -60,7 +60,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </div>
             </header>
 
-            <div className="flex flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 gap-6">
+            <div className="flex flex-1 max-w-7xl mx-auto w-full px-2 sm:px-6 lg:px-8 py-4 sm:py-8 gap-2 sm:gap-6">
 
                 {/* Project Manager Sidebar (Desktop: Toggleable / Mobile: Overlay) */}
                 {showProjects && (

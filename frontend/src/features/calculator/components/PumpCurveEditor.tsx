@@ -90,7 +90,7 @@ export const PumpCurveEditor: React.FC = () => {
     };
 
     const addPoint = () => {
-        setPoints([...points, { flow: 0, head: 0, efficiency: 0 }]);
+        setPoints([...points, { flow: '' as any, head: '' as any, efficiency: '' as any }]);
     };
 
     const updatePoint = (index: number, field: keyof PumpCurvePoint, value: number) => {
@@ -193,8 +193,8 @@ export const PumpCurveEditor: React.FC = () => {
                                         <Input
                                             type="number"
                                             min="0"
-                                            value={point.flow}
-                                            onChange={(e) => updatePoint(index, 'flow', Math.max(0, parseFloat(e.target.value) || 0))}
+                                            value={point.flow ?? ''}
+                                            onChange={(e) => updatePoint(index, 'flow', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
                                             className="h-8 text-sm"
                                         />
                                     </td>
@@ -202,8 +202,8 @@ export const PumpCurveEditor: React.FC = () => {
                                         <Input
                                             type="number"
                                             min="0"
-                                            value={point.head}
-                                            onChange={(e) => updatePoint(index, 'head', Math.max(0, parseFloat(e.target.value) || 0))}
+                                            value={point.head ?? ''}
+                                            onChange={(e) => updatePoint(index, 'head', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
                                             className="h-8 text-sm"
                                         />
                                     </td>
@@ -212,8 +212,8 @@ export const PumpCurveEditor: React.FC = () => {
                                             type="number"
                                             min="0"
                                             max="100"
-                                            value={point.efficiency}
-                                            onChange={(e) => updatePoint(index, 'efficiency', Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
+                                            value={point.efficiency ?? ''}
+                                            onChange={(e) => updatePoint(index, 'efficiency', e.target.value === '' ? '' as any : Math.min(100, Math.max(0, parseFloat(e.target.value))))}
                                             className="h-8 text-sm"
                                         />
                                     </td>

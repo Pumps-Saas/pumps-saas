@@ -302,7 +302,7 @@ export const SystemDashboard: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans">
             {/* 1. Header (Minimalist) */}
-            <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 z-30 shadow-sm sticky top-0">
+            <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-2 sm:px-4 shrink-0 z-30 shadow-sm sticky top-0">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-sky-600 rounded-lg flex items-center justify-center text-white font-bold tracking-tighter shadow-sm">
                         P+
@@ -347,17 +347,17 @@ export const SystemDashboard: React.FC = () => {
                     <Button
                         onClick={() => calculate()}
                         disabled={isCalculating}
-                        className="bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-600/20 transition-all active:scale-95"
+                        className="bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-600/20 transition-all active:scale-95 flex-shrink-0 px-2 sm:px-3"
                         size="sm"
                     >
-                        {isCalculating ? <Sparkles className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current mr-2" />}
-                        Calculate
+                        {isCalculating ? <Sparkles className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current mr-0 sm:mr-2" />}
+                        <span className="hidden sm:inline">Calculate</span>
                     </Button>
                 </div>
             </header>
 
             {/* 2. Content Grid (Scrollable Main Page) */}
-            <main className="flex-1 w-full max-w-[1920px] mx-auto p-4 flex flex-col gap-6">
+            <main className="flex-1 w-full max-w-[1920px] mx-auto p-2 sm:p-4 flex flex-col gap-4 sm:gap-6">
 
                 {/* Top Section: Inputs & Charts */}
                 <div className="grid grid-cols-12 gap-6 items-start">
