@@ -56,8 +56,8 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
 
     return (
         <Card className="mb-4 border-l-4 border-l-blue-500">
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex-1 mr-4">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-start items-stretch gap-3 mb-4">
+                <div className="flex-1">
                     <Input
                         value={segment.name}
                         onChange={(e) => handleChange('name', e.target.value)}
@@ -65,7 +65,7 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                         className="font-semibold text-lg border-slate-200"
                     />
                 </div>
-                <div className="flex space-x-2 items-center">
+                <div className="flex space-x-2 items-center justify-end sm:justify-start">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="text-xs flex items-center text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"

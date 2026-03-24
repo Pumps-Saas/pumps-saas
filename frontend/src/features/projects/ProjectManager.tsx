@@ -171,9 +171,9 @@ export const ProjectManager = () => {
                         value={newProjectName}
                         onChange={(e) => setNewProjectName(e.target.value)}
                         placeholder="New Project..."
-                        className="flex-1 text-sm border rounded px-2 py-1"
+                        className="flex-1 min-w-0 text-sm border rounded px-2 py-1"
                     />
-                    <button onClick={handleCreateProject} className="p-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                    <button onClick={handleCreateProject} className="p-1 shrink-0 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center justify-center">
                         <Plus size={16} />
                     </button>
                 </div>
@@ -220,9 +220,9 @@ export const ProjectManager = () => {
                             value={newScenarioName}
                             onChange={(e) => setNewScenarioName(e.target.value)}
                             placeholder="Current State Name..."
-                            className="flex-1 text-sm border rounded px-2 py-1"
+                            className="flex-1 min-w-0 text-sm border rounded px-2 py-1"
                         />
-                        <button onClick={handleCreateScenario} className="p-1 bg-green-600 text-white rounded hover:bg-green-700" title="Save Current State">
+                        <button onClick={handleCreateScenario} className="p-1 shrink-0 bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center" title="Save Current State">
                             <Save size={16} />
                         </button>
                     </div>

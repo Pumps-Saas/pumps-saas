@@ -9,7 +9,7 @@ import { FluidManager } from './components/FluidManager';
 import { SystemSchematic } from './components/SystemSchematic';
 import { useSystemStore } from './stores/useSystemStore';
 import { Button } from '@/components/ui/Button';
-import { Play, Sparkles, LayoutGrid, FileText, Settings2, Droplets, ArrowRight } from 'lucide-react';
+import { Play, Sparkles, LayoutGrid, FileText, Settings2, Droplets, ArrowRight, HelpCircle } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { generatePDFReport, ReportData } from './services/pdfGenerator';
 import html2canvas from 'html2canvas';
@@ -331,10 +331,12 @@ export const SystemDashboard: React.FC = () => {
                     <Button
                         variant="outline"
                         size="sm"
-                        className="text-slate-600 hover:text-sky-600 gap-2 border-slate-200 hidden sm:flex"
+                        className="text-slate-600 hover:text-sky-600 gap-2 border-slate-200 flex items-center justify-center px-2 sm:px-3"
                         onClick={() => setIsSupportOpen(true)}
+                        title="Suporte"
                     >
-                        Suporte
+                        <HelpCircle className="w-4 h-4 sm:hidden" />
+                        <span className="hidden sm:inline">Suporte</span>
                     </Button>
 
                     {/* Add vertical divider */}

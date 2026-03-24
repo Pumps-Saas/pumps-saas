@@ -32,10 +32,11 @@ export const Select: React.FC<SelectProps> = ({
             <select
                 id={selectId}
                 className={clsx(
-                    "block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 border bg-white",
+                    "block w-full min-w-0 truncate rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 border bg-white",
                     error ? "border-red-300 text-red-900 focus:border-red-500 focus:ring-red-500" : "",
                     className
                 )}
+                title={props.value?.toString() || ""}
                 {...props}
             >
                 {options.map((opt) => (
