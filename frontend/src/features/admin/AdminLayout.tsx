@@ -13,7 +13,7 @@ import { useAuth } from '../auth/AuthContext';
 
 const AdminLayout: React.FC = () => {
     const { user, logout } = useAuth();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
 
     if (user?.role !== 'admin') {
         return <Navigate to="/dashboard" replace />;
@@ -29,8 +29,17 @@ const AdminLayout: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-100 flex font-sans">
+            {/* Mobile Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
+                    onClick={() => setIsSidebarOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className={`bg-slate-900 text-slate-300 w-64 flex-shrink-0 flex flex-col transition-all duration-300 ${isSidebarOpen ? '' : '-ml-64'}`}>
+            <aside className={`fixed md:static inset-y-0 left-0 z-50 bg-slate-900 text-slate-300 w-64 flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0 md:ml-0' : '-translate-x-full md:-ml-64 md:translate-x-0'}`}>
                 <div className="h-16 flex items-center px-4 font-bold text-white text-lg border-b border-slate-700 bg-slate-950">
                     <span className="text-blue-500 mr-2">Admin</span> Console
                 </div>
@@ -41,6 +50,11 @@ const AdminLayout: React.FC = () => {
                             key={item.path}
                             to={item.path}
                             end={item.end}
+                            onClick={() => {
+                                if (window.innerWidth < 768) {
+                                    setIsSidebarOpen(false);
+                                }
+                            }}
                             className={({ isActive }) =>
                                 `flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${isActive
                                     ? 'bg-blue-600 text-white shadow-sm'
