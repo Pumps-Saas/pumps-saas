@@ -140,26 +140,26 @@ export const ProjectManager = () => {
     };
 
     return (
-        <div className="bg-white p-4 shadow rounded-lg h-full flex flex-col">
-            <h2 className="text-lg font-bold mb-4 flex items-center">
-                <Folder className="mr-2" size={20} /> Project Manager
+        <div className="p-4 h-full flex flex-col text-slate-300">
+            <h2 className="text-lg font-bold mb-4 flex items-center text-white">
+                <Folder className="mr-2 text-blue-500" size={20} /> Project Manager
             </h2>
 
             {/* Project List */}
             <div className="mb-6 flex-1 overflow-y-auto">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Projects</h3>
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Projects</h3>
                 <div className="space-y-1">
                     {projects.map(p => (
                         <div
                             key={p.id}
                             onClick={() => setSelectedProject(p)}
-                            className={`flex items-center justify-between p-2 rounded cursor-pointer ${selectedProject?.id === p.id ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-gray-50'}`}
+                            className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${selectedProject?.id === p.id ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-slate-800 hover:text-white'}`}
                         >
                             <div className="flex items-center min-w-0">
-                                <Folder size={16} className="mr-2 flex-shrink-0" />
-                                <span className="truncate">{p.name}</span>
+                                <Folder size={16} className={`mr-2 flex-shrink-0 ${selectedProject?.id === p.id ? 'text-white' : 'text-slate-400'}`} />
+                                <span className="truncate font-medium">{p.name}</span>
                             </div>
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteProject(p.id); }} className="text-gray-400 hover:text-red-500">
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteProject(p.id); }} className="text-slate-500 hover:text-red-400">
                                 <Trash2 size={14} />
                             </button>
                         </div>
@@ -171,9 +171,9 @@ export const ProjectManager = () => {
                         value={newProjectName}
                         onChange={(e) => setNewProjectName(e.target.value)}
                         placeholder="New Project..."
-                        className="flex-1 min-w-0 text-sm border rounded px-2 py-1"
+                        className="flex-1 min-w-0 text-sm border border-slate-700 bg-slate-800 text-white placeholder-slate-500 rounded px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                     />
-                    <button onClick={handleCreateProject} className="p-1 shrink-0 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center justify-center">
+                    <button onClick={handleCreateProject} className="p-1 shrink-0 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center transition-colors">
                         <Plus size={16} />
                     </button>
                 </div>
@@ -181,31 +181,31 @@ export const ProjectManager = () => {
 
             {/* Scenario List (Active Project) */}
             {selectedProject && (
-                <div className="flex-1 overflow-y-auto border-t pt-4">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                <div className="flex-1 overflow-y-auto border-t border-slate-800 pt-4">
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                         Scenarios in {selectedProject.name}
                     </h3>
                     <div className="space-y-1">
                         {scenarios.map(s => (
                             <div
                                 key={s.id}
-                                className="flex items-center justify-between p-2 rounded hover:bg-gray-50 group"
+                                className="flex items-center justify-between p-2 rounded hover:bg-slate-800 group transition-colors"
                             >
                                 <div className="flex items-center min-w-0">
-                                    <FileText size={16} className="mr-2 flex-shrink-0 text-gray-400" />
-                                    <span className="truncate text-sm">{s.name}</span>
+                                    <FileText size={16} className="mr-2 flex-shrink-0 text-slate-400 group-hover:text-slate-300" />
+                                    <span className="truncate text-sm font-medium group-hover:text-white">{s.name}</span>
                                 </div>
                                 <div className="hidden group-hover:flex gap-1">
                                     <button
                                         onClick={() => handleLoadScenario(s)}
-                                        className="text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded flex items-center"
+                                        className="text-xs text-blue-400 hover:text-white hover:bg-blue-600 bg-slate-800 px-2 py-0.5 rounded flex items-center transition-colors"
                                         title="Load Scenario"
                                     >
                                         <Play size={12} className="mr-1" /> Load
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleDeleteScenario(s.id); }}
-                                        className="text-xs text-red-600 hover:text-red-800 bg-red-50 px-2 py-0.5 rounded flex items-center"
+                                        className="text-xs text-red-400 hover:text-white hover:bg-red-600 bg-slate-800 px-2 py-0.5 rounded flex items-center transition-colors"
                                         title="Delete Scenario"
                                     >
                                         <Trash2 size={12} />
@@ -220,9 +220,9 @@ export const ProjectManager = () => {
                             value={newScenarioName}
                             onChange={(e) => setNewScenarioName(e.target.value)}
                             placeholder="Current State Name..."
-                            className="flex-1 min-w-0 text-sm border rounded px-2 py-1"
+                            className="flex-1 min-w-0 text-sm border border-slate-700 bg-slate-800 text-white placeholder-slate-500 rounded px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
                         />
-                        <button onClick={handleCreateScenario} className="p-1 shrink-0 bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center" title="Save Current State">
+                        <button onClick={handleCreateScenario} className="p-1 shrink-0 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center transition-colors" title="Save Current State">
                             <Save size={16} />
                         </button>
                     </div>

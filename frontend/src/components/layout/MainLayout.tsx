@@ -73,13 +73,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         />
 
                         {/* Sidebar Panel */}
-                        <aside className="fixed inset-y-0 left-0 z-50 w-[280px] sm:w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out lg:static lg:h-[calc(100vh-8rem)] lg:shadow-none lg:sticky lg:top-24 overflow-y-auto border-r border-slate-200">
+                        <aside className="fixed inset-y-0 left-0 z-50 w-[280px] sm:w-80 bg-slate-900 text-slate-300 shadow-2xl transform transition-transform duration-300 ease-in-out lg:static lg:h-[calc(100vh-8rem)] lg:shadow-none lg:sticky lg:top-24 overflow-y-auto border-r border-slate-800">
                             {/* Mobile Close Button Container */}
-                            <div className="flex items-center justify-between p-4 border-b border-slate-100 lg:hidden bg-slate-50">
-                                <span className="font-semibold text-slate-700">Meus Projetos</span>
+                            <div className="flex items-center justify-between p-4 border-b border-slate-800 lg:hidden bg-slate-950">
+                                <span className="font-semibold text-slate-200">Meus Projetos</span>
                                 <button
                                     onClick={() => setShowProjects(false)}
-                                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                                    className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
                                 >
                                     ✕
                                 </button>
