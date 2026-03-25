@@ -17,8 +17,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
             {/* Header */}
             <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                         <button
                             onClick={() => setShowProjects(!showProjects)}
                             className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
@@ -60,7 +60,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </div>
             </header>
 
-            <div className="flex flex-1 max-w-7xl mx-auto w-full px-2 sm:px-6 lg:px-8 py-4 sm:py-8 gap-2 sm:gap-6">
+            <div className="flex flex-1 w-full max-w-[1920px] mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8 gap-2 sm:gap-6">
 
                 {/* Project Manager Sidebar (Desktop: Toggleable / Mobile: Overlay) */}
                 {showProjects && (
