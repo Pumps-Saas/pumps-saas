@@ -135,31 +135,29 @@ export const PumpCurveEditor: React.FC = () => {
                 </div>
 
                 {/* Metadata Inputs */}
-                <div className="grid grid-cols-2 gap-2">
-                    <Input
-                        label="Manufacturer"
-                        value={manufacturer}
-                        onChange={(e) => setPumpDetails(e.target.value, model)}
-                        placeholder="e.g. KSB"
-                    />
-                    <div className="flex gap-2 items-end">
-                        <div className="flex-1">
-                            <Input
-                                label="Model"
-                                value={model}
-                                onChange={(e) => setPumpDetails(manufacturer, e.target.value)}
-                                placeholder="e.g. MegaCPK 50-200"
-                            />
-                        </div>
-                        <Button
-                            onClick={handleSavePump}
-                            icon={<Save size={16} />}
-                            className="mb-[2px]"
-                            title="Save current curve to Library"
-                        >
-                            Save
-                        </Button>
+                <div className="flex flex-col sm:flex-row gap-2 items-end w-full">
+                    <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
+                        <Input
+                            label="Manufacturer"
+                            value={manufacturer}
+                            onChange={(e) => setPumpDetails(e.target.value, model)}
+                            placeholder="e.g. KSB"
+                        />
+                        <Input
+                            label="Model"
+                            value={model}
+                            onChange={(e) => setPumpDetails(manufacturer, e.target.value)}
+                            placeholder="e.g. MegaCPK 50-200"
+                        />
                     </div>
+                    <Button
+                        onClick={handleSavePump}
+                        icon={<Save size={16} />}
+                        className="w-full sm:w-auto mb-[2px]"
+                        title="Save current curve to Library"
+                    >
+                        Save
+                    </Button>
                 </div>
             </div>
 
@@ -179,57 +177,57 @@ export const PumpCurveEditor: React.FC = () => {
                     <table className="min-w-full divide-y divide-slate-200">
                         <thead>
                             <tr>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[80px]">Flow (m³/h)</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[80px]">Head (m)</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px]">Eff (%)</th>
-                                <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px]">NPSHr (m)</th>
-                                <th className="px-3 py-2 w-10"></th>
+                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px] sm:min-w-[80px]">Flow <span className="hidden sm:inline">(m³/h)</span></th>
+                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px] sm:min-w-[80px]">Head <span className="hidden sm:inline">(m)</span></th>
+                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[60px] sm:min-w-[70px]">Eff <span className="hidden sm:inline">(%)</span></th>
+                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[60px] sm:min-w-[70px]">NPSHr <span className="hidden sm:inline">(m)</span></th>
+                                <th className="px-1 sm:px-3 py-2 w-8 sm:w-10"></th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-slate-200">
                             {points.map((point, index) => (
                                 <tr key={index}>
-                                    <td className="px-3 py-2">
+                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
                                         <Input
                                             type="number"
                                             min="0"
                                             value={point.flow ?? ''}
                                             onChange={(e) => updatePoint(index, 'flow', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
-                                            className="h-8 text-sm"
+                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
                                         />
                                     </td>
-                                    <td className="px-3 py-2">
+                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
                                         <Input
                                             type="number"
                                             min="0"
                                             value={point.head ?? ''}
                                             onChange={(e) => updatePoint(index, 'head', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
-                                            className="h-8 text-sm"
+                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
                                         />
                                     </td>
-                                    <td className="px-3 py-2">
+                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
                                         <Input
                                             type="number"
                                             min="0"
                                             max="100"
                                             value={point.efficiency ?? ''}
                                             onChange={(e) => updatePoint(index, 'efficiency', e.target.value === '' ? '' as any : Math.min(100, Math.max(0, parseFloat(e.target.value))))}
-                                            className="h-8 text-sm"
+                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
                                         />
                                     </td>
-                                    <td className="px-3 py-2">
+                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
                                         <Input
                                             type="number"
                                             min="0"
-                                            value={point.npshr || ''}
-                                            onChange={(e) => updatePoint(index, 'npshr', Math.max(0, parseFloat(e.target.value)))}
-                                            className="h-8 text-sm"
+                                            value={point.npshr ?? ''}
+                                            onChange={(e) => updatePoint(index, 'npshr', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
+                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
                                             placeholder="Opt"
                                         />
                                     </td>
-                                    <td className="px-3 py-2 text-center">
+                                    <td className="px-1 sm:px-3 py-1 sm:py-2 text-center">
                                         <button onClick={() => removePoint(index)} className="text-slate-400 hover:text-red-500">
-                                            <Trash2 size={16} />
+                                            <Trash2 size={16} className="w-4 h-4 sm:w-5 sm:h-5" />
                                         </button>
                                     </td>
                                 </tr>
