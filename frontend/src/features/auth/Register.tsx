@@ -7,7 +7,7 @@ export const Register = () => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const initialEmail = queryParams.get('email') || '';
-    const inviteCode = queryParams.get('invite_code') || '';
+    const inviteCode = queryParams.get('invite_code') || queryParams.get('invite') || '';
     const isCheckoutSuccess = queryParams.get('success') === 'true';
 
     const [email, setEmail] = useState(initialEmail);

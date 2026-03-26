@@ -12,7 +12,7 @@ export const AdminInvites: React.FC = () => {
 
     // In a real app, you'd get the actual domain from env. 
     // For now we assume the frontend is hosted at window.location.origin
-    const getInviteUrl = (code: string) => `${window.location.origin}/register?invite=${code}`;
+    const getInviteUrl = (code: string) => `${window.location.origin}/register?invite_code=${code}`;
 
     useEffect(() => {
         // We'll call the POST endpoint just to fetch them initially, or 
