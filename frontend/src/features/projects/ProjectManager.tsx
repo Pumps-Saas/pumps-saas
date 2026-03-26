@@ -115,7 +115,7 @@ export const ProjectManager = () => {
     };
 
     const handleDeleteProject = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this project?")) return;
+        if (!window.confirm("Are you sure you want to delete this project?")) return;
         try {
             await api.projects.delete(id);
             if (selectedProject?.id === id) setSelectedProject(null);
@@ -128,7 +128,7 @@ export const ProjectManager = () => {
     };
 
     const handleDeleteScenario = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this scenario?")) return;
+        if (!window.confirm("Are you sure you want to delete this scenario?")) return;
         try {
             await api.projects.deleteScenario(id);
             if (selectedProject) loadScenarios(selectedProject.id);
@@ -159,8 +159,8 @@ export const ProjectManager = () => {
                                 <Folder size={16} className={`mr-2 flex-shrink-0 ${selectedProject?.id === p.id ? 'text-white' : 'text-slate-400'}`} />
                                 <span className="truncate font-medium">{p.name}</span>
                             </div>
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteProject(p.id); }} className="text-slate-500 hover:text-red-400">
-                                <Trash2 size={14} />
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteProject(p.id); }} className="text-slate-500 hover:text-red-400">
+                                <Trash2 size={14} className="pointer-events-none" />
                             </button>
                         </div>
                     ))}
@@ -204,11 +204,11 @@ export const ProjectManager = () => {
                                         <Play size={12} className="mr-1" /> Load
                                     </button>
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); handleDeleteScenario(s.id); }}
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteScenario(s.id); }}
                                         className="text-xs text-red-400 hover:text-white hover:bg-red-600 bg-slate-800 px-2 py-0.5 rounded flex items-center transition-colors"
                                         title="Delete Scenario"
                                     >
-                                        <Trash2 size={12} />
+                                        <Trash2 size={12} className="pointer-events-none" />
                                     </button>
                                 </div>
                             </div>
