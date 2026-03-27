@@ -379,11 +379,11 @@ export const SystemDashboard: React.FC = () => {
                                         <Input type="number" value={altitude} onChange={e => setAltitude(Number(e.target.value))} />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Suction Press. (bar)</label>
+                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Suction Press. (barg)</label>
                                         <Input type="number" value={pSuction} onChange={e => setPressure('pressure_suction_bar_g', Number(e.target.value))} />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Discharge Press. (bar)</label>
+                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Discharge Press. (barg)</label>
                                         <Input type="number" value={pDischarge} onChange={e => setPressure('pressure_discharge_bar_g', Number(e.target.value))} />
                                     </div>
                                 </div>
