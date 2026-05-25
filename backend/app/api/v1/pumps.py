@@ -1,9 +1,10 @@
 from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, select, or_
 
 from app.api import deps
 from app.models import User, Pump, PumpCreate, PumpRead
+import numpy as np
 
 router = APIRouter()
 
@@ -18,6 +19,21 @@ def create_pump(
     Save a new pump to the user's catalog.
     """
     pump = Pump(**pump_in.dict(), user_id=current_user.id)
+    
+    # Pre-calculate performance parameters for fast filtering
+    if pump.curve_points and len(pump.curve_points) >= 3:
+        flows = [p.get('flow', 0) for p in pump.curve_points]
+        heads = [p.get('head', 0) for p in pump.curve_points]
+        try:
+            coeffs = np.polyfit(flows, heads, 2)
+            pump.coeff_a = float(coeffs[0])
+            pump.coeff_b = float(coeffs[1])
+            pump.coeff_c = float(coeffs[2])
+            pump.max_head_m = float(max(heads))
+            pump.max_flow_m3h = float(max(flows))
+        except Exception:
+            pass # Invalid curve, let it pass without pre-calc
+
     session.add(pump)
     session.commit()
     session.refresh(pump)
@@ -31,9 +47,14 @@ def read_pumps(
     limit: int = 100,
 ) -> Any:
     """
-    Retrieve pumps from the user's catalog.
+    Retrieve pumps from the user's catalog. Premium users also see global pumps.
     """
-    statement = select(Pump).where(Pump.user_id == current_user.id).offset(skip).limit(limit)
+    if current_user.subscription_tier in ["pro", "premium", "enterprise"]:
+        statement = select(Pump).where(
+            or_(Pump.user_id == current_user.id, Pump.is_global == True)
+        ).offset(skip).limit(limit)
+    else:
+        statement = select(Pump).where(Pump.user_id == current_user.id).offset(skip).limit(limit)
     pumps = session.exec(statement).all()
     return pumps
 

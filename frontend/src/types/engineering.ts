@@ -55,6 +55,11 @@ export interface SystemState {
     energy_cost_per_kwh: number;
 
     pump_curve: PumpCurvePoint[];
+    
+    // Premium Parameters (Phase 1)
+    pump_base_rpm: number;
+    pump_current_rpm: number;
+    parallel_pumps: number;
 }
 
 export interface HeadLossResult {

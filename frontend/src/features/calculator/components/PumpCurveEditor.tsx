@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, Sparkles, Search } from 'lucide-react';
 import { useSystemStore } from '../stores/useSystemStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -16,12 +16,33 @@ export const PumpCurveEditor: React.FC = () => {
     const manufacturer = useSystemStore(state => state.pump_manufacturer);
     const model = useSystemStore(state => state.pump_model);
     const setPumpDetails = useSystemStore(state => state.setPumpDetails);
+    
+    // Premium State
+    const pump_base_rpm = useSystemStore(state => state.pump_base_rpm);
+    const pump_current_rpm = useSystemStore(state => state.pump_current_rpm);
+    const parallel_pumps = useSystemStore(state => state.parallel_pumps);
+    const setPumpBaseRpm = useSystemStore(state => state.setPumpBaseRpm);
+    const setPumpCurrentRpm = useSystemStore(state => state.setPumpCurrentRpm);
+    const setParallelPumps = useSystemStore(state => state.setParallelPumps);
 
     const { addToast } = useToast();
 
     // Persistence State
     const [savedPumps, setSavedPumps] = useState<any[]>([]);
     const [selectedPumpId, setSelectedPumpId] = useState("");
+
+    // AI Select State
+    const pSuction = useSystemStore(state => state.pressure_suction_bar_g);
+    const pDischarge = useSystemStore(state => state.pressure_discharge_bar_g);
+    const staticHead = useSystemStore(state => state.static_head);
+    const fluid = useSystemStore(state => state.fluid);
+    const suction = useSystemStore(state => state.suction_sections);
+    const dischargeBefore = useSystemStore(state => state.discharge_sections_before);
+    const dischargeParallel = useSystemStore(state => state.discharge_parallel_sections);
+    const dischargeAfter = useSystemStore(state => state.discharge_sections_after);
+
+    const [isAutoSelecting, setIsAutoSelecting] = useState(false);
+    const [aiResults, setAiResults] = useState<any[]>([]);
 
     // Local state for inputs to avoid jitter, sync on blur or change? 
     // Actually, direct store update for inputs is fine for this scale.
@@ -89,6 +110,45 @@ export const PumpCurveEditor: React.FC = () => {
         }
     };
 
+    const handleAutoSelect = async () => {
+        setIsAutoSelecting(true);
+        setAiResults([]);
+        try {
+            const res = await api.pumps.autoSelect({
+                suction_sections: suction,
+                discharge_sections_before: dischargeBefore,
+                discharge_parallel_sections: dischargeParallel,
+                discharge_sections_after: dischargeAfter,
+                fluid: fluid,
+                static_head_m: staticHead,
+                pressure_suction_bar_g: pSuction,
+                pressure_discharge_bar_g: pDischarge,
+                atmospheric_pressure_bar: 1.013,
+                flow_min_m3h: 0,
+                flow_max_m3h: 100,
+                steps: 30
+            });
+            setAiResults(res.data);
+            if (res.data.length === 0) {
+                addToast("No suitable pumps found for this system.", 'warning');
+            } else {
+                addToast(`Found ${res.data.length} optimal pumps!`, 'success');
+            }
+        } catch (error: any) {
+            console.error("Auto select failed", error);
+            addToast(error.response?.status === 403 ? "Premium Feature Required" : "Failed to auto-select pump", 'error');
+        } finally {
+            setIsAutoSelecting(false);
+        }
+    };
+
+    const applyAiPump = (pump: any) => {
+        setPoints(pump.curve_points);
+        setPumpDetails(pump.manufacturer, pump.model);
+        setAiResults([]); // Close list
+        addToast(`Applied ${pump.manufacturer} ${pump.model}`, 'success');
+    };
+
     const addPoint = () => {
         setPoints([...points, { flow: '' as any, head: '' as any, efficiency: '' as any }]);
     };
@@ -122,6 +182,16 @@ export const PumpCurveEditor: React.FC = () => {
                             onChange={(e) => handleLoadPump(e.target.value)}
                         />
                     </div>
+                    <Button
+                        variant="primary"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20"
+                        onClick={handleAutoSelect}
+                        disabled={isAutoSelecting}
+                        icon={isAutoSelecting ? <Sparkles className="animate-spin" size={16} /> : <Search size={16} />}
+                        title="Busca Avançada com Inteligência Artificial [PREMIUM]"
+                    >
+                        Auto Select
+                    </Button>
                     {selectedPumpId && (
                         <Button
                             variant="primary"
@@ -133,6 +203,26 @@ export const PumpCurveEditor: React.FC = () => {
                         </Button>
                     )}
                 </div>
+
+                {/* AI Results Dropdown */}
+                {aiResults.length > 0 && (
+                    <div className="mt-2 bg-white border border-indigo-200 rounded-lg shadow-lg p-3 w-full animate-in fade-in slide-in-from-top-2">
+                        <h4 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2 flex items-center gap-1"><Sparkles size={14}/> Top Recommendations</h4>
+                        <div className="flex flex-col gap-2">
+                            {aiResults.map((p, idx) => (
+                                <div key={idx} className="flex items-center justify-between bg-indigo-50/50 p-2 rounded border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                                    <div>
+                                        <div className="font-semibold text-sm text-slate-800">{p.manufacturer} {p.model}</div>
+                                        <div className="text-xs text-slate-500">Operates at {p.flow_op.toFixed(1)} m³/h @ {p.head_op.toFixed(1)} m (Eff: {p.efficiency_op.toFixed(1)}%)</div>
+                                    </div>
+                                    <Button size="sm" onClick={() => applyAiPump(p)} className="bg-indigo-600 hover:bg-indigo-700 text-white h-7 text-xs px-3">
+                                        Apply
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Metadata Inputs */}
                 <div className="flex flex-col sm:flex-row gap-2 items-end w-full">
@@ -158,6 +248,33 @@ export const PumpCurveEditor: React.FC = () => {
                     >
                         Save
                     </Button>
+                </div>
+                
+                {/* Premium Controls */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full mt-4 bg-gradient-to-r from-amber-50 to-yellow-50 p-3 rounded-md border border-amber-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-0 sm:col-span-3">
+                        <span className="text-[10px] font-bold text-amber-700 bg-amber-200 px-2 py-0.5 rounded tracking-wide">PREMIUM</span>
+                        <span className="text-sm font-medium text-amber-900">Advanced Hydraulics</span>
+                    </div>
+                    <Input
+                        label="Base Speed (RPM)"
+                        type="number"
+                        value={pump_base_rpm || ''}
+                        onChange={(e) => setPumpBaseRpm(Number(e.target.value))}
+                    />
+                    <Input
+                        label="Operating Speed (VFD)"
+                        type="number"
+                        value={pump_current_rpm || ''}
+                        onChange={(e) => setPumpCurrentRpm(Number(e.target.value))}
+                    />
+                    <Input
+                        label="Pumps in Parallel"
+                        type="number"
+                        min="1"
+                        value={parallel_pumps || ''}
+                        onChange={(e) => setParallelPumps(Math.max(1, Number(e.target.value)))}
+                    />
                 </div>
             </div>
 

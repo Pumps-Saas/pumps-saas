@@ -75,6 +75,10 @@ class OperatingPointRequest(BaseModel):
 
     pump_curve_points: List[Dict[str, float]] # [{'flow': x, 'head': y, 'efficiency': z}, ...]
     
+    # Premium Parameters (Phase 1)
+    speed_ratio: float = Field(1.0, description="Speed ratio (RPM_new / RPM_base)")
+    parallel_pumps: int = Field(1, description="Number of identical pumps in parallel", ge=1)
+    
     # Financial / Operational Params 
     efficiency_motor: float = 0.90
     hours_per_day: float = 8.0

@@ -74,7 +74,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             labelFormatter={(value) => `Flow: ${Number(value).toFixed(2)} m³/h`}
                             formatter={(value: any, name: any) => [
                                 typeof value === 'number' ? value.toFixed(2) + ' m' : value,
-                                name === 'npshAvailable' ? 'NPSH Available' : 'NPSH Required'
+                                name === 'npshAvailable' ? 'NPSH Available' : name === 'baseNpshRequired' ? 'Base NPSH Req.' : 'Adj. NPSH Req.'
                             ]}
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                         />
@@ -98,17 +98,31 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             isAnimationActive={false}
                         />
 
-                        {/* NPSH Required */}
+                        {/* NPSH Required (Adjusted) */}
                         <Line
                             type="monotone"
                             dataKey="npshRequired"
                             stroke="#f59e0b" // Amber 500
-                            name="NPSH Required"
+                            name="Adj. NPSH Req."
                             strokeWidth={lineWidth}
                             strokeDasharray="3 3"
                             dot={{ r: dotSize, fill: '#f59e0b' }}
                             connectNulls
                             isAnimationActive={false}
+                        />
+
+                        {/* Base NPSH Required (Original 3500 RPM) */}
+                        <Line
+                            type="monotone"
+                            dataKey="baseNpshRequired"
+                            stroke="#94a3b8" // Slate 400
+                            name="Base NPSH Req."
+                            strokeWidth={lineWidth}
+                            strokeDasharray="5 5"
+                            dot={{ r: Math.max(0, dotSize - 2), fill: '#94a3b8' }}
+                            connectNulls
+                            isAnimationActive={false}
+                            opacity={0.6}
                         />
 
 

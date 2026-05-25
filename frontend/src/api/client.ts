@@ -47,6 +47,7 @@ export const api = {
         list: () => apiClient.get('/pumps/'),
         create: (data: any) => apiClient.post('/pumps/', data),
         delete: (id: number) => apiClient.delete(`/pumps/${id}`),
+        autoSelect: (systemData: any) => apiClient.post('/global-pumps/auto-select', systemData),
     },
     calculate: {
         operatingPoint: (data: any) => apiClient.post('/calculate/operating-point', data),

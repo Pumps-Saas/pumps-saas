@@ -153,8 +153,22 @@ def get_operating_point(request: OperatingPointRequest):
     if len(request.pump_curve_points) < 3:
         raise HTTPException(status_code=400, detail="At least 3 pump curve points are required.")
     
-    flows = [p['flow'] for p in request.pump_curve_points]
-    heads = [p['head'] for p in request.pump_curve_points]
+    # Phase 1: Apply Affinity Laws (VFD) and Parallel Pumps
+    effective_pump_curve_points = []
+    for p in request.pump_curve_points:
+        new_p = dict(p)
+        # Affinity Laws
+        new_p['flow'] = p.get('flow', 0.0) * request.speed_ratio
+        new_p['head'] = p.get('head', 0.0) * (request.speed_ratio ** 2)
+        if new_p.get('npshr') is not None:
+            new_p['npshr'] = float(p.get('npshr')) * (request.speed_ratio ** 2)
+        
+        # Parallel Association
+        new_p['flow'] = new_p['flow'] * request.parallel_pumps
+        effective_pump_curve_points.append(new_p)
+
+    flows = [p['flow'] for p in effective_pump_curve_points]
+    heads = [p['head'] for p in effective_pump_curve_points]
     
     coeffs = np.polyfit(flows, heads, 2)
     pump_curve_func = np.poly1d(coeffs)
@@ -191,7 +205,7 @@ def get_operating_point(request: OperatingPointRequest):
     # --- Detailed Analysis ---
     
     # Efficiency & Power
-    efficiency_op = interpolate_efficiency(flow_op, request.pump_curve_points)
+    efficiency_op = interpolate_efficiency(flow_op, effective_pump_curve_points)
     power_kw = None
     cost_per_year = None
     if efficiency_op is not None and efficiency_op > 0:
@@ -253,7 +267,7 @@ def get_operating_point(request: OperatingPointRequest):
     )
 
     # NPSHr Interpolation
-    npshr = interpolate_npshr(safe_flow_op, request.pump_curve_points)
+    npshr = interpolate_npshr(safe_flow_op, effective_pump_curve_points)
     cavitation_risk = (npshr is not None and npsha < npshr)
     
     # Memorial Breakdown

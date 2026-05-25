@@ -74,7 +74,7 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                             labelFormatter={(value) => `Flow: ${Number(value).toFixed(2)} m³/h`}
                             formatter={(value: any, name: any) => [
                                 typeof value === 'number' ? value.toFixed(2) + ' m' : value,
-                                name === 'pumpHead' ? 'Pump Head' : 'System Head'
+                                name === 'pumpHead' ? 'Adjusted Pump' : name === 'basePumpHead' ? 'Base Pump' : 'System Head'
                             ]}
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                         />
@@ -86,16 +86,30 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                             wrapperStyle={{ fontSize: legendFontSize, paddingTop: '0px', paddingBottom: printMode ? '40px' : '10px', display: 'flex', justifyContent: 'center', width: '100%' }}
                         />
 
-                        {/* Pump Curve */}
+                        {/* Adjusted Pump Curve */}
                         <Line
                             type="monotone"
                             dataKey="pumpHead"
                             stroke="#2563eb"
-                            name="Pump Head"
+                            name="Adjusted Pump"
                             strokeWidth={lineWidth}
                             dot={{ r: dotSize, fill: '#2563eb' }}
                             connectNulls
                             isAnimationActive={false}
+                        />
+
+                        {/* Base Pump Curve (Option B) */}
+                        <Line
+                            type="monotone"
+                            dataKey="basePumpHead"
+                            stroke="#94a3b8"
+                            name="Base Pump"
+                            strokeWidth={lineWidth}
+                            strokeDasharray="5 5"
+                            dot={{ r: Math.max(0, dotSize - 2), fill: '#94a3b8' }}
+                            connectNulls
+                            isAnimationActive={false}
+                            opacity={0.6}
                         />
 
                         {/* System Curve */}

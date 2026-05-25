@@ -114,11 +114,19 @@ class PumpBase(SQLModel):
     manufacturer: str
     model: str
     curve_points: List[dict] = Field(default=[], sa_column=Column(JSON))
+    is_global: bool = Field(default=False)
 
 class Pump(PumpBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Pre-calculated performance data for fast SQL filtering (Auto-Select)
+    coeff_a: Optional[float] = Field(default=None)
+    coeff_b: Optional[float] = Field(default=None)
+    coeff_c: Optional[float] = Field(default=None)
+    max_head_m: Optional[float] = Field(default=None)
+    max_flow_m3h: Optional[float] = Field(default=None)
 
     user: "User" = Relationship(back_populates="pumps")
 

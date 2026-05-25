@@ -9,13 +9,14 @@ import { FluidManager } from './components/FluidManager';
 import { SystemSchematic } from './components/SystemSchematic';
 import { useSystemStore } from './stores/useSystemStore';
 import { Button } from '@/components/ui/Button';
-import { Play, Sparkles, LayoutGrid, FileText, Settings2, Droplets, ArrowRight, HelpCircle } from 'lucide-react';
+import { Play, Sparkles, LayoutGrid, FileText, Settings2, Droplets, ArrowRight, HelpCircle, DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { generatePDFReport, ReportData } from './services/pdfGenerator';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
 import { SupportModal } from '../support/SupportModal';
 import { NotificationPanel } from '../support/NotificationPanel';
+import { EconomicDashboard } from './EconomicDashboard';
 
 import { Zap } from 'lucide-react';
 
@@ -38,6 +39,7 @@ export const SystemDashboard: React.FC = () => {
     const error = useSystemStore(state => state.calculationError);
 
     // UI State
+    const [mainView, setMainView] = useState<'hydraulic' | 'economic'>('hydraulic');
     const [activeTab, setActiveTab] = useState<'system' | 'npsh'>('system');
     const [minimized, setMinimized] = useState<Record<string, boolean>>({});
     const [systemCurvePoints, setSystemCurvePoints] = useState<any[]>([]);
@@ -45,6 +47,7 @@ export const SystemDashboard: React.FC = () => {
     // PDF State
     const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'ready'>('idle');
     const [pdfFilename, setPdfFilename] = useState<string>('');
+    const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
     const pdfDocRef = React.useRef<any>(null); // To store the jsPDF instance
 
     // Support Modal State
@@ -75,7 +78,9 @@ export const SystemDashboard: React.FC = () => {
     const setEnergyConfig = useSystemStore(state => state.setEnergyConfig);
 
     const pumpCurve = useSystemStore(state => state.pump_curve);
-
+    const pumpBaseRpm = useSystemStore(state => state.pump_base_rpm);
+    const pumpCurrentRpm = useSystemStore(state => state.pump_current_rpm);
+    const parallelPumps = useSystemStore(state => state.parallel_pumps);
 
     // Initial calculation (optional, removed to avoid auto-calc on load if unwanted, but user asked for it in checklist)
     // Keeping logic consistent: Fetch curve on input change.
@@ -125,11 +130,28 @@ export const SystemDashboard: React.FC = () => {
         });
 
         // 2. Pump Curve
+        const speedRatio = (pumpBaseRpm && pumpCurrentRpm) ? (pumpCurrentRpm / pumpBaseRpm) : 1.0;
+        const parallel = parallelPumps || 1;
+
         pumpCurve.forEach(p => {
-            const existing = dataMap.get(p.flow) || { flow: p.flow };
-            existing.pumpHead = p.head;
-            if (p.npshr !== undefined) existing.npshRequired = p.npshr;
-            dataMap.set(p.flow, existing);
+            // Base Curve (Original)
+            const existingBase = dataMap.get(p.flow) || { flow: p.flow };
+            existingBase.basePumpHead = p.head;
+            if (p.npshr !== undefined) {
+                existingBase.baseNpshRequired = p.npshr;
+            }
+            dataMap.set(p.flow, existingBase);
+
+            // Adjusted Curve (VFD + Parallel)
+            const adjFlow = p.flow * speedRatio * parallel;
+            const adjHead = p.head * (speedRatio ** 2);
+            const existingAdj = dataMap.get(adjFlow) || { flow: adjFlow };
+            existingAdj.pumpHead = adjHead;
+            
+            if (p.npshr !== undefined) {
+                existingAdj.npshRequired = p.npshr * (speedRatio ** 2);
+            }
+            dataMap.set(adjFlow, existingAdj);
         });
 
         // 3. Operating Point
@@ -139,7 +161,7 @@ export const SystemDashboard: React.FC = () => {
         }
 
         return Array.from(dataMap.values()).sort((a, b) => a.flow - b.flow);
-    }, [systemCurvePoints, pumpCurve, result]);
+    }, [systemCurvePoints, pumpCurve, result, pumpBaseRpm, pumpCurrentRpm, parallelPumps]);
 
 
     const handleGeneratePDF = async () => {
@@ -339,6 +361,17 @@ export const SystemDashboard: React.FC = () => {
                         <span className="hidden sm:inline">Suporte</span>
                     </Button>
 
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className={`text-slate-600 gap-2 border-slate-200 flex items-center justify-center px-2 sm:px-3 transition-colors ${mainView === 'economic' ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200' : 'hover:text-amber-600 hover:bg-amber-50'}`}
+                        onClick={() => setMainView(mainView === 'hydraulic' ? 'economic' : 'hydraulic')}
+                        title="Análise Financeira [PREMIUM]"
+                    >
+                        <DollarSign className="w-4 h-4" />
+                        <span className="hidden sm:inline font-semibold">{mainView === 'economic' ? 'Voltar ao Sistema' : 'Análise Financeira'}</span>
+                    </Button>
+
                     {/* Add vertical divider */}
                     <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
@@ -358,9 +391,13 @@ export const SystemDashboard: React.FC = () => {
 
             {/* 2. Content Grid (Scrollable Main Page) */}
             <main className="flex-1 w-full max-w-[1920px] mx-auto p-2 sm:p-4 flex flex-col gap-4 sm:gap-6">
-
-                {/* Top Section: Inputs & Charts */}
-                <div className="grid grid-cols-12 gap-6 items-start">
+                
+                {mainView === 'economic' ? (
+                    <EconomicDashboard />
+                ) : (
+                    <>
+                        {/* Top Section: Inputs & Charts */}
+                        <div className="grid grid-cols-12 gap-6 items-start">
 
                     {/* LEFT COLUMN: Inputs (Natural Height) */}
                     <aside className="col-span-12 xl:col-span-6 flex flex-col gap-4">
@@ -515,8 +552,8 @@ export const SystemDashboard: React.FC = () => {
                         )}
                     </div>
                 </section>
-
-
+                    </>
+                )}
 
             </main>
 
@@ -563,25 +600,41 @@ export const SystemDashboard: React.FC = () => {
                                         className="flex-1"
                                         onClick={() => {
                                             setPdfStatus('idle');
+                                            setDisclaimerAccepted(false);
                                             pdfDocRef.current = null;
                                         }}
                                     >
                                         Fechar
                                     </Button>
                                     <Button
-                                        className="flex-1 bg-sky-600 text-white hover:bg-sky-700"
+                                        className="flex-1 bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        disabled={!disclaimerAccepted}
                                         onClick={() => {
                                             if (pdfDocRef.current) {
                                                 const blob = pdfDocRef.current.output('blob');
                                                 saveAs(blob, pdfFilename);
 
                                                 setPdfStatus('idle');
+                                                setDisclaimerAccepted(false);
                                                 pdfDocRef.current = null;
                                             }
                                         }}
                                     >
                                         Baixar PDF
                                     </Button>
+                                </div>
+                                <div className="mt-4 w-full p-3 bg-amber-50 border border-amber-200 rounded-md">
+                                    <label className="flex items-start gap-2 cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            className="mt-1 w-4 h-4 text-sky-600 rounded border-gray-300 focus:ring-sky-500"
+                                            checked={disclaimerAccepted}
+                                            onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+                                        />
+                                        <span className="text-[11px] text-amber-800 font-medium leading-tight">
+                                            Declaro ciência de que as curvas da biblioteca global são aproximações algorítmicas otimizadas para pré-dimensionamento. Assumo a responsabilidade técnica de validar as folhas de dados finais diretamente com o fabricante antes de qualquer aquisição ou aplicação industrial real.
+                                        </span>
+                                    </label>
                                 </div>
                             </>
                         )}

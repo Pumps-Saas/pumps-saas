@@ -41,6 +41,9 @@ interface SystemStore extends SystemState {
     // Pump Actions
     setPumpCurve: (points: PumpCurvePoint[]) => void;
     setPumpDetails: (manufacturer: string, model: string) => void;
+    setPumpBaseRpm: (rpm: number) => void;
+    setPumpCurrentRpm: (rpm: number) => void;
+    setParallelPumps: (count: number) => void;
 
     pump_manufacturer: string;
     pump_model: string;
@@ -79,6 +82,9 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     pump_curve: [],
     pump_manufacturer: "",
     pump_model: "",
+    pump_base_rpm: 1750,
+    pump_current_rpm: 1750,
+    parallel_pumps: 1,
 
     // Default Pressures
     pressure_suction_bar_g: 0,
@@ -109,6 +115,9 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     setEnergyConfig: (field, value) => set({ [field]: value }),
 
     setPumpDetails: (manufacturer, model) => set({ pump_manufacturer: manufacturer, pump_model: model }),
+    setPumpBaseRpm: (rpm) => set({ pump_base_rpm: rpm }),
+    setPumpCurrentRpm: (rpm) => set({ pump_current_rpm: rpm }),
+    setParallelPumps: (count) => set({ parallel_pumps: count }),
 
     // Suction
     addSuctionSection: (section) => set((state) => ({
@@ -211,14 +220,26 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
                 hours_per_day: state.hours_per_day,
                 energy_cost_per_kwh: state.energy_cost_per_kwh,
 
-                pump_curve_points: state.pump_curve
+                pump_curve_points: state.pump_curve,
+                speed_ratio: state.pump_base_rpm ? (state.pump_current_rpm / state.pump_base_rpm) : 1.0,
+                parallel_pumps: state.parallel_pumps
             };
 
             const response = await axios.post(`${API_BASE_URL}/calculate/operating-point`, payload);
             set({ operatingPoint: response.data, isCalculating: false });
         } catch (error: any) {
             console.error('Failed to calculate operating point:', error);
-            const msg = error.response?.data?.detail || "Failed to calculate operating point.";
+            let msg = "Failed to calculate operating point.";
+            if (error.response?.data?.detail) {
+                const detail = error.response.data.detail;
+                if (typeof detail === 'string') {
+                    msg = detail;
+                } else if (Array.isArray(detail)) {
+                    msg = "Validation Error: " + detail.map((d: any) => `${d.loc?.join('.')} - ${d.msg}`).join(' | ');
+                } else {
+                    msg = JSON.stringify(detail);
+                }
+            }
             set({ isCalculating: false, calculationError: msg });
         }
     },
@@ -231,6 +252,9 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         discharge_sections_after: [],
         static_head: 10,
         pump_curve: [],
+        pump_base_rpm: 1750,
+        pump_current_rpm: 1750,
+        parallel_pumps: 1,
         pressure_suction_bar_g: 0,
         pressure_discharge_bar_g: 0,
         atmospheric_pressure_bar: 1.01325,
