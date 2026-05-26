@@ -71,6 +71,9 @@ def auto_select_pump(
             if flow_op is None:
                 continue # Does not intersect
 
+            if flow_op > (pump.max_flow_m3h * 1.25):
+                continue # Operating point is too far beyond the pump's catalog curve
+
             efficiency_op = interpolate_efficiency(flow_op, points)
             
             if efficiency_op is not None and efficiency_op > 0:

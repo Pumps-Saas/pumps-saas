@@ -79,12 +79,14 @@ def seed_massive_pumps():
 
         count = 0
         for manufacturer, base_model in brands:
-            # Generate 20 models per brand
-            # Spread across flows 10 -> 200 m3/h
-            # Spread across heads 15 -> 150 m
-            for i in range(20):
-                bep_flow = 10 + (i * 10) # 10 to 200
-                bep_head = 15 + ((i % 5) * 30) # varies cyclically 15, 45, 75, 105, 135
+            # Generate 40 models per brand
+            for i in range(40):
+                if i < 20:
+                    bep_flow = 10 + (i * 10) # 10 to 200
+                    bep_head = 15 + ((i % 5) * 30) # 15 to 135
+                else:
+                    bep_flow = 250 + ((i - 20) * 150) # 250 to 3100
+                    bep_head = 20 + ((i % 5) * 40) # 20 to 180
                 
                 model_name = f"{base_model} {int(bep_flow)}-{int(bep_head)}"
                 curve_points = generate_pump_curve(bep_flow, bep_head)
