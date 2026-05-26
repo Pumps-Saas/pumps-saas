@@ -87,8 +87,10 @@ export const SystemDashboard: React.FC = () => {
     useEffect(() => {
         const fetchSystemCurve = async () => {
             try {
+                const speedRatio = (pumpBaseRpm && pumpCurrentRpm) ? (pumpCurrentRpm / pumpBaseRpm) : 1.0;
+                const parallel = parallelPumps || 1;
                 const maxFlow = pumpCurve.length > 0
-                    ? Math.max(...pumpCurve.map(p => p.flow)) * 1.2
+                    ? Math.max(...pumpCurve.map(p => p.flow)) * speedRatio * parallel * 1.2
                     : 100;
 
                 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
@@ -114,7 +116,7 @@ export const SystemDashboard: React.FC = () => {
 
         const timer = setTimeout(fetchSystemCurve, 500);
         return () => clearTimeout(timer);
-    }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, fluid, staticHead, pumpCurve, pSuction, pDischarge, pAtm]);
+    }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, fluid, staticHead, pumpCurve, pSuction, pDischarge, pAtm, parallelPumps, pumpBaseRpm, pumpCurrentRpm]);
 
     // Process Chart Data
     const chartData = useMemo(() => {
