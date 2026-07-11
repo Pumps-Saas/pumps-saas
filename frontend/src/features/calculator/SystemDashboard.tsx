@@ -4,7 +4,7 @@ import { PipeSegmentManager } from './components/PipeSegmentManager';
 import { PumpCurveEditor } from './components/PumpCurveEditor';
 import { HeadFlowChart } from './components/HeadFlowChart';
 import { NPSHChart } from './components/NPSHChart';
-import { ResultsDisplay } from './components/ResultsDisplay';
+import { CockpitKPIs, CalculationMemorial, DetailedLosses } from './components/ResultsDisplay';
 import { FluidManager } from './components/FluidManager';
 import { SystemSchematic } from './components/SystemSchematic';
 import { useSystemStore } from './stores/useSystemStore';
@@ -40,7 +40,7 @@ export const SystemDashboard: React.FC = () => {
 
     // UI State
     const [mainView, setMainView] = useState<'hydraulic' | 'economic'>('hydraulic');
-    const [activeTab, setActiveTab] = useState<'system' | 'npsh'>('system');
+    const [activeTab, setActiveTab] = useState<'system' | 'losses' | 'memorial'>('system');
     const [minimized, setMinimized] = useState<Record<string, boolean>>({});
     const [systemCurvePoints, setSystemCurvePoints] = useState<any[]>([]);
 
@@ -173,8 +173,9 @@ export const SystemDashboard: React.FC = () => {
             const diagramEl = document.getElementById('pdf-diagram');
             const systemChartEl = document.getElementById('pdf-chart-system');
             const npshChartEl = document.getElementById('pdf-chart-npsh');
+            const economicEl = document.getElementById('pdf-economic-dashboard');
 
-            let diagramImg, chart1Img, chart2Img;
+            let diagramImg, chart1Img, chart2Img, economicImg;
             let diagramRatio = 1;
 
             console.log("Starting PDF generation...");
@@ -218,6 +219,25 @@ export const SystemDashboard: React.FC = () => {
                 alert(`Erro ao capturar Gráfico NPSH: ${e.message}`);
                 return;
             }
+
+            try {
+                if (economicEl) {
+                    console.log("Capturing Economic Chart...");
+                    // @ts-ignore
+                    const canvas = await html2canvas(economicEl, { scale: 1.5, backgroundColor: '#ffffff', logging: true, useCORS: true, allowTaint: true });
+                    economicImg = canvas.toDataURL('image/jpeg', 0.8);
+                }
+            } catch (e: any) {
+                console.error("Failed to capture Economic Chart", e);
+            }
+
+            // Calculate economic data for PDF
+            const storeState = useSystemStore.getState();
+            const capex = storeState.pump_cost + storeState.installation_cost;
+            const powerKw = result?.power_kw || 0;
+            const annualEnergyCost = powerKw * storeState.hours_per_day * 365 * storeState.energy_cost_per_kwh;
+            const annualMaintenanceCost = capex * (storeState.maintenance_rate / 100);
+            const opex = annualEnergyCost + annualMaintenanceCost;
 
             // Enrich segments logic for PDF report
             const enrichSegments = (segments: any[]) => {
@@ -307,7 +327,12 @@ export const SystemDashboard: React.FC = () => {
                     systemCurveImg: chart1Img,
                     npshCurveImg: chart2Img,
                     networkDiagramImg: diagramImg,
-                    networkDiagramRatio: diagramRatio
+                    networkDiagramRatio: diagramRatio,
+                    economicImg: economicImg
+                },
+                economic: {
+                    capex: capex,
+                    opex: opex
                 }
             };
 
@@ -399,161 +424,173 @@ export const SystemDashboard: React.FC = () => {
                 ) : (
                     <>
                         {/* Top Section: Inputs & Charts */}
-                        <div className="grid grid-cols-12 gap-6 items-start">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-                    {/* LEFT COLUMN: Inputs (Natural Height) */}
-                    <aside className="col-span-12 xl:col-span-6 flex flex-col gap-4">
+                            {/* LEFT COLUMN: Inputs (Natural Height) */}
+                            <aside className="lg:col-span-7 flex flex-col gap-4">
 
-                        {/* Section: System Conditions */}
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                            <CardHeader icon={Settings2} title="System Conditions" minimized={minimized['conditions']} toggle={() => toggleSection('conditions')} />
-                            {!minimized['conditions'] && (
-                                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white">
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Static Head (m)</label>
-                                        <Input type="number" value={staticHead} onChange={e => setStaticHead(Number(e.target.value))} />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Altitude (m)</label>
-                                        <Input type="number" value={altitude} onChange={e => setAltitude(Number(e.target.value))} />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Suction Press. (barg)</label>
-                                        <Input type="number" value={pSuction} onChange={e => setPressure('pressure_suction_bar_g', Number(e.target.value))} />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Discharge Press. (barg)</label>
-                                        <Input type="number" value={pDischarge} onChange={e => setPressure('pressure_discharge_bar_g', Number(e.target.value))} />
-                                    </div>
+                                {/* Section: System Conditions */}
+                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                                    <CardHeader icon={Settings2} title="System Conditions" minimized={minimized['conditions']} toggle={() => toggleSection('conditions')} />
+                                    {!minimized['conditions'] && (
+                                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white">
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Static Head (m)</label>
+                                                <Input type="number" value={staticHead} onChange={e => setStaticHead(Number(e.target.value))} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Altitude (m)</label>
+                                                <Input type="number" value={altitude} onChange={e => setAltitude(Number(e.target.value))} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Suction Press. (barg)</label>
+                                                <Input type="number" value={pSuction} onChange={e => setPressure('pressure_suction_bar_g', Number(e.target.value))} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Discharge Press. (barg)</label>
+                                                <Input type="number" value={pDischarge} onChange={e => setPressure('pressure_discharge_bar_g', Number(e.target.value))} />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
 
-                        {/* Section: Energy & Cost */}
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                            <CardHeader icon={Zap} title="Energy & Cost Configuration" minimized={minimized['energy']} toggle={() => toggleSection('energy')} />
-                            {!minimized['energy'] && (
-                                <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white">
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Motor Eff. (%)</label>
-                                        <Input type="number" step="0.1" value={efficiencyMotor * 100} onChange={e => setEnergyConfig('efficiency_motor', Number(e.target.value) / 100)} />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Hours/Day</label>
-                                        <Input type="number" value={hoursPerDay} onChange={e => setEnergyConfig('hours_per_day', Number(e.target.value))} />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Cost (R$/kWh)</label>
-                                        <Input type="number" step="0.01" value={energyCost} onChange={e => setEnergyConfig('energy_cost_per_kwh', Number(e.target.value))} />
-                                    </div>
+                                {/* Section: Energy & Cost */}
+                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                                    <CardHeader icon={Zap} title="Energy & Cost Configuration" minimized={minimized['energy']} toggle={() => toggleSection('energy')} />
+                                    {!minimized['energy'] && (
+                                        <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white">
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Motor Eff. (%)</label>
+                                                <Input type="number" step="0.1" value={efficiencyMotor * 100} onChange={e => setEnergyConfig('efficiency_motor', Number(e.target.value) / 100)} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Hours/Day</label>
+                                                <Input type="number" value={hoursPerDay} onChange={e => setEnergyConfig('hours_per_day', Number(e.target.value))} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Cost (R$/kWh)</label>
+                                                <Input type="number" step="0.01" value={energyCost} onChange={e => setEnergyConfig('energy_cost_per_kwh', Number(e.target.value))} />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
 
-                        {/* Section: Fluid */}
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                            <CardHeader icon={Droplets} title="Fluid Properties" minimized={minimized['fluid']} toggle={() => toggleSection('fluid')} />
-                            {!minimized['fluid'] && (
-                                <div className="p-4 bg-white">
-                                    <FluidManager />
+                                {/* Section: Fluid */}
+                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                                    <CardHeader icon={Droplets} title="Fluid Properties" minimized={minimized['fluid']} toggle={() => toggleSection('fluid')} />
+                                    {!minimized['fluid'] && (
+                                        <div className="p-4 bg-white">
+                                            <FluidManager />
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
 
-                        {/* Section: Pipes */}
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                            <CardHeader icon={LayoutGrid} title="Piping Network" minimized={minimized['pipes']} toggle={() => toggleSection('pipes')} />
-                            {!minimized['pipes'] && (
-                                <div className="p-0">
-                                    <div className="p-4 border-b border-slate-50 bg-slate-50/30">
-                                        <PipeSegmentManager type="suction" />
+                                {/* Section: Pipes */}
+                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                                    <CardHeader icon={LayoutGrid} title="Piping Network" minimized={minimized['pipes']} toggle={() => toggleSection('pipes')} />
+                                    {!minimized['pipes'] && (
+                                        <div className="p-0">
+                                            <div className="p-4 border-b border-slate-50 bg-slate-50/30">
+                                                <PipeSegmentManager type="suction" />
+                                            </div>
+                                            <div className="p-4">
+                                                <PipeSegmentManager type="discharge" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Section: Pump */}
+                                <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                                    <CardHeader icon={Settings2} title="Pump Curve" minimized={minimized['pump']} toggle={() => toggleSection('pump')} />
+                                    {!minimized['pump'] && (
+                                        <div className="p-4">
+                                            <PumpCurveEditor />
+                                        </div>
+                                    )}
+                                </div>
+
+                            </aside>
+
+                            {/* RIGHT COLUMN: Results & Charts (Sticky) */}
+                            <section className="lg:col-span-5 flex flex-col gap-4 lg:sticky lg:top-6">
+
+                                {/* Results KPI Bar (Cockpit Analítico) */}
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <CockpitKPIs result={result} isCalculating={isCalculating} error={error} />
+                                </div>
+
+                                {/* Bloco Dinâmico Inferior (Sistema de Abas) */}
+                                <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[500px]">
+                                    <div className="flex border-b border-slate-100 overflow-x-auto custom-scrollbar">
+                                        <button
+                                            onClick={() => setActiveTab('system')}
+                                            className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'system' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+                                        >
+                                            📈 Curvas (System/NPSH)
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab('losses')}
+                                            className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'losses' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+                                        >
+                                            📋 Detalhamento de Perdas
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab('memorial')}
+                                            className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'memorial' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
+                                        >
+                                            📐 Memorial de Cálculo
+                                        </button>
                                     </div>
-                                    <div className="p-4">
-                                        <PipeSegmentManager type="discharge" />
+
+                                    <div className="p-4 flex-1 flex flex-col h-[500px] overflow-y-auto custom-scrollbar">
+                                        {activeTab === 'system' && (
+                                            <div className="flex flex-col gap-6 h-full">
+                                                <div className="h-[300px] w-full shrink-0">
+                                                    <HeadFlowChart data={chartData} operatingPoint={result} />
+                                                </div>
+                                                <div className="h-[250px] w-full shrink-0">
+                                                    <NPSHChart data={chartData} operatingPoint={result} />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {activeTab === 'losses' && (
+                                            <DetailedLosses result={result} />
+                                        )}
+                                        {activeTab === 'memorial' && (
+                                            <CalculationMemorial result={result} />
+                                        )}
                                     </div>
+
+                                    {!result && !isCalculating && (
+                                        <div className="p-4 text-center text-sm text-slate-400 italic bg-slate-50/50 border-t border-slate-100">
+                                            Click "Calculate" to view results.
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </section>
                         </div>
 
-                        {/* Section: Pump */}
-                        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                            <CardHeader icon={Settings2} title="Pump Curve" minimized={minimized['pump']} toggle={() => toggleSection('pump')} />
-                            {!minimized['pump'] && (
-                                <div className="p-4">
-                                    <PumpCurveEditor />
-                                </div>
-                            )}
-                        </div>
-
-                    </aside>
-
-                    {/* RIGHT COLUMN: Results & Charts (Sticky) */}
-                    <section className="col-span-12 xl:col-span-6 flex flex-col gap-4 sticky top-20">
-
-                        {/* Results KPI Bar */}
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <ResultsDisplay result={result} isCalculating={isCalculating} error={error} />
-                        </div>
-
-                        {/* Charts Tabs (No Schematic) */}
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[450px] sm:h-[600px]">
-                            <div className="flex border-b border-slate-100">
-                                <button
-                                    onClick={() => setActiveTab('system')}
-                                    className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'system' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-                                >
-                                    System Head Curve
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('npsh')}
-                                    className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'npsh' ? 'border-sky-600 text-sky-700 bg-sky-50/30' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
-                                >
-                                    NPSH Analysis
-                                </button>
+                        {/* Bottom Section: Full Width Schematic */}
+                        <section className="w-full bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mt-4">
+                            <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
+                                <LayoutGrid className="w-5 h-5 text-sky-600" />
+                                <h3 className="text-base font-bold text-slate-700">System Schematic Visualization (3D Isometric)</h3>
                             </div>
 
-                            <div className="p-4 flex-1 flex flex-col">
-                                {activeTab === 'system' && (
-                                    <div className="h-full w-full">
-                                        <HeadFlowChart data={chartData} operatingPoint={result} />
+                            <div className="w-full h-[600px] bg-slate-50/30 p-4 relative overflow-x-auto overflow-y-hidden custom-scrollbar">
+                                {result ? (
+                                    <div className="w-[800px] sm:w-[1000px] h-full mx-auto flex-shrink-0">
+                                        <SystemSchematic result={result} />
+                                    </div>
+                                ) : (
+                                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                                        <LayoutGrid className="w-12 h-12 opacity-20" />
+                                        <span className="text-sm">Calculate to generate system schematic</span>
                                     </div>
                                 )}
-                                {activeTab === 'npsh' && (
-                                    <div className="h-full w-full">
-                                        <NPSHChart data={chartData} operatingPoint={result} />
-                                    </div>
-                                )}
                             </div>
-
-                            {!result && !isCalculating && (
-                                <div className="p-4 text-center text-sm text-slate-400 italic bg-slate-50/50 border-t border-slate-100">
-                                    Click "Calculate" to view results.
-                                </div>
-                            )}
-                        </div>
-                    </section>
-                </div>
-
-                {/* Bottom Section: Full Width Schematic */}
-                <section className="w-full bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                    <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
-                        <LayoutGrid className="w-5 h-5 text-sky-600" />
-                        <h3 className="text-base font-bold text-slate-700">System Schematic Visualization</h3>
-                    </div>
-
-                    <div className="w-full h-[600px] bg-slate-50/30 p-4 relative overflow-x-auto overflow-y-hidden custom-scrollbar">
-                        {result ? (
-                            <div className="w-[800px] sm:w-[1000px] h-full mx-auto flex-shrink-0">
-                                <SystemSchematic result={result} />
-                            </div>
-                        ) : (
-                            <div className="h-full w-full flex flex-col items-center justify-center text-slate-400 gap-2">
-                                <LayoutGrid className="w-12 h-12 opacity-20" />
-                                <span className="text-sm">Calculate to generate system schematic</span>
-                            </div>
-                        )}
-                    </div>
-                </section>
+                        </section>
                     </>
                 )}
 
@@ -574,6 +611,9 @@ export const SystemDashboard: React.FC = () => {
                 </div>
                 <div id="pdf-chart-npsh" style={{ width: '1200px', height: '900px' }}>
                     <NPSHChart data={chartData} operatingPoint={result} printMode={true} />
+                </div>
+                <div id="pdf-economic-dashboard" style={{ width: '1200px', padding: '20px' }}>
+                    <EconomicDashboard />
                 </div>
             </div>
 

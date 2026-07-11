@@ -93,6 +93,11 @@ export interface ReportData {
         npshCurveImg?: string;   // Data URL
         networkDiagramImg?: string; // Data URL
         networkDiagramRatio?: number;
+        economicImg?: string; // Data URL
+    };
+    economic?: {
+        capex: number;
+        opex: number;
     };
 }
 
@@ -412,6 +417,46 @@ export const generatePDFReport = (data: ReportData) => {
         doc.addImage(data.charts.networkDiagramImg, 'JPEG', xOffset, yPos, renderWidth, renderHeight);
     }
 
+    // --- 6. Financial Analysis (LCC) ---
+    if (data.charts?.economicImg && data.economic) {
+        doc.addPage();
+        yPos = 20;
+
+        doc.setFontSize(16);
+        doc.setTextColor(41, 128, 185);
+        doc.text("5. Financial Analysis (LCC)", margin, yPos);
+        yPos += 12;
+
+        // KPI Table
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.text("Cost Breakdown", margin, yPos);
+        yPos += 5;
+
+        const tenYearCost = data.economic.capex + (data.economic.opex * 10);
+
+        autoTable(doc, {
+            startY: yPos,
+            head: [['Metric', 'Value (R$)']],
+            body: [
+                ['Total CAPEX (Initial Investment)', data.economic.capex.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })],
+                ['Total OPEX per Year', data.economic.opex.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })],
+                ['Estimated 10-Year Total Cost', tenYearCost.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })]
+            ],
+            theme: 'striped',
+            headStyles: { fillColor: [245, 158, 11] }, // Amber color
+            styles: { fontSize: 10, cellPadding: 3 }
+        });
+        
+        yPos = doc.lastAutoTable.finalY + 15;
+
+        // Economic Chart
+        const chartHeight = 110;
+        const renderWidth = chartHeight * (1200 / 900);
+        const xOffset = (pageWidth - renderWidth) / 2;
+
+        doc.addImage(data.charts.economicImg, 'JPEG', xOffset, yPos, renderWidth, chartHeight);
+    }
 
     // Clean filename
     const safeName = (data.projectName || 'report').replace(/[^a-zA-Z0-9_\-]/g, '_');

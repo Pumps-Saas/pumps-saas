@@ -16,9 +16,10 @@ export const EconomicDashboard: React.FC = () => {
     const hoursPerDay = useSystemStore(state => state.hours_per_day);
 
     // Estados locais de CAPEX e Manutenção
-    const [pumpCost, setPumpCost] = useState(15000);
-    const [installationCost, setInstallationCost] = useState(5000);
-    const [maintenanceRate, setMaintenanceRate] = useState(2); // % ao ano sobre o CAPEX
+    const pumpCost = useSystemStore(state => state.pump_cost);
+    const installationCost = useSystemStore(state => state.installation_cost);
+    const maintenanceRate = useSystemStore(state => state.maintenance_rate);
+    const setEconomicConfig = useSystemStore(state => state.setEconomicConfig);
 
     // Cálculos Derivados
     const capex = pumpCost + installationCost;
@@ -83,11 +84,11 @@ export const EconomicDashboard: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="text-xs font-semibold text-slate-500">Custo da Bomba (R$)</label>
-                                <Input type="number" value={pumpCost} onChange={e => setPumpCost(Number(e.target.value))} className="mt-1" />
+                                <Input type="number" value={pumpCost} onChange={e => setEconomicConfig('pump_cost', Number(e.target.value))} className="mt-1" />
                             </div>
                             <div>
                                 <label className="text-xs font-semibold text-slate-500">Tubulação / Instalação (R$)</label>
-                                <Input type="number" value={installationCost} onChange={e => setInstallationCost(Number(e.target.value))} className="mt-1" />
+                                <Input type="number" value={installationCost} onChange={e => setEconomicConfig('installation_cost', Number(e.target.value))} className="mt-1" />
                             </div>
                         </div>
                         <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between items-end">
@@ -115,7 +116,7 @@ export const EconomicDashboard: React.FC = () => {
                             
                             <div>
                                 <label className="text-xs font-semibold text-slate-500">Taxa de Manutenção Anual (% CAPEX)</label>
-                                <Input type="number" step="0.1" value={maintenanceRate} onChange={e => setMaintenanceRate(Number(e.target.value))} className="mt-1" />
+                                <Input type="number" step="0.1" value={maintenanceRate} onChange={e => setEconomicConfig('maintenance_rate', Number(e.target.value))} className="mt-1" />
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4 mt-2">

@@ -7,6 +7,14 @@ interface SystemSchematicProps {
     printMode?: boolean;
 }
 
+// --- Isometric Math Utilities ---
+const ANGLE = Math.PI / 6; // 30 degrees
+const COS_A = Math.cos(ANGLE);
+const SIN_A = Math.sin(ANGLE);
+
+const isoX = (x: number, y: number) => (x - y) * COS_A;
+const isoY = (x: number, y: number, z: number = 0) => (x + y) * SIN_A - z;
+
 export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printMode = false }) => {
     // Get Topology
     const suction = useSystemStore(state => state.suction_sections);
@@ -17,212 +25,213 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
     // Helpers
     const getResult = (id: string) => result?.details?.find(d => d.section_id === id);
 
-    // SVG Constants
-
-
-    // Style Multipliers (Refined for better balance)
-    const textScale = printMode ? 1.8 : 1; // Reduced from 2.5
-    const strokeScale = printMode ? 2.0 : 1;
-    const baseFontSize = 14.5 * textScale; // Increased another 20% (12 -> 14.5)
-    const headerFontSize = 17 * textScale; // Increased proportionally (14 -> 17)
-    const strokeWidth = 1.5 * strokeScale;
-    const heavyStroke = 2 * strokeScale;
-
-    // Background Filter for Text (to prevent overlap)
-    const uniqueId = useMemo(() => Math.random().toString(36).substr(2, 9), []);
-    const markerId = `arrowhead-${printMode ? 'print' : 'screen'}-${uniqueId}`;
-
-    const textBgFilter = (
-        <defs>
-            <filter x="-0.1" y="0" width="1.2" height="1" id={`solid-bg-${uniqueId}`}>
-                <feFlood floodColor="white" result="bg" />
-                <feMerge>
-                    <feMergeNode in="bg" />
-                    <feMergeNode in="SourceGraphic" />
-                </feMerge>
-            </filter>
-            <marker id={markerId} markerWidth={10 * strokeScale} markerHeight={7 * strokeScale} refX={9 * strokeScale} refY={3.5 * strokeScale} orient="auto">
-                <polygon points={`0 0, ${10 * strokeScale} ${3.5 * strokeScale}, 0 ${7 * strokeScale}`} fill="black" />
-            </marker>
-        </defs>
-    );
+    // --- Sizing Constants ---
+    const textScale = printMode ? 1.5 : 1;
+    const baseFontSize = 14 * textScale;
+    const strokeScale = printMode ? 1.5 : 1;
+    
+    // Grid spacing
+    const SEGMENT_LEN = 150;
+    const BRANCH_SPACING = 100;
 
     const elements = useMemo(() => {
         const svgElements: React.ReactNode[] = [];
-        let cursorX = 50;
+        
+        // We will keep track of the current logical (x, y, z) position.
+        let cx = 0;
+        let cy = 0;
+        let cz = 0;
 
-        // --- Dynamic Spacing Logic ---
-        // Goal: Keep diagram width constrained so icons remain large.
-        // If we have many segments, we reduce the arrow length.
-        const totalSegments = suction.length + dischargeBefore.length + dischargeAfter.length + (Object.keys(dischargeParallel).length > 0 ? 1 : 0);
+        // Draw an Isometric Cylinder (Tank)
+        const drawIsoTank = (key: string, x: number, y: number, z: number, r: number, h: number, color: string, label: string) => {
+            const bx = isoX(x, y);
+            const by = isoY(x, y, z);
+            const ty = isoY(x, y, z + h);
 
-        // Increasing distribution to use side white space and fix overlaps.
-        // Base spacing 250 (was 210). Min 130 (was 95).
-        let dynamicSpacing = 250;
-        if (totalSegments > 2) {
-            dynamicSpacing = Math.max(130, 250 - (totalSegments - 2) * 40);
-        }
+            const rx = r * COS_A;
+            const ry = r * SIN_A;
 
-        const COMPONENT_SPACING = printMode ? 200 : dynamicSpacing;
-        const TANK_WIDTH = 100;
-
-        const branchKeys = Object.keys(dischargeParallel);
-        const numBranches = branchKeys.length;
-        const branchSpacing = 130;
-        const totalHeight = numBranches > 1 ? (numBranches - 1) * branchSpacing : 0;
-
-        const PIPE_Y = Math.max(150, (totalHeight / 2) + 120);
-        const requiredHeight = PIPE_Y + (totalHeight / 2) + 120;
-
-        // --- 1. Suction Tank (Blue Cylinder) ---
-        // Cylinder Body
-        svgElements.push(
-            <g key="suction-tank" transform={`translate(${cursorX}, ${PIPE_Y - 35})`}>
-                {/* Cylinder Side/Body */}
-                <path d="M0,15 L0,55 A20,10 0 0,0 100,55 L100,15" fill="#add8e6" stroke="black" strokeWidth={strokeWidth} />
-                {/* Cylinder Top (Ellipse) */}
-                <ellipse cx="50" cy="15" rx="50" ry="10" fill="#bee3f8" stroke="black" strokeWidth={strokeWidth} />
-                {/* Label */}
-                <text x="50" y="35" textAnchor="middle" fontSize={baseFontSize} fontWeight="bold" fill="black">
-                    <tspan x="50" dy="0">Reservatório</tspan>
-                    <tspan x="50" dy={baseFontSize * 1.2}>Sucção</tspan>
-                </text>
-            </g>
-        );
-        cursorX += TANK_WIDTH;
-
-        // Helper: Draw Pipe Segment
-        const drawPipe = (startX: number, endX: number, y: number, name: string, id: string, labelYOffset = -25, customFlow?: number) => {
-            const res = getResult(id);
-            const midX = (startX + endX) / 2;
-
-            // Line
-            svgElements.push(
-                <line key={`pipe-${id}`} x1={startX} y1={y} x2={endX} y2={y} stroke="black" strokeWidth={strokeWidth} markerEnd={`url(#${markerId})`} />
-            );
-
-            // Label Box
-            const currentLabelOffset = printMode ? labelYOffset * 1.8 : labelYOffset;
+            const cBase = color; // e.g. '#60a5fa'
+            const cTop = '#93c5fd';
+            const cWall = '#3b82f6';
 
             svgElements.push(
-                <text key={`label-${id}`} x={midX} y={y + currentLabelOffset} textAnchor="middle" fontSize={baseFontSize} fill="black" filter={`url(#solid-bg-${uniqueId})`}>
-                    <tspan x={midX} dy="0" fontWeight="bold">{name}</tspan>
-                    {res && (
-                        <>
-                            <tspan x={midX} dy={baseFontSize * 1.2}>{(customFlow !== undefined ? customFlow : result?.flow_op || 0).toFixed(1)} m³/h</tspan>
-                            <tspan x={midX} dy={baseFontSize * 1.2}>{res.velocity_m_s.toFixed(2)} m/s</tspan>
-                            <tspan x={midX} dy={baseFontSize * 1.2}>Perda: {res.total_loss_m.toFixed(2)} m</tspan>
-                        </>
-                    )}
-                </text>
+                <g key={key}>
+                    {/* Back half of bottom (hidden mostly) */}
+                    <path d={`M ${bx - rx} ${by} A ${rx} ${ry} 0 0 1 ${bx + rx} ${by}`} fill="none" stroke="none" />
+                    {/* Cylinder Body */}
+                    <path d={`M ${bx - rx} ${by} L ${bx - rx} ${ty} A ${rx} ${ry} 0 0 0 ${bx + rx} ${ty} L ${bx + rx} ${by} A ${rx} ${ry} 0 0 1 ${bx - rx} ${by} Z`} fill={cWall} stroke="#1e3a8a" strokeWidth={1 * strokeScale} />
+                    {/* Top Face */}
+                    <ellipse cx={bx} cy={ty} rx={rx} ry={ry} fill={cTop} stroke="#1e3a8a" strokeWidth={1 * strokeScale} />
+                    {/* Label */}
+                    <text x={bx} y={ty - 20 * strokeScale} textAnchor="middle" fontSize={baseFontSize * 1.2} fontWeight="bold" fill="#1e293b">{label}</text>
+                </g>
             );
         };
 
+        // Draw Isometric Pump (Horizontal Cylinder)
+        const drawIsoPump = (key: string, x: number, y: number, z: number, r: number, len: number) => {
+            const bx = isoX(x, y);
+            const by = isoY(x, y, z);
+            const ex = isoX(x + len, y);
+            const ey = isoY(x + len, y, z);
+            
+            const rx = r * SIN_A; // Simplified cross section for along X axis
+            const ry = r;
+
+            svgElements.push(
+                <g key={key}>
+                    {/* Pump Body */}
+                    <path d={`M ${bx} ${by - ry} L ${ex} ${ey - ry} A ${rx} ${ry} 0 0 1 ${ex} ${ey + ry} L ${bx} ${by + ry} A ${rx} ${ry} 0 0 0 ${bx} ${by - ry} Z`} fill="#f59e0b" stroke="#92400e" strokeWidth={1.5 * strokeScale} />
+                    {/* Pump Face */}
+                    <ellipse cx={ex} cy={ey} rx={rx} ry={ry} fill="#fbbf24" stroke="#92400e" strokeWidth={1.5 * strokeScale} />
+                    {/* Label */}
+                    <text x={ex} y={ey - r - 10} textAnchor="middle" fontSize={baseFontSize * 1.2} fontWeight="bold" fill="#78350f">Pump</text>
+                </g>
+            );
+        };
+
+        // Draw Isometric Pipe
+        const drawIsoPipe = (key: string, x1: number, y1: number, z1: number, x2: number, y2: number, z2: number, label: string, details?: string[]) => {
+            const px1 = isoX(x1, y1);
+            const py1 = isoY(x1, y1, z1);
+            const px2 = isoX(x2, y2);
+            const py2 = isoY(x2, y2, z2);
+
+            const midX = (px1 + px2) / 2;
+            const midY = (py1 + py2) / 2;
+
+            // Thick line for pipe
+            svgElements.push(
+                <g key={key}>
+                    <line x1={px1} y1={py1} x2={px2} y2={py2} stroke="#94a3b8" strokeWidth={12 * strokeScale} strokeLinecap="round" />
+                    <line x1={px1} y1={py1} x2={px2} y2={py2} stroke="#cbd5e1" strokeWidth={6 * strokeScale} strokeLinecap="round" />
+                    
+                    {/* Label Background */}
+                    <rect x={midX - 40} y={midY - 30} width={80} height={20 + (details ? details.length * 15 : 0)} fill="rgba(255,255,255,0.85)" rx={4} />
+                    <text x={midX} y={midY - 15} textAnchor="middle" fontSize={baseFontSize} fontWeight="bold" fill="#334155">{label}</text>
+                    {details && details.map((d, i) => (
+                        <text key={i} x={midX} y={midY + (i * 15)} textAnchor="middle" fontSize={baseFontSize * 0.8} fill="#64748b">{d}</text>
+                    ))}
+                </g>
+            );
+        };
+
+
+        // --- 1. Suction Tank ---
+        drawIsoTank("tank-suction", cx, cy, cz, 40, 80, "#60a5fa", "Source");
+        // Move forward a bit
+        cx += 40;
+
         // --- 2. Suction Pipes ---
         suction.forEach((s, idx) => {
-            const endX = cursorX + COMPONENT_SPACING;
-            drawPipe(cursorX, endX, PIPE_Y, s.name || `Sucção ${idx + 1}`, s.id);
-            cursorX = endX;
+            const nextX = cx + SEGMENT_LEN;
+            const res = getResult(s.id);
+            const details = res ? [
+                `${res.velocity_m_s.toFixed(2)} m/s`,
+                `Loss: ${res.total_loss_m.toFixed(2)} m`
+            ] : [];
+            
+            drawIsoPipe(`suc-${s.id}`, cx, cy, cz, nextX, cy, cz, s.name || `Suc ${idx+1}`, details);
+            cx = nextX;
         });
 
-        // --- 3. Pump (Orange Circle) ---
-        const pumpRadius = 40;
-        const pumpCenterX = cursorX + pumpRadius;
-
-        svgElements.push(
-            <g key="pump" transform={`translate(${pumpCenterX}, ${PIPE_Y})`}>
-                <circle r={pumpRadius} fill="#ffa500" stroke="black" strokeWidth={heavyStroke} />
-                <text x="0" y="5" textAnchor="middle" fontSize={headerFontSize} fontWeight="bold" fill="black">Bomba</text>
-            </g>
-        );
-        cursorX = pumpCenterX + pumpRadius;
-
+        // --- 3. Pump ---
+        drawIsoPump("main-pump", cx, cy, cz, 25, 60);
+        cx += 60;
 
         // --- 4. Discharge Before ---
         dischargeBefore.forEach((s, idx) => {
-            const endX = cursorX + COMPONENT_SPACING;
-            drawPipe(cursorX, endX, PIPE_Y, s.name || `Recalque ${idx + 1}`, s.id);
-            cursorX = endX;
+            const nextX = cx + SEGMENT_LEN;
+            const res = getResult(s.id);
+            const details = res ? [
+                `${res.velocity_m_s.toFixed(2)} m/s`,
+                `Loss: ${res.total_loss_m.toFixed(2)} m`
+            ] : [];
+            
+            drawIsoPipe(`disB-${s.id}`, cx, cy, cz, nextX, cy, cz, s.name || `Dis ${idx+1}`, details);
+            cx = nextX;
         });
 
-
         // --- 5. Parallel Branches ---
-        if (numBranches > 0) {
-            const splitX = cursorX;
-            // Shorter branch length too
-            const branchLength = Math.max(260, COMPONENT_SPACING + 130);
-            const mergeX = splitX + branchLength;
-
-            // Draw Split Pipe (Vertical)
-            const topY = PIPE_Y - (totalHeight / 2);
-            const bottomY = PIPE_Y + (totalHeight / 2);
-
-            // Vertical Line at Split
-            svgElements.push(
-                <line key="split-vertical" x1={splitX} y1={topY} x2={splitX} y2={bottomY} stroke="black" strokeWidth={strokeWidth} />
-            );
-            // Dots
-            svgElements.push(<circle key="split-dot" cx={splitX} cy={PIPE_Y} r={3 * strokeScale} fill="black" />);
-
+        const branchKeys = Object.keys(dischargeParallel);
+        if (branchKeys.length > 0) {
+            const startX = cx;
+            const branchLenX = SEGMENT_LEN;
+            const endX = startX + branchLenX;
 
             branchKeys.forEach((key, bIdx) => {
-                const branchY = topY + (bIdx * 130);
+                // Offset Y based on branch index (first branch goes +Y, second goes -Y, etc)
+                // If 1 branch: Y=0. If 2 branches: Y= -50, +50.
+                const offsetMultiplier = bIdx - (branchKeys.length - 1) / 2;
+                const branchY = cy + (offsetMultiplier * BRANCH_SPACING);
+
+                // Draw connector to branch Y
+                drawIsoPipe(`conn-in-${key}`, startX, cy, cz, startX, branchY, cz, "");
+
+                // Draw branch pipe along X
                 const segments = dischargeParallel[key];
                 const s = segments[0];
-
                 if (s) {
                     const res = getResult(s.id);
-                    const branchFlow = res?.velocity_m_s ? res.velocity_m_s * Math.PI * Math.pow((s.diameter_mm || 0) / 1000, 2) / 4 * 3600 : 0;
-                    drawPipe(splitX, mergeX, branchY, `${key}`, s.id, -20, branchFlow);
+                    const details = res ? [
+                        `${res.velocity_m_s.toFixed(2)} m/s`,
+                        `Loss: ${res.total_loss_m.toFixed(2)} m`
+                    ] : [];
+                    drawIsoPipe(`par-${s.id}`, startX, branchY, cz, endX, branchY, cz, key, details);
                 } else {
-                    // Empty Branch
-                    svgElements.push(
-                        <line key={`branch-empty-${key}`} x1={splitX} y1={branchY} x2={mergeX} y2={branchY} stroke="#94a3b8" strokeWidth={strokeWidth} strokeDasharray="4 4" />
-                    );
-                    svgElements.push(
-                        <text key={`label-empty-${key}`} x={(splitX + mergeX) / 2} y={branchY - 10} textAnchor="middle" fontSize={baseFontSize} fill="#94a3b8" fontStyle="italic" filter={`url(#solid-bg-${uniqueId})`}>
-                            {key} (Empty)
-                        </text>
-                    );
+                    // Empty branch line
+                    drawIsoPipe(`par-empty-${key}`, startX, branchY, cz, endX, branchY, cz, `${key} (Empty)`);
                 }
+
+                // Draw connector back to main line
+                drawIsoPipe(`conn-out-${key}`, endX, branchY, cz, endX, cy, cz, "");
             });
-
-            // Vertical Line at Merge
-            svgElements.push(
-                <line key="merge-vertical" x1={mergeX} y1={topY} x2={mergeX} y2={bottomY} stroke="black" strokeWidth={strokeWidth} />
-            );
-            svgElements.push(<circle key="merge-dot" cx={mergeX} cy={PIPE_Y} r={3 * strokeScale} fill="black" />);
-
-            cursorX = mergeX;
+            cx = endX;
         }
 
         // --- 6. Discharge After ---
         dischargeAfter.forEach((s, idx) => {
-            const endX = cursorX + COMPONENT_SPACING;
-            drawPipe(cursorX, endX, PIPE_Y, s.name || `Final ${idx + 1}`, s.id);
-            cursorX = endX;
+            const nextX = cx + SEGMENT_LEN;
+            const res = getResult(s.id);
+            const details = res ? [
+                `${res.velocity_m_s.toFixed(2)} m/s`,
+                `Loss: ${res.total_loss_m.toFixed(2)} m`
+            ] : [];
+            
+            drawIsoPipe(`disA-${s.id}`, cx, cy, cz, nextX, cy, cz, s.name || `Fin ${idx+1}`, details);
+            cx = nextX;
         });
 
-        // --- 7. Discharge Tank (Grey Circle) ---
-        const endTankRadius = 35;
-        const endTankCenterX = cursorX + endTankRadius;
+        // --- 7. Discharge Tank ---
+        cx += 20; // small gap
+        cz += 40; // End tank usually higher, let's put it higher visually
+        drawIsoTank("tank-discharge", cx, cy, cz, 40, 80, "#9ca3af", "Destination");
 
-        svgElements.push(
-            <g key="end-tank" transform={`translate(${endTankCenterX}, ${PIPE_Y})`}>
-                <circle r={endTankRadius} fill="#d1d5db" stroke="black" strokeWidth={heavyStroke} />
-                <text x="0" y="5" textAnchor="middle" fontSize={headerFontSize} fontWeight="bold" fill="black">Fim</text>
-            </g>
-        );
-        cursorX = endTankCenterX + endTankRadius;
+        // Calculate bounding box to center the SVG
+        // cx is max X. cy range is depending on branches. cz is max Z.
+        // The iso projection bounding box:
+        const minIsoX = isoX(0, branchKeys.length > 0 ? (branchKeys.length * BRANCH_SPACING) : 0);
+        const maxIsoX = isoX(cx + 80, branchKeys.length > 0 ? -(branchKeys.length * BRANCH_SPACING) : 0);
+        
+        const minIsoY = isoY(0, branchKeys.length > 0 ? -(branchKeys.length * BRANCH_SPACING) : 0, cz + 100);
+        const maxIsoY = isoY(cx + 80, branchKeys.length > 0 ? (branchKeys.length * BRANCH_SPACING) : 0, 0);
 
-        // Add extra padding at the end
-        return { svgElements, totalWidth: cursorX + 100, requiredHeight };
-    }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, result, printMode, baseFontSize, headerFontSize, strokeWidth, heavyStroke]);
+        const width = maxIsoX - minIsoX + 200;
+        const height = maxIsoY - minIsoY + 200;
+
+        return { 
+            svgElements, 
+            viewBox: `${minIsoX - 100} ${minIsoY - 100} ${width} ${height}`,
+            width, height
+        };
+    }, [suction, dischargeBefore, dischargeParallel, dischargeAfter, result, printMode, baseFontSize, strokeScale]);
 
     return (
-        <div style={{ width: '100%', background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <svg width="100%" height="auto" viewBox={`0 0 ${elements.totalWidth} ${elements.requiredHeight}`} preserveAspectRatio="xMidYMid meet">
-                {textBgFilter}
+        <div style={{ width: '100%', height: '100%', background: 'white', borderRadius: '8px' }} className="flex items-center justify-center">
+            <svg width="100%" height="100%" viewBox={elements.viewBox} preserveAspectRatio="xMidYMid meet" style={{ minHeight: '400px' }}>
+                {/* Optional grid background or floor plane can be added here */}
+                <polygon points={`${isoX(-100, -200)},${isoY(-100, -200, -20)} ${isoX(1000, -200)},${isoY(1000, -200, -20)} ${isoX(1000, 200)},${isoY(1000, 200, -20)} ${isoX(-100, 200)},${isoY(-100, 200, -20)}`} fill="#f1f5f9" stroke="#e2e8f0" />
                 {elements.svgElements}
             </svg>
         </div>
