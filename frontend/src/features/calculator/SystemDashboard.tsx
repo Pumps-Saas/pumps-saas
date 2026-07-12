@@ -74,6 +74,7 @@ export const SystemDashboard: React.FC = () => {
 
     const efficiencyMotor = useSystemStore(state => state.efficiency_motor);
     const hoursPerDay = useSystemStore(state => state.hours_per_day);
+    const daysPerYear = useSystemStore(state => state.days_per_year);
     const energyCost = useSystemStore(state => state.energy_cost_per_kwh);
     const setEnergyConfig = useSystemStore(state => state.setEnergyConfig);
 
@@ -235,7 +236,7 @@ export const SystemDashboard: React.FC = () => {
             const storeState = useSystemStore.getState();
             const capex = storeState.pump_cost + storeState.installation_cost;
             const powerKw = result?.power_kw || 0;
-            const annualEnergyCost = powerKw * storeState.hours_per_day * 365 * storeState.energy_cost_per_kwh;
+            const annualEnergyCost = powerKw * storeState.hours_per_day * storeState.days_per_year * storeState.energy_cost_per_kwh;
             const annualMaintenanceCost = capex * (storeState.maintenance_rate / 100);
             const opex = annualEnergyCost + annualMaintenanceCost;
 
@@ -458,7 +459,7 @@ export const SystemDashboard: React.FC = () => {
                                 <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                                     <CardHeader icon={Zap} title="Energy & Cost Configuration" minimized={minimized['energy']} toggle={() => toggleSection('energy')} />
                                     {!minimized['energy'] && (
-                                        <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white">
+                                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white">
                                             <div>
                                                 <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Motor Eff. (%)</label>
                                                 <Input type="number" step="0.1" value={efficiencyMotor * 100} onChange={e => setEnergyConfig('efficiency_motor', Number(e.target.value) / 100)} />
@@ -466,6 +467,10 @@ export const SystemDashboard: React.FC = () => {
                                             <div>
                                                 <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Hours/Day</label>
                                                 <Input type="number" value={hoursPerDay} onChange={e => setEnergyConfig('hours_per_day', Number(e.target.value))} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Days/Year</label>
+                                                <Input type="number" value={daysPerYear} onChange={e => setEnergyConfig('days_per_year', Number(e.target.value))} />
                                             </div>
                                             <div>
                                                 <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">Cost (R$/kWh)</label>

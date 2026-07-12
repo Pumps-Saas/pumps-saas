@@ -89,6 +89,7 @@ def seed():
             ],
             "efficiency_motor": 0.92,
             "hours_per_day": 16,
+            "days_per_year": 365,
             "energy_cost_per_kwh": 0.85
         }
 

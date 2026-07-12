@@ -14,7 +14,7 @@ interface SystemStore extends SystemState {
     setStaticHead: (head: number) => void;
     setPressure: (field: 'pressure_suction_bar_g' | 'pressure_discharge_bar_g' | 'atmospheric_pressure_bar', value: number) => void;
     setAltitude: (val: number) => void;
-    setEnergyConfig: (field: 'efficiency_motor' | 'hours_per_day' | 'energy_cost_per_kwh', value: number) => void;
+    setEnergyConfig: (field: 'efficiency_motor' | 'hours_per_day' | 'days_per_year' | 'energy_cost_per_kwh', value: number) => void;
     setEconomicConfig: (field: 'pump_cost' | 'installation_cost' | 'maintenance_rate', value: number) => void;
 
     // Suction Actions
@@ -96,6 +96,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     // Default Energy parameters
     efficiency_motor: 0.90, // 90%
     hours_per_day: 24,
+    days_per_year: 365,
     energy_cost_per_kwh: 0.80, // 0.80 R$/kWh
 
     // Default Economic parameters
@@ -225,6 +226,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
 
                 efficiency_motor: state.efficiency_motor,
                 hours_per_day: state.hours_per_day,
+                days_per_year: state.days_per_year,
                 energy_cost_per_kwh: state.energy_cost_per_kwh,
 
                 pump_curve_points: state.pump_curve,
@@ -267,6 +269,7 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         atmospheric_pressure_bar: 1.01325,
         efficiency_motor: 0.90,
         hours_per_day: 24,
+        days_per_year: 365,
         energy_cost_per_kwh: 0.80,
         pump_cost: 15000,
         installation_cost: 5000,

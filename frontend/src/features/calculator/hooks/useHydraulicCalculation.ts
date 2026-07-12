@@ -29,6 +29,7 @@ export const useHydraulicCalculation = () => {
     // Energy Config
     const efficiencyMotor = useSystemStore(state => state.efficiency_motor);
     const hoursPerDay = useSystemStore(state => state.hours_per_day);
+    const daysPerYear = useSystemStore(state => state.days_per_year);
     const energyCost = useSystemStore(state => state.energy_cost_per_kwh);
 
     const calculateOperatingPoint = async () => {
@@ -51,6 +52,7 @@ export const useHydraulicCalculation = () => {
                 // Energy Fields
                 efficiency_motor: efficiencyMotor,
                 hours_per_day: hoursPerDay,
+                days_per_year: daysPerYear,
                 energy_cost_per_kwh: energyCost,
 
                 pump_curve_points: pumpCurve

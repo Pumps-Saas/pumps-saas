@@ -215,7 +215,7 @@ def get_operating_point(request: OperatingPointRequest):
         eta_pump = efficiency_op / 100.0
         eta_motor = request.efficiency_motor
         power_kw = (q_m3s * rho * g * head_op) / (eta_pump * eta_motor * 1000.0)
-        cost_per_year = power_kw * request.hours_per_day * 365 * request.energy_cost_per_kwh
+        cost_per_year = power_kw * request.hours_per_day * request.days_per_year * request.energy_cost_per_kwh
 
     # Natural Flow Calculation (Phase 6)
     natural_flow_m3h = find_natural_flow(

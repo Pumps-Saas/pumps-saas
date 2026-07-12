@@ -5,6 +5,18 @@
 
 ---
 
+## 12/07/2026 (Parte 2) — Flexibilização do Regime de Safra no Motor de Cálculo LCC (`days_per_year`)
+
+### 🎯 O que foi realizado
+- Adição do campo **Days/Year** no painel *Energy & Cost Configuration* ([SystemDashboard.tsx](file:///c:/Users/pedro/OneDrive/Documentos/Antigravity/Pumps/frontend/src/features/calculator/SystemDashboard.tsx)), permitindo que o usuário informe exatamente os dias de operação anual da bomba (padrão 365, com suporte perfeito a usinas e operações sazonais por volta de 220 dias).
+- Substituição da constante `365` hardcoded no motor financeiro do Backend ([calculate.py](file:///c:/Users/pedro/OneDrive/Documentos/Antigravity/Pumps/backend/app/api/v1/calculate.py)) e no painel de LCC do Frontend ([EconomicDashboard.tsx](file:///c:/Users/pedro/OneDrive/Documentos/Antigravity/Pumps/frontend/src/features/calculator/EconomicDashboard.tsx)) pela variável dinâmica `days_per_year`.
+- Criação e aprovação de teste automatizado `test_days_per_year_cost_calculation` validando a fórmula `cost_per_year = power_kw * hours_per_day * days_per_year * energy_cost_per_kwh`.
+
+### 💼 Impacto no Negócio
+- **Projeção Financeira Realista (LCC):** Para usinas e indústrias com regime intermitente (safra/entresafra), o custo anual estimado de energia elétrica agora reflete a realidade da planta em vez de superestimar custos em 65%, aumentando a precisão das análises de viabilidade e justificativas de compra de novas bombas na plataforma.
+
+---
+
 ## 12/07/2026 — Institucionalização de Governança Estrita, Papéis e Segurança Funcional
 
 ### 🎯 O que foi discutido e decidido

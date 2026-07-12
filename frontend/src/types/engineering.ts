@@ -52,6 +52,7 @@ export interface SystemState {
     // Energy & Cost Fields
     efficiency_motor: number; // e.g. 0.90
     hours_per_day: number;
+    days_per_year: number;
     energy_cost_per_kwh: number;
 
     pump_curve: PumpCurvePoint[];

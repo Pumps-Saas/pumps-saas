@@ -86,3 +86,32 @@ def test_operating_point(water_20c):
     assert flow_op is not None
     assert 60 < flow_op < 90
     assert head_op == pytest.approx(pump_curve_func(flow_op), rel=0.001)
+
+def test_days_per_year_cost_calculation(water_20c):
+    from app.api.v1.calculate import get_operating_point
+    from app.schemas.calculations import OperatingPointRequest
+    
+    req = OperatingPointRequest(
+        suction_sections=[],
+        discharge_sections_before=[PipeSection(length_m=100.0, diameter_mm=100.0, material="Steel", roughness_mm=0.046)],
+        discharge_parallel_sections={},
+        discharge_sections_after=[],
+        fluid=water_20c,
+        static_head_m=20.0,
+        pump_curve_points=[
+            {"flow": 0, "head": 40, "efficiency": 50},
+            {"flow": 50, "head": 35, "efficiency": 75},
+            {"flow": 100, "head": 20, "efficiency": 60}
+        ],
+        hours_per_day=24.0,
+        days_per_year=220.0,
+        energy_cost_per_kwh=0.50,
+        efficiency_motor=0.90
+    )
+    
+    res = get_operating_point(req)
+    assert res.power_kw is not None
+    assert res.cost_per_year is not None
+    expected_cost = res.power_kw * 24.0 * 220.0 * 0.50
+    assert res.cost_per_year == pytest.approx(expected_cost, rel=1e-4)
+

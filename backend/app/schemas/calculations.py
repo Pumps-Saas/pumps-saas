@@ -82,6 +82,7 @@ class OperatingPointRequest(BaseModel):
     # Financial / Operational Params 
     efficiency_motor: float = 0.90
     hours_per_day: float = 8.0
+    days_per_year: float = 365.0
     energy_cost_per_kwh: float = 0.75
 
 class OperatingPointResponse(BaseModel):

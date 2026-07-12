@@ -12,6 +12,7 @@ export const EconomicDashboard: React.FC = () => {
     // Configurações do Store de Energia
     const energyCostPerKwh = useSystemStore(state => state.energy_cost_per_kwh);
     const hoursPerDay = useSystemStore(state => state.hours_per_day);
+    const daysPerYear = useSystemStore(state => state.days_per_year);
 
     // Estados locais de CAPEX e Manutenção
     const pumpCost = useSystemStore(state => state.pump_cost);
@@ -21,7 +22,7 @@ export const EconomicDashboard: React.FC = () => {
 
     // Cálculos Derivados
     const capex = pumpCost + installationCost;
-    const annualEnergyCost = powerKw * hoursPerDay * 365 * energyCostPerKwh;
+    const annualEnergyCost = powerKw * hoursPerDay * daysPerYear * energyCostPerKwh;
     const annualMaintenanceCost = capex * (maintenanceRate / 100);
     const opex = annualEnergyCost + annualMaintenanceCost;
 

@@ -47,7 +47,7 @@ Isso evita que, daqui a 6 meses, você (ou o Antigravity) esqueça por que uma e
 Tarifas de energia, dias de operação por ano, fatores de segurança devem ser **parâmetros configuráveis**, nunca valores fixos no meio da lógica.
 
 - Exemplo já corrigido: `cost_per_year` usa `request.energy_cost_per_kwh` (correto).
-- Exemplo pendente: `365` fixo como dias/ano no cálculo de custo anual — não reflete regime de safra (usinas operam ~180-220 dias/ano).
+- Exemplo já corrigido: Custo anual (`cost_per_year`) agora utiliza `request.days_per_year` configurável no frontend e backend, permitindo refletir regimes de safra ou operação intermitente (ex: ~220 dias/ano para usinas).
 
 ## 6. Extrapolação e validação de dados de entrada
 
