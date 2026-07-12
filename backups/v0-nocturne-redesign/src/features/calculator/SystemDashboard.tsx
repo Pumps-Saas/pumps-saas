@@ -4,17 +4,18 @@ import { PipeSegmentManager } from './components/PipeSegmentManager';
 import { PumpCurveEditor } from './components/PumpCurveEditor';
 import { HeadFlowChart } from './components/HeadFlowChart';
 import { NPSHChart } from './components/NPSHChart';
-import { CockpitKPIs, LiveMetricsSidebar, CalculationMemorial, DetailedLosses } from './components/ResultsDisplay';
+import { CockpitKPIs, CalculationMemorial, DetailedLosses } from './components/ResultsDisplay';
 import { FluidManager } from './components/FluidManager';
 import { SystemSchematic } from './components/SystemSchematic';
 import { useSystemStore } from './stores/useSystemStore';
-import { Play, Sparkles, LayoutGrid, FileText, Settings2, Droplets, ArrowRight, Activity, TrendingUp } from 'lucide-react';
+import { Play, Sparkles, LayoutGrid, FileText, Settings2, Droplets, ArrowRight, Activity, Layers, TrendingUp } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { generatePDFReport, ReportData } from './services/pdfGenerator';
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
 import { EconomicDashboard } from './EconomicDashboard';
 import { ProjectManager } from '../projects/ProjectManager';
+import { Zap } from 'lucide-react';
 
 // UI Components for the Nocturne Layout
 const CardHeader = ({ icon: Icon, title, minimized, toggle }: { icon: any, title: string, minimized?: boolean, toggle?: () => void }) => (
@@ -65,6 +66,12 @@ export const SystemDashboard: React.FC = () => {
     const altitude = useSystemStore(state => state.altitude_m);
     const setPressure = useSystemStore(state => state.setPressure);
     const setAltitude = useSystemStore(state => state.setAltitude);
+
+    const efficiencyMotor = useSystemStore(state => state.efficiency_motor);
+    const hoursPerDay = useSystemStore(state => state.hours_per_day);
+    const daysPerYear = useSystemStore(state => state.days_per_year);
+    const energyCost = useSystemStore(state => state.energy_cost_per_kwh);
+    const setEnergyConfig = useSystemStore(state => state.setEnergyConfig);
 
     const pumpCurve = useSystemStore(state => state.pump_curve);
     const pumpBaseRpm = useSystemStore(state => state.pump_base_rpm);
@@ -421,6 +428,40 @@ export const SystemDashboard: React.FC = () => {
                             )}
                         </div>
 
+                        {/* Seção 4: Curva e Especificação da Bomba */}
+                        <div className="card border border-[var(--color-divider)] p-0 overflow-hidden">
+                            <CardHeader icon={Layers} title={uiLanguage === 'pt' ? "Curva Hidráulica da Bomba" : "Pump Curve Specification"} minimized={minimized['pump']} toggle={() => toggleSection('pump')} />
+                            {!minimized['pump'] && (
+                                <div className="p-4">
+                                    <PumpCurveEditor />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Seção 5: Parâmetros de Energia e Custo */}
+                        <div className="card border border-[var(--color-divider)] p-0 overflow-hidden">
+                            <CardHeader icon={Zap} title={uiLanguage === 'pt' ? "Configuração de Operação & Energia" : "Energy & Cost Configuration"} minimized={minimized['energy']} toggle={() => toggleSection('energy')} />
+                            {!minimized['energy'] && (
+                                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="field">
+                                        <label>{uiLanguage === 'pt' ? 'Eficiência Motor (%)' : 'Motor Eff. (%)'}</label>
+                                        <Input type="number" step="0.1" value={efficiencyMotor * 100} onChange={e => setEnergyConfig('efficiency_motor', Number(e.target.value) / 100)} className="input" />
+                                    </div>
+                                    <div className="field">
+                                        <label>{uiLanguage === 'pt' ? 'Horas / Dia' : 'Hours/Day'}</label>
+                                        <Input type="number" value={hoursPerDay} onChange={e => setEnergyConfig('hours_per_day', Number(e.target.value))} className="input" />
+                                    </div>
+                                    <div className="field">
+                                        <label>{uiLanguage === 'pt' ? 'Dias / Ano' : 'Days/Year'}</label>
+                                        <Input type="number" value={daysPerYear} onChange={e => setEnergyConfig('days_per_year', Number(e.target.value))} className="input" />
+                                    </div>
+                                    <div className="field">
+                                        <label>{uiLanguage === 'pt' ? 'Tarifa (R$/kWh)' : 'Cost (R$/kWh)'}</label>
+                                        <Input type="number" step="0.01" value={energyCost} onChange={e => setEnergyConfig('energy_cost_per_kwh', Number(e.target.value))} className="input" />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* DIREITA: Botoeira Principal, Destaques em Tempo Real & Diagrama Sticky */}
@@ -453,19 +494,30 @@ export const SystemDashboard: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Diagrama 2D Dinâmico do Sistema (Print 1) */}
+                        {/* KPIs em tempo real */}
+                        <CockpitKPIs result={result} isCalculating={isCalculating} error={error} />
+
+                        {/* Diagrama 3D / Isometric */}
                         <div className="card border border-[var(--color-divider)] p-4">
                             <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-2.5 mb-3">
                                 <span className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                                    <LayoutGrid className="w-4 h-4 text-[#9184d9]" /> Diagrama do Sistema
+                                    <LayoutGrid className="w-4 h-4 text-[#9184d9]" /> Visualização Esquemática do Sistema (Ao Vivo)
                                 </span>
-                                <span className="tag tag-accent text-[10px]">Dinâmico</span>
+                                {result && <span className="tag tag-accent text-[10px]">Interativo</span>}
                             </div>
-                            <SystemSchematic result={result} />
+                            <div className="w-full h-[360px] bg-[var(--color-bg)]/40 rounded-lg p-2 relative overflow-x-auto overflow-y-hidden border border-[var(--color-divider)]">
+                                {result ? (
+                                    <div className="w-[700px] sm:w-[850px] h-full mx-auto flex-shrink-0">
+                                        <SystemSchematic result={result} />
+                                    </div>
+                                ) : (
+                                    <div className="h-full w-full flex flex-col items-center justify-center text-muted gap-2 text-xs text-center">
+                                        <LayoutGrid className="w-10 h-10 opacity-20" />
+                                        <span>Clique em <strong>Calcular Ponto</strong> acima para gerar a representação hidráulica</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-
-                        {/* 4 Métricas Live + Nota (Print 1) */}
-                        <LiveMetricsSidebar result={result} />
 
                     </div>
                 </div>
@@ -612,7 +664,7 @@ export const SystemDashboard: React.FC = () => {
              */}
             <div style={{ position: 'fixed', left: '-9999px', top: 0, width: '1200px', backgroundColor: 'white', zIndex: -9999, opacity: 0, pointerEvents: 'none' }}>
                 <div id="pdf-diagram" style={{ width: '1200px', padding: '20px' }}>
-                    {result && <SystemSchematic result={result} printMode={true} />}
+                    {result && <SystemSchematic result={result} printMode={false} />}
                 </div>
                 <div id="pdf-chart-system" style={{ width: '1200px', height: '900px' }}>
                     <HeadFlowChart data={chartData} operatingPoint={result} printMode={true} />

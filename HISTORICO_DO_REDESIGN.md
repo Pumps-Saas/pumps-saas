@@ -73,3 +73,19 @@ No dia **12 de julho de 2026**, foi realizado o redesign visual completo do fron
 - **Cópia Física Backup**: Criado diretório de backup em `backups/v0-nocturne-redesign/src/` com todos os componentes da versão inicial do redesign (`v0`).
 
 Isso permite que alterações futuras possam ser comparadas lado a lado ou revertidas instantaneamente para este ponto exato.
+
+---
+
+## 6. Checkpoint v1: Refinamento Dinâmico 2D, Cards de KPIs e Centralização LCC (12/07/2026)
+
+Após revisão do checkpoint `v0`, foram implementadas melhorias ergonômicas e de visualização do sistema:
+- **Cards de KPIs Ao Vivo**: Substituição das velocidades nos cards do topo por `AMT (mca)`, `NPSH Disp. (m)`, `Vazão (m³/h)` e `Potência (kW)`, mantendo as velocidades visíveis nas linhas do diagrama.
+- **Diagrama 2D Dinâmico e Completo (`SystemSchematic.tsx`)**: Representação inteligente de todos os trechos da rede, incluindo resumo de sucção, recalque antes da junção, badge/caixa de bifurcação (`X Ramais` em paralelo na subida vertical) e recalque após a junção.
+- **Área de Cálculo (`Novo Cálculo`) Limpa**: Remoção dos painéis de *Curva Hidráulica da Bomba* (já existente na aba exclusiva *Bombas*) e *Configuração de Operação & Energia* da aba principal.
+- **Centralização do OPEX na aba Finanças**: O painel de *Configuração de Operação & Energia* (Eficiência, Tarifa, Horas/Dia, Dias/Ano) foi migrado diretamente para a tela de Finanças (`EconomicDashboard.tsx`).
+
+### Como o Checkpoint `v1` foi Salvo:
+- **Git Commit**: Commit `203b69c` (`feat(ui): Nocturne UI Redesign v1 (Mescla Consciente checkpoint)`).
+- **Git Branch**: `v1-nocturne-redesign`
+- **Git Tag**: `v1`
+- **Cópia Física Backup**: Criado diretório de backup em `backups/v1-nocturne-redesign/` contendo todos os componentes do `calculator` revisados.

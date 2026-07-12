@@ -1,0 +1,14 @@
+@import "./styles/nocturne.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply antialiased;
+        background-color: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--font-body);
+    }
+}

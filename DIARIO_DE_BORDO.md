@@ -5,6 +5,20 @@
 
 ---
 
+## 12/07/2026 (Parte 3) — Checkpoint `v1`: Refinamento Ergonômico de Interface (Nocturne) & Diagrama Dinâmico 2D
+
+### 🎯 O que foi realizado
+- **Cards de KPIs no Topo (`ResultsDisplay.tsx`)**: Atualizados para exibir `AMT (mca)`, `NPSH Disp. (m)`, `Vazão (m³/h)` e `Potência (kW)`, enquanto as velocidades de sucção e recalque passam a ser lidas de forma nativa e contextual no próprio diagrama da rede.
+- **Diagrama 2D Hidrodinâmico Integral (`SystemSchematic.tsx`)**: O diagrama agora reflete dinamicamente **todos os trechos e ramais** cadastrados pelo engenheiro: trechos de sucção, recalque antes da junção, badge interativo de bifurcação (`X Ramais em Paralelo`) na subida vertical e recalque final após junção.
+- **Saneamento e Foco Ergonômico na Aba `Novo Cálculo`**: Remoção de inputs redundantes (*Curva Hidráulica* e *Operação & Energia*) da tela principal de cálculo. A configuração da Bomba permanece na aba `Bombas` (`pumps`) e toda a parametrização de OPEX/Energia (`days_per_year`, `hours_per_day`, `efficiency_motor`, tarifa) foi centralizada na aba `Finanças` (`EconomicDashboard.tsx`).
+- **Registro do Checkpoint `v1`**: Salvo no Git (`commit 203b69c`, branch `v1-nocturne-redesign`, tag `v1`) e copiado em `backups/v1-nocturne-redesign/` para garantia total de reversibilidade e comparação de histórico.
+
+### 💼 Impacto no Negócio
+- **Clareza Operacional & Redução de Carga Cognitiva**: O engenheiro cliente agora tem uma tela de cálculo limpa, exclusiva para a modelagem física da tubulação, evitando erros de digitação cruzada ou informações espalhadas.
+- **Rastreabilidade Visual Absoluta**: A visualização de ramais em paralelo e trechos segmentados no diagrama 2D transmite confiança e precisão no diagnóstico de velocidades em cada trecho da rede.
+
+---
+
 ## 12/07/2026 (Parte 2) — Flexibilização do Regime de Safra no Motor de Cálculo LCC (`days_per_year`)
 
 ### 🎯 O que foi realizado

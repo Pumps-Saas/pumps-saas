@@ -1,7 +1,6 @@
 import React from 'react';
 import { OperatingPointResult } from '@/types/engineering';
-import { Gauge, Zap, TrendingUp, AlertTriangle, Droplets, CheckCircle2, ShieldAlert, Info } from 'lucide-react';
-import { useSystemStore } from '../stores/useSystemStore';
+import { Gauge, Zap, TrendingUp, AlertTriangle, Droplets, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 interface ResultsDisplayProps {
     result: OperatingPointResult | null;
@@ -19,7 +18,7 @@ interface MetricProps {
 }
 
 const Metric: React.FC<MetricProps> = ({ label, value, unit, icon, alert }) => (
-    <div className={`flex items-center p-3.5 rounded-xl border min-w-0 transition-all ${
+    <div className={`flex items-start p-4 rounded-xl border min-w-0 transition-all ${
         alert 
             ? 'bg-[#e06b6b]/10 border-[#e06b6b]/40 text-[#e06b6b]' 
             : 'bg-[var(--color-surface)] border-[var(--color-divider)] shadow-sm text-[var(--color-text)]'
@@ -27,18 +26,17 @@ const Metric: React.FC<MetricProps> = ({ label, value, unit, icon, alert }) => (
         <div className={`p-2.5 rounded-lg mr-3 shrink-0 ${
             alert ? 'bg-[#e06b6b]/20 text-[#e06b6b]' : 'bg-[#9184d9]/15 text-[#9184d9]'
         }`}>
-            {icon || <TrendingUp size={18} />}
+            {icon || <TrendingUp size={20} />}
         </div>
-        <div className="min-w-0 flex-1 overflow-hidden">
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5 text-muted truncate" title={label}>{label}</p>
-            <p className="text-lg font-bold whitespace-nowrap text-white font-mono tracking-tight overflow-hidden text-ellipsis" title={String(value)}>
-                {value} <span className="text-xs font-normal text-muted ml-0.5">{unit}</span>
+        <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wider mb-1 text-muted truncate" title={label}>{label}</p>
+            <p className="text-xl font-bold break-words whitespace-normal leading-tight text-white" style={{ wordBreak: 'break-word' }} title={String(value)}>
+                {value} <span className="text-sm font-normal text-muted">{unit}</span>
             </p>
         </div>
     </div>
 );
 
-// Cockpit com os 6 KPIs fundamentais em grade limpa sem quebra de texto
 export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculating, error }) => {
     if (error) {
         return (
@@ -64,32 +62,32 @@ export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculati
     let npshMarginValue = 0;
     let npshMarginText = '-';
     let npshAlertStatus: 'safe' | 'warning' | 'danger' = 'safe';
-    let npshIcon = <CheckCircle2 size={18} className="text-[#5fd08a]" />;
+    let npshIcon = <CheckCircle2 size={20} className="text-[#5fd08a]" />;
 
     if (result && npshr > 0) {
         npshMarginValue = (npsha - npshr) / npshr;
-        npshMarginText = `${(npshMarginValue * 100).toFixed(1)}%`;
+        npshMarginText = `${(npshMarginValue * 100).toFixed(1)} %`;
 
         if (npshMarginValue < 0) {
             npshAlertStatus = 'danger';
-            npshIcon = <ShieldAlert size={18} className="text-[#e06b6b]" />;
+            npshIcon = <ShieldAlert size={20} className="text-[#e06b6b]" />;
         } else if (npshMarginValue < 0.20) {
             npshAlertStatus = 'warning';
-            npshIcon = <AlertTriangle size={18} className="text-[#e0a94b]" />;
+            npshIcon = <AlertTriangle size={20} className="text-[#e0a94b]" />;
         }
     } else if (result && npsha > 0) {
-        npshMarginText = `> 100%`;
+        npshMarginText = `> 100% (No NPSHr)`;
     }
 
     return (
         <div className="space-y-4 animate-fade-in">
-            <div className={`grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3.5 ${isCalculating ? 'opacity-50 pointer-events-none' : ''}`}>
-                <Metric label="Vazão de Projeto" value={flow} unit="m³/h" icon={<Gauge size={18} />} />
-                <Metric label="Alt. Manométrica" value={head} unit="mca" icon={<TrendingUp size={18} />} />
+            <div className={`grid grid-cols-2 lg:grid-cols-3 gap-3.5 ${isCalculating ? 'opacity-50 pointer-events-none' : ''}`}>
+                <Metric label="Vazão de Operação" value={flow} unit="m³/h" icon={<Gauge size={20} />} />
+                <Metric label="Altura Manométrica (AMT)" value={head} unit="mca" icon={<TrendingUp size={20} />} />
                 <Metric label="Margem NPSH" value={npshMarginText} unit="" icon={npshIcon} alert={npshAlertStatus === 'danger'} />
-                <Metric label="Rendimento" value={eff} unit="%" icon={<Zap size={18} />} />
-                <Metric label="Potência / Consumo" value={power} unit="kW" icon={<Zap size={18} />} />
-                <Metric label="Custo Anual Previsto" value={cost} unit="" icon={<span className="font-bold text-base text-[#5fd08a]">$</span>} />
+                <Metric label="Rendimento da Bomba" value={eff} unit="%" icon={<Zap size={20} />} />
+                <Metric label="Potência Consumida" value={power} unit="kW" icon={<Zap size={20} />} />
+                <Metric label="Custo Anual Estimado" value={cost} unit="" icon={<span className="font-bold text-lg text-[#5fd08a]">$</span>} />
             </div>
 
             {/* Alerts Nocturne */}
@@ -129,85 +127,6 @@ export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculati
                     </div>
                 </div>
             )}
-        </div>
-    );
-};
-
-// Componente idêntico ao Print 1 (protótipo Bombeo.dc.html) para a barra lateral do Novo Cálculo
-export const LiveMetricsSidebar: React.FC<{ result: OperatingPointResult | null }> = ({ result }) => {
-    const fallbackFlow = useSystemStore(state => state.pump_curve?.[0]?.flow || 50);
-    const staticHead = useSystemStore(state => state.static_head);
-    const suctionSections = useSystemStore(state => state.suction_sections);
-    const dischargeBefore = useSystemStore(state => state.discharge_sections_before);
-    const dischargeParallel = useSystemStore(state => state.discharge_parallel_sections);
-    const dischargeAfter = useSystemStore(state => state.discharge_sections_after);
-
-    const mainSuction = suctionSections[0] || { diameter_mm: 100 };
-    const mainDischarge = dischargeBefore[0] || dischargeParallel[0] || dischargeAfter[0] || { diameter_mm: 80 };
-
-    let vSuc = 0;
-    let vDis = 0;
-
-    if (result && result.details) {
-        const sucDetail = result.details.find(d => d.section_id === mainSuction.id || d.section_id.includes('suction'));
-        if (sucDetail && sucDetail.velocity_m_s) vSuc = sucDetail.velocity_m_s;
-        const disDetail = result.details.find(d => d.section_id === mainDischarge.id || d.section_id.includes('discharge'));
-        if (disDetail && disDetail.velocity_m_s) vDis = disDetail.velocity_m_s;
-    }
-
-    if (vSuc === 0 && mainSuction.diameter_mm > 0) {
-        const areaSuc = Math.PI * Math.pow(mainSuction.diameter_mm / 1000 / 2, 2);
-        vSuc = (fallbackFlow / 3600) / areaSuc;
-    }
-    if (vDis === 0 && mainDischarge.diameter_mm > 0) {
-        const areaDis = Math.PI * Math.pow(mainDischarge.diameter_mm / 1000 / 2, 2);
-        vDis = (fallbackFlow / 3600) / areaDis;
-    }
-
-    const amt = result?.head_op ?? staticHead;
-    const npshd = result?.npsh_available ?? 6.7;
-    const vazao = result?.flow_op ?? fallbackFlow;
-    // Estimativa de potência caso ainda não calculado: P(kW) = (rho * g * Q * H) / (3600 * 1000 * eta) ~ Q * H / 267
-    const potencia = result?.power_kw ?? ((vazao * amt * 9.81) / (3600 * 0.70));
-
-    const f = (n: number, dec = 1) => isNaN(n) ? '0,0' : n.toLocaleString('pt-BR', { minimumFractionDigits: dec, maximumFractionDigits: dec });
-
-    return (
-        <div className="mt-4">
-            <div className="grid grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-sm">
-                    <div className="text-[10px] uppercase tracking-wider text-muted font-bold">AMT</div>
-                    <div className="text-xl font-bold text-white font-mono mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                        {f(amt, 1)} <span className="text-xs text-muted font-normal">mca</span>
-                    </div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-sm">
-                    <div className="text-[10px] uppercase tracking-wider text-muted font-bold">NPSH Disp.</div>
-                    <div className="text-xl font-bold text-[#5fd08a] font-mono mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                        {f(npshd, 1)} <span className="text-xs text-muted font-normal">m</span>
-                    </div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-sm">
-                    <div className="text-[10px] uppercase tracking-wider text-muted font-bold">Vazão</div>
-                    <div className="text-xl font-bold text-[#9184d9] font-mono mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                        {f(vazao, 1)} <span className="text-xs text-muted font-normal">m³/h</span>
-                    </div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-sm">
-                    <div className="text-[10px] uppercase tracking-wider text-muted font-bold">Potência</div>
-                    <div className="text-xl font-bold text-white font-mono mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                        {f(potencia, 2)} <span className="text-xs text-muted font-normal">kW</span>
-                    </div>
-                </div>
-            </div>
-
-            <p className="text-xs text-muted mt-3.5 flex gap-1.5 items-start leading-relaxed">
-                <Info size={14} className="shrink-0 mt-0.5 text-[#9184d9]" />
-                <span>Valores atualizam em tempo real conforme você edita os dados. Velocidades em cada trecho são exibidas diretamente no Diagrama do Sistema.</span>
-            </p>
         </div>
     );
 };
@@ -271,6 +190,7 @@ export const DetailedLosses: React.FC<{ result: OperatingPointResult | null }> =
                             {result.details.map((d, i) => {
                                 const v = d.velocity_m_s;
                                 const isSuction = d.section_id?.toLowerCase().includes('suc') || i === 0;
+                                // Validação visual da velocidade (Verde/Âmbar/Vermelho) conforme engenharia
                                 let vBadge = <span className="text-[#5fd08a] font-semibold">{v.toFixed(2)} m/s</span>;
                                 if (isSuction) {
                                     if (v > 2.0 || v < 0.5) vBadge = <span className="text-[#e0a94b] font-bold">{v.toFixed(2)} m/s ⚠</span>;

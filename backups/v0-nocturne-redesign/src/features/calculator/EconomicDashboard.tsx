@@ -9,11 +9,9 @@ export const EconomicDashboard: React.FC = () => {
     const efficiencyOp = result?.efficiency_op || 0;
     
     // Configurações do Store de Energia
-    const efficiencyMotor = useSystemStore(state => state.efficiency_motor);
     const energyCostPerKwh = useSystemStore(state => state.energy_cost_per_kwh);
     const hoursPerDay = useSystemStore(state => state.hours_per_day);
     const daysPerYear = useSystemStore(state => state.days_per_year);
-    const setEnergyConfig = useSystemStore(state => state.setEnergyConfig);
 
     // Estados locais de CAPEX e Manutenção
     const pumpCost = useSystemStore(state => state.pump_cost);
@@ -94,31 +92,6 @@ export const EconomicDashboard: React.FC = () => {
                         <div className="mt-6 pt-3.5 border-t border-[var(--color-divider)] flex justify-between items-end">
                             <span className="text-xs font-medium text-muted">Total CAPEX</span>
                             <span className="text-lg font-bold text-white">R$ {capex.toLocaleString('pt-BR')}</span>
-                        </div>
-                    </div>
-
-                    {/* Operação & Energia Panel (Exclusivo Finanças) */}
-                    <div className="card border border-[var(--color-divider)] p-5">
-                        <h3 className="text-xs font-bold text-[#e0a94b] uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-[var(--color-divider)] pb-2.5">
-                            <Zap className="w-4 h-4 text-[#e0a94b]" /> Configuração de Operação & Energia
-                        </h3>
-                        <div className="grid grid-cols-2 gap-3.5">
-                            <div className="field">
-                                <label>Eficiência Motor (%)</label>
-                                <input type="number" step="0.1" value={efficiencyMotor * 100} onChange={e => setEnergyConfig('efficiency_motor', Number(e.target.value) / 100)} className="input" />
-                            </div>
-                            <div className="field">
-                                <label>Tarifa (R$/kWh)</label>
-                                <input type="number" step="0.01" value={energyCostPerKwh} onChange={e => setEnergyConfig('energy_cost_per_kwh', Number(e.target.value))} className="input" />
-                            </div>
-                            <div className="field">
-                                <label>Horas / Dia</label>
-                                <input type="number" value={hoursPerDay} onChange={e => setEnergyConfig('hours_per_day', Number(e.target.value))} className="input" />
-                            </div>
-                            <div className="field">
-                                <label>Dias / Ano</label>
-                                <input type="number" value={daysPerYear} onChange={e => setEnergyConfig('days_per_year', Number(e.target.value))} className="input" />
-                            </div>
                         </div>
                     </div>
 
