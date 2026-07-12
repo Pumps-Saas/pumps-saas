@@ -59,3 +59,17 @@ Como a sua última pergunta naquela conversa foi *"Como posso acessar a atualiza
 Para conferir o resultado e oficializar:
 1. Abra um terminal e rode `npm run dev` dentro de `frontend/` para ver as novas telas e o 3D Isométrico ao vivo.
 2. Se estiver aprovado, podemos rodar um `git commit` para salvar e proteger essas melhorias no histórico do seu Git.
+
+---
+
+## 5. Checkpoint v0: Redesign Completo Nocturne (Mescla Consciente - 12/07/2026)
+
+No dia **12 de julho de 2026**, foi realizado o redesign visual completo do front-end aplicando o design system **Nocturne** (`nocturne-tokens.css` e `nocturne-styles.css`), seguindo estritamente a diretriz de **Mescla Consciente** (proibição de alteração em regras de negócio, fórmulas, schema de banco e geração de PDF).
+
+### Como o Checkpoint `v0` foi Salvo:
+- **Git Commit**: Commit `a7709b5` (`feat(ui): Nocturne UI Redesign v0 (Mescla Consciente checkpoint)`).
+- **Git Branch**: `v0-nocturne-redesign`
+- **Git Tag**: `v0`
+- **Cópia Física Backup**: Criado diretório de backup em `backups/v0-nocturne-redesign/src/` com todos os componentes da versão inicial do redesign (`v0`).
+
+Isso permite que alterações futuras possam ser comparadas lado a lado ou revertidas instantaneamente para este ponto exato.
