@@ -5,6 +5,20 @@
 
 ---
 
+## 12/07/2026 (Parte 4) — Checkpoint `v2`: P&ID Autoexplicativo com Diâmetros Nominais Padronizados & Desnível Estático Puro (`ΔZ`)
+
+### 🎯 O que foi realizado
+- **Tradução Nativa de Diâmetros (`SystemSchematic.tsx`)**: O diagrama 2D foi integrado diretamente à tabela padronizada de diâmetros do banco de referência (`useReferenceStore.getState().diameters`) via função `getNominalLabel`. Em vez de exibir milímetros puros na legenda (ex: `DN102`), os cards e legendas de redução exibem exatamente as polegadas ou diâmetro nominal escolhido pelo engenheiro no formulário (ex: `DN 4" · 10m` ou `R3: DN 2"` ou `Redução DN 6"→DN 4"`).
+- **Eliminação da Divisão Fictícia de Altura Estática (`hs` / `hd`)**: Remoção da divisão arbitrária de 20%/80% (`hs` / `hd`) que estimava valores não informados pelo usuário na sucção e recalque. O diagrama agora desenha uma única cota clara no recalque exibindo exatamente o **Desnível Estático (`ΔZ`)** inserido no campo de entrada (`static_head`).
+- **Desenho Físico de Cones de Redução e Bifurcações**: A renderização SVG segmenta trechos em série exibindo cones na cor âmbar na transição de diâmetro e desenha o coletor e ramais paralelos verticais independentes.
+- **Registro do Checkpoint `v2`**: Salvo no Git (branch `v2-nocturne-redesign`, tag `v2`) e copiado em `backups/v2-nocturne-redesign/` para garantir segurança e ponto de partida exato para a próxima rodada de evoluções.
+
+### 💼 Impacto no Negócio
+- **Consistência Cognitiva Absoluta**: As legendas no diagrama P&ID agora são idênticas às opções dos menus suspensos de entrada de dados, eliminando qualquer dúvida interpretativa durante dimensionamentos rápidos.
+- **Fidelidade Hidráulica Sem Suposições**: A remoção de `hs` / `hd` artificiais reforça a confiabilidade da plataforma como ferramenta técnica precisa, exibindo estritamente os parâmetros que o engenheiro definiu no modelo.
+
+---
+
 ## 12/07/2026 (Parte 3) — Checkpoint `v1`: Refinamento Ergonômico de Interface (Nocturne) & Diagrama Dinâmico 2D
 
 ### 🎯 O que foi realizado

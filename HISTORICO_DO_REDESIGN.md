@@ -89,3 +89,17 @@ Após revisão do checkpoint `v0`, foram implementadas melhorias ergonômicas e 
 - **Git Branch**: `v1-nocturne-redesign`
 - **Git Tag**: `v1`
 - **Cópia Física Backup**: Criado diretório de backup em `backups/v1-nocturne-redesign/` contendo todos os componentes do `calculator` revisados.
+
+---
+
+## 7. Checkpoint v2: P&ID Autoexplicativo com Diâmetros Nominais e Desnível ΔZ Puro (12/07/2026)
+
+Em continuação à rodada de melhorias visuais (`v1`), foram realizados ajustes finos no diagrama dinâmico 2D (`SystemSchematic.tsx`):
+- **Compatibilidade Nominal Estrita nas Caixinhas (`getNominalLabel`)**: O diagrama agora consulta o dicionário de diâmetros do banco (`useReferenceStore.getState().diameters`) para traduzir o diâmetro em milímetros (ex: `102.3 mm` ou `52.5 mm`) diretamente para a notação nominal exata exibida nas listas suspensas de entrada (`DN 4" · 10m` e `DN 2"`), bem como nas indicações dos cones de transição (ex: `Redução DN 6"→DN 4"`).
+- **Remoção da Suposição `hs` / `hd`**: Foi eliminada a fórmula interna (`staticHead * 0.2`) que criava artificialmente uma altura estática de sucção (`hs = 2,0m`) e recalque (`hd = 8,0m`) sem que o usuário houvesse digitado tais valores separadamente. Em seu lugar, a lateral direita do diagrama exibe com 100% de fidelidade a cota **`ΔZ (Desnível): X m`** (onde `X` é o valor informado no campo `static_head`).
+
+### Como o Checkpoint `v2` foi Salvo:
+- **Git Commit**: Commit na branch principal e criação de branch dedicada `v2-nocturne-redesign`.
+- **Git Tag**: `v2`
+- **Cópia Física Backup**: Criado diretório de backup em `backups/v2-nocturne-redesign/` contendo a versão consolidada dos componentes modificados do `calculator`.
+
