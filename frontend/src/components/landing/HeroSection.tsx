@@ -1,4 +1,3 @@
-import React from 'react';
 import { Activity, Zap, Shield } from 'lucide-react';
 
 export const HeroSection = () => {

@@ -18,3 +18,23 @@ coverage/
 .idea/
 *.log
 Pumps_Backup_*/
+
+# Databases & Snapshots
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Temporary & Debug / Scratch scripts (Rule #7)
+debug_*.py
+tmp_*.py
+verify_*.py
+open_browser.py
+*_output.txt
+*_clean.txt
+*.png
+!frontend/src/assets/*.png
+Pumps_SaaS_SourceCode_*.zip
+
+# TS Build Info
+*.tsbuildinfo

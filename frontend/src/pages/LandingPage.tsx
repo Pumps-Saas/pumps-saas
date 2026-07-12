@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useToast } from '../components/ui/Toast';
 import { HeroSection } from '../components/landing/HeroSection';

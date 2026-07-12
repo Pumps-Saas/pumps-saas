@@ -51,9 +51,8 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
             const rx = r * COS_A;
             const ry = r * SIN_A;
 
-            const cBase = color; // e.g. '#60a5fa'
             const cTop = '#93c5fd';
-            const cWall = '#3b82f6';
+            const cWall = color;
 
             svgElements.push(
                 <g key={key}>

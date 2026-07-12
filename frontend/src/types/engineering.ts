@@ -60,6 +60,11 @@ export interface SystemState {
     pump_base_rpm: number;
     pump_current_rpm: number;
     parallel_pumps: number;
+
+    // Economic fields (LCC Analysis)
+    pump_cost: number;
+    installation_cost: number;
+    maintenance_rate: number;
 }
 
 export interface HeadLossResult {

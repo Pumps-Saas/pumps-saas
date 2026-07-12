@@ -1,10 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import React, { useMemo } from 'react';
 import { Input } from '@/components/ui/Input';
 import { useSystemStore } from './stores/useSystemStore';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { TrendingUp, DollarSign, Activity, Wrench, Zap, Calculator } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { TrendingUp, DollarSign, Wrench, Zap, Calculator } from 'lucide-react';
 
 export const EconomicDashboard: React.FC = () => {
     const result = useSystemStore(state => state.operatingPoint);
