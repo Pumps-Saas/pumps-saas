@@ -1,6 +1,5 @@
 import React from 'react';
 import { OperatingPointResult } from '@/types/engineering';
-import { Card } from '@/components/ui/Card';
 import { Gauge, Zap, TrendingUp, AlertTriangle, Droplets, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 interface ResultsDisplayProps {
@@ -18,15 +17,21 @@ interface MetricProps {
     alert?: boolean;
 }
 
-const Metric: React.FC<MetricProps> = ({ label, value, unit, icon, color = "bg-blue-50 text-blue-600", alert }) => (
-    <div className={`flex items-start p-4 rounded-xl border min-w-0 ${alert ? 'bg-red-50 border-red-100' : 'bg-white border-slate-100 shadow-sm'}`}>
-        <div className={`p-2 rounded-lg mr-3 shrink-0 ${alert ? 'bg-red-100 text-red-600' : color}`}>
+const Metric: React.FC<MetricProps> = ({ label, value, unit, icon, alert }) => (
+    <div className={`flex items-start p-4 rounded-xl border min-w-0 transition-all ${
+        alert 
+            ? 'bg-[#e06b6b]/10 border-[#e06b6b]/40 text-[#e06b6b]' 
+            : 'bg-[var(--color-surface)] border-[var(--color-divider)] shadow-sm text-[var(--color-text)]'
+    }`}>
+        <div className={`p-2.5 rounded-lg mr-3 shrink-0 ${
+            alert ? 'bg-[#e06b6b]/20 text-[#e06b6b]' : 'bg-[#9184d9]/15 text-[#9184d9]'
+        }`}>
             {icon || <TrendingUp size={20} />}
         </div>
         <div className="min-w-0 flex-1">
-            <p className={`text-xs font-semibold uppercase tracking-wider mb-1 truncate ${alert ? 'text-red-600' : 'text-slate-500'}`} title={label}>{label}</p>
-            <p className={`text-xl font-bold break-words whitespace-normal leading-tight ${alert ? 'text-red-700' : 'text-slate-800'}`} style={{ wordBreak: 'break-word' }} title={String(value)}>
-                {value} <span className="text-sm font-normal text-slate-500">{unit}</span>
+            <p className="text-[11px] font-semibold uppercase tracking-wider mb-1 text-muted truncate" title={label}>{label}</p>
+            <p className="text-xl font-bold break-words whitespace-normal leading-tight text-white" style={{ wordBreak: 'break-word' }} title={String(value)}>
+                {value} <span className="text-sm font-normal text-muted">{unit}</span>
             </p>
         </div>
     </div>
@@ -35,9 +40,9 @@ const Metric: React.FC<MetricProps> = ({ label, value, unit, icon, color = "bg-b
 export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculating, error }) => {
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 flex items-center">
+            <div className="bg-[#e06b6b]/15 border border-[#e06b6b]/40 rounded-xl p-4 text-[#e06b6b] flex items-center">
                 <AlertTriangle className="mr-3 shrink-0" />
-                <span>{error}</span>
+                <span className="font-medium text-sm">{error}</span>
             </div>
         );
     }
@@ -57,8 +62,7 @@ export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculati
     let npshMarginValue = 0;
     let npshMarginText = '-';
     let npshAlertStatus: 'safe' | 'warning' | 'danger' = 'safe';
-    let npshIcon = <CheckCircle2 size={20} />;
-    let npshColor = "bg-emerald-50 text-emerald-600";
+    let npshIcon = <CheckCircle2 size={20} className="text-[#5fd08a]" />;
 
     if (result && npshr > 0) {
         npshMarginValue = (npsha - npshr) / npshr;
@@ -66,12 +70,10 @@ export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculati
 
         if (npshMarginValue < 0) {
             npshAlertStatus = 'danger';
-            npshIcon = <ShieldAlert size={20} />;
-            npshColor = "bg-red-50 text-red-600";
+            npshIcon = <ShieldAlert size={20} className="text-[#e06b6b]" />;
         } else if (npshMarginValue < 0.20) {
             npshAlertStatus = 'warning';
-            npshIcon = <AlertTriangle size={20} />;
-            npshColor = "bg-amber-50 text-amber-600";
+            npshIcon = <AlertTriangle size={20} className="text-[#e0a94b]" />;
         }
     } else if (result && npsha > 0) {
         npshMarginText = `> 100% (No NPSHr)`;
@@ -79,49 +81,49 @@ export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculati
 
     return (
         <div className="space-y-4 animate-fade-in">
-            <div className={`grid grid-cols-2 lg:grid-cols-3 gap-3 ${isCalculating ? 'opacity-50 pointer-events-none' : ''}`}>
-                <Metric label="Flow Rate" value={flow} unit="m³/h" icon={<Gauge size={20} />} color="bg-blue-50 text-blue-600" />
-                <Metric label="Total Dyn. Head" value={head} unit="m" icon={<TrendingUp size={20} />} color="bg-indigo-50 text-indigo-600" />
-                <Metric label="NPSH Margin" value={npshMarginText} unit="" icon={npshIcon} alert={npshAlertStatus === 'danger'} color={npshAlertStatus === 'warning' ? "bg-amber-100 text-amber-700" : npshColor} />
-                <Metric label="Pump Efficiency" value={eff} unit="%" icon={<Zap size={20} />} color="bg-emerald-50 text-emerald-600" />
-                <Metric label="Power Consump." value={power} unit="kW" icon={<Zap size={20} />} color="bg-amber-50 text-amber-600" />
-                <Metric label="Est. Yearly Cost" value={cost} unit="" icon={<span className="font-bold text-lg">$</span>} color="bg-green-50 text-green-600" />
+            <div className={`grid grid-cols-2 lg:grid-cols-3 gap-3.5 ${isCalculating ? 'opacity-50 pointer-events-none' : ''}`}>
+                <Metric label="Vazão de Operação" value={flow} unit="m³/h" icon={<Gauge size={20} />} />
+                <Metric label="Altura Manométrica (AMT)" value={head} unit="mca" icon={<TrendingUp size={20} />} />
+                <Metric label="Margem NPSH" value={npshMarginText} unit="" icon={npshIcon} alert={npshAlertStatus === 'danger'} />
+                <Metric label="Rendimento da Bomba" value={eff} unit="%" icon={<Zap size={20} />} />
+                <Metric label="Potência Consumida" value={power} unit="kW" icon={<Zap size={20} />} />
+                <Metric label="Custo Anual Estimado" value={cost} unit="" icon={<span className="font-bold text-lg text-[#5fd08a]">$</span>} />
             </div>
 
-            {/* Alerts */}
+            {/* Alerts Nocturne */}
             {(result?.natural_flow_m3h ?? 0) > 0 && (
-                <div className="bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-md flex items-start">
-                    <Droplets className="h-5 w-5 text-emerald-500 flex-shrink-0 mr-3 mt-0.5" />
+                <div className="bg-[#5fd08a]/15 border-l-4 border-[#5fd08a] p-3.5 rounded-r-lg flex items-start text-white">
+                    <Droplets className="h-5 w-5 text-[#5fd08a] flex-shrink-0 mr-3 mt-0.5" />
                     <div>
-                        <h3 className="text-sm font-bold text-emerald-800">Natural Flow Available</h3>
-                        <p className="mt-1 text-xs text-emerald-700">System flows at <strong>{result!.natural_flow_m3h!.toFixed(1)} m³/h</strong> without a pump.</p>
+                        <h3 className="text-sm font-bold text-[#5fd08a]">Escoamento Natural Disponível</h3>
+                        <p className="mt-1 text-xs text-muted">O sistema escoa a <strong>{result!.natural_flow_m3h!.toFixed(1)} m³/h</strong> por gravidade sem necessidade de bomba.</p>
                     </div>
                 </div>
             )}
             {result?.is_extrapolated && (
-                <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-md flex items-start">
-                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mr-3 mt-0.5" />
+                <div className="bg-[#e0a94b]/15 border-l-4 border-[#e0a94b] p-3.5 rounded-r-lg flex items-start text-white">
+                    <AlertTriangle className="h-5 w-5 text-[#e0a94b] flex-shrink-0 mr-3 mt-0.5" />
                     <div>
-                        <h3 className="text-sm font-bold text-amber-800">Ponto de Operação Estimado</h3>
-                        <p className="mt-1 text-xs text-amber-700">Extrapola a curva fornecida. Resultados podem sofrer imprecisões.</p>
+                        <h3 className="text-sm font-bold text-[#e0a94b]">Ponto de Operação Estimado</h3>
+                        <p className="mt-1 text-xs text-muted">Extrapola a curva fornecida. Resultados podem sofrer imprecisões.</p>
                     </div>
                 </div>
             )}
             {result?.cavitation_risk && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-md flex items-start">
-                    <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mr-3 mt-0.5" />
+                <div className="bg-[#e06b6b]/15 border-l-4 border-[#e06b6b] p-3.5 rounded-r-lg flex items-start text-white">
+                    <AlertTriangle className="h-5 w-5 text-[#e06b6b] flex-shrink-0 mr-3 mt-0.5" />
                     <div>
-                        <h3 className="text-sm font-bold text-red-800">Cavitation Risk Detected</h3>
-                        <p className="mt-1 text-xs text-red-700">NPSH Available ({npsha.toFixed(2)}m) &lt; NPSH Required ({npshr.toFixed(2)}m).</p>
+                        <h3 className="text-sm font-bold text-[#e06b6b]">Risco Crítico de Cavitação Detectado</h3>
+                        <p className="mt-1 text-xs text-muted">NPSH Disponível ({npsha.toFixed(2)}m) &lt; NPSH Requerido ({npshr.toFixed(2)}m).</p>
                     </div>
                 </div>
             )}
-            {npshAlertStatus === 'warning' && (
-                <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-md flex items-start">
-                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mr-3 mt-0.5" />
+            {npshAlertStatus === 'warning' && !result?.cavitation_risk && (
+                <div className="bg-[#e0a94b]/15 border-l-4 border-[#e0a94b] p-3.5 rounded-r-lg flex items-start text-white">
+                    <AlertTriangle className="h-5 w-5 text-[#e0a94b] flex-shrink-0 mr-3 mt-0.5" />
                     <div>
-                        <h3 className="text-sm font-bold text-amber-800">Low NPSH Margin</h3>
-                        <p className="mt-1 text-xs text-amber-700">Margin is below the recommended 20% safety factor.</p>
+                        <h3 className="text-sm font-bold text-[#e0a94b]">Margem de NPSH Baixa</h3>
+                        <p className="mt-1 text-xs text-muted">A margem está abaixo do fator de segurança recomendado (20%).</p>
                     </div>
                 </div>
             )}
@@ -132,70 +134,91 @@ export const CockpitKPIs: React.FC<ResultsDisplayProps> = ({ result, isCalculati
 export const CalculationMemorial: React.FC<{ result: OperatingPointResult | null }> = ({ result }) => {
     if (!result?.head_breakdown) return null;
     return (
-        <Card title="Calculation Memorial (Head Balance)">
-            <div className="text-sm text-slate-600 space-y-2 mb-4">
-                <p>Total Dynamic Head required from the pump is calculated as:</p>
-                <p className="font-mono bg-slate-100 p-2 rounded text-center">
-                    H<sub>pump</sub> = ΔZ + ΔP<sub>head</sub> + H<sub>friction</sub>
-                </p>
+        <div className="card border border-[var(--color-divider)] p-5">
+            <h3 className="text-base font-bold text-white border-b border-[var(--color-divider)] pb-2 mb-4 flex items-center justify-between">
+                <span>Memorial de Cálculo (Balanço de Energia Hidráulica)</span>
+                <span className="tag tag-outline">Bernoulli</span>
+            </h3>
+            <div className="text-sm text-muted space-y-2 mb-5">
+                <p>A Altura Manométrica Total (AMT) exigida pela bomba no ponto operacional é expressa pela equação do balanço:</p>
+                <div className="font-mono bg-[var(--color-bg)] p-3 rounded-lg text-center text-white border border-[var(--color-divider)] my-3">
+                    H<sub>bomba</sub> = ΔZ + ΔP<sub>pressão</sub> + H<sub>perdas</sub>
+                </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div className="p-3 bg-slate-50 rounded border border-slate-100">
-                    <div className="text-xs text-slate-500 mb-1">Static Elevation (ΔZ)</div>
-                    <div className="font-semibold text-slate-700">{result.head_breakdown.static_head_m.toFixed(2)} m</div>
+                <div className="p-3.5 bg-[var(--color-bg)]/60 rounded-lg border border-[var(--color-divider)]">
+                    <div className="text-xs text-muted mb-1 font-medium">Desnível Estático (ΔZ)</div>
+                    <div className="font-bold text-white text-base">{result.head_breakdown.static_head_m.toFixed(2)} m</div>
                 </div>
-                <div className="p-3 bg-slate-50 rounded border border-slate-100">
-                    <div className="text-xs text-slate-500 mb-1">Pressure Head (ΔP)</div>
-                    <div className="font-semibold text-slate-700">{result.head_breakdown.pressure_head_m.toFixed(2)} m</div>
+                <div className="p-3.5 bg-[var(--color-bg)]/60 rounded-lg border border-[var(--color-divider)]">
+                    <div className="text-xs text-muted mb-1 font-medium">Diferença de Pressão (ΔP)</div>
+                    <div className="font-bold text-white text-base">{result.head_breakdown.pressure_head_m.toFixed(2)} m</div>
                 </div>
-                <div className="p-3 bg-slate-50 rounded border border-slate-100">
-                    <div className="text-xs text-slate-500 mb-1">Friction Losses (H<sub>f</sub>)</div>
-                    <div className="font-semibold text-slate-700">{result.head_breakdown.friction_head_m.toFixed(2)} m</div>
+                <div className="p-3.5 bg-[var(--color-bg)]/60 rounded-lg border border-[var(--color-divider)]">
+                    <div className="text-xs text-muted mb-1 font-medium">Perdas de Carga (H<sub>f</sub>)</div>
+                    <div className="font-bold text-white text-base">{result.head_breakdown.friction_head_m.toFixed(2)} m</div>
                 </div>
-                <div className="p-3 bg-indigo-50 rounded border border-indigo-100">
-                    <div className="text-xs text-indigo-600 mb-1 font-bold">Total Required Head</div>
-                    <div className="font-bold text-indigo-700">{result.head_breakdown.total_head_m.toFixed(2)} m</div>
+                <div className="p-3.5 bg-[#9184d9]/15 rounded-lg border border-[#9184d9]/40 shadow-sm">
+                    <div className="text-xs text-[#9184d9] mb-1 font-bold uppercase">AMT Requerida Total</div>
+                    <div className="font-bold text-white text-lg">{result.head_breakdown.total_head_m.toFixed(2)} m</div>
                 </div>
             </div>
-        </Card>
+        </div>
     );
 };
 
 export const DetailedLosses: React.FC<{ result: OperatingPointResult | null }> = ({ result }) => {
     return (
-        <Card title="Detailed Losses">
+        <div className="card border border-[var(--color-divider)] p-5">
+            <h3 className="text-base font-bold text-white border-b border-[var(--color-divider)] pb-2 mb-4">
+                Detalhamento por Trecho e Acessórios (Perdas e Velocidades)
+            </h3>
             {result?.details && result.details.length > 0 ? (
                 <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm text-left text-slate-600">
-                        <thead className="bg-slate-50 font-medium text-slate-700">
+                    <table className="table">
+                        <thead>
                             <tr>
-                                <th className="px-4 py-3">Section</th>
-                                <th className="px-4 py-3">Velocity (m/s)</th>
-                                <th className="px-4 py-3">Reynolds</th>
-                                <th className="px-4 py-3">Friction (m)</th>
-                                <th className="px-4 py-3">Local/Eqp (m)</th>
-                                <th className="px-4 py-3 font-bold text-slate-900">Total (m)</th>
+                                <th>Trecho / Segmento</th>
+                                <th>Velocidade (m/s)</th>
+                                <th>Reynolds (Re)</th>
+                                <th>Perda Distr. (m)</th>
+                                <th>Perda Local/Acess. (m)</th>
+                                <th className="font-bold text-white">Total do Trecho (m)</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {result.details.map((d, i) => (
-                                <tr key={i} className="hover:bg-slate-50">
-                                    <td className="px-4 py-2 font-mono text-xs text-slate-400">
-                                        {d.section_id ? d.section_id.substring(0, 8) : `Segment ${i + 1}`}
-                                    </td>
-                                    <td className="px-4 py-2">{d.velocity_m_s.toFixed(2)}</td>
-                                    <td className="px-4 py-2">{d.reynolds.toExponential(2)}</td>
-                                    <td className="px-4 py-2 text-slate-500">{d.major_loss_m.toFixed(2)}</td>
-                                    <td className="px-4 py-2 text-slate-500">{d.minor_loss_m.toFixed(2)}</td>
-                                    <td className="px-4 py-2 font-medium text-slate-900 bg-slate-50/50">{d.total_loss_m.toFixed(2)}</td>
-                                </tr>
-                            ))}
+                        <tbody>
+                            {result.details.map((d, i) => {
+                                const v = d.velocity_m_s;
+                                const isSuction = d.section_id?.toLowerCase().includes('suc') || i === 0;
+                                // Validação visual da velocidade (Verde/Âmbar/Vermelho) conforme engenharia
+                                let vBadge = <span className="text-[#5fd08a] font-semibold">{v.toFixed(2)} m/s</span>;
+                                if (isSuction) {
+                                    if (v > 2.0 || v < 0.5) vBadge = <span className="text-[#e0a94b] font-bold">{v.toFixed(2)} m/s ⚠</span>;
+                                    if (v > 2.5) vBadge = <span className="text-[#e06b6b] font-bold">{v.toFixed(2)} m/s ❌</span>;
+                                } else {
+                                    if (v > 3.0 || v < 0.8) vBadge = <span className="text-[#e0a94b] font-bold">{v.toFixed(2)} m/s ⚠</span>;
+                                    if (v > 4.0) vBadge = <span className="text-[#e06b6b] font-bold">{v.toFixed(2)} m/s ❌</span>;
+                                }
+
+                                return (
+                                    <tr key={i}>
+                                        <td className="font-mono text-xs text-muted">
+                                            {d.section_id ? d.section_id.substring(0, 16) : `Trecho ${i + 1}`}
+                                        </td>
+                                        <td>{vBadge}</td>
+                                        <td className="text-muted font-mono">{d.reynolds.toExponential(2)}</td>
+                                        <td className="text-muted">{d.major_loss_m.toFixed(2)}</td>
+                                        <td className="text-muted">{d.minor_loss_m.toFixed(2)}</td>
+                                        <td className="font-bold text-white bg-white/5 px-3 py-1 rounded">{d.total_loss_m.toFixed(2)}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
             ) : (
-                <div className="text-center text-slate-400 py-4">No detailed segment data.</div>
+                <div className="text-center text-muted py-6 italic text-sm">Nenhum dado de perda por segmento. Calcule para visualizar a tabela.</div>
             )}
-        </Card>
+        </div>
     );
 };

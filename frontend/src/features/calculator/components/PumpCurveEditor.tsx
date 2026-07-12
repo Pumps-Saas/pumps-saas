@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, Sparkles, Search } from 'lucide-react';
 import { useSystemStore } from '../stores/useSystemStore';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -44,9 +43,6 @@ export const PumpCurveEditor: React.FC = () => {
     const [isAutoSelecting, setIsAutoSelecting] = useState(false);
     const [aiResults, setAiResults] = useState<any[]>([]);
 
-    // Local state for inputs to avoid jitter, sync on blur or change? 
-    // Actually, direct store update for inputs is fine for this scale.
-
     useEffect(() => {
         loadPumps();
     }, []);
@@ -73,11 +69,11 @@ export const PumpCurveEditor: React.FC = () => {
 
     const handleSavePump = async () => {
         if (!manufacturer || !model) {
-            addToast("Please enter Manufacturer and Model", 'warning');
+            addToast("Preencha o Fabricante e Modelo", 'warning');
             return;
         }
         if (points.length < 3) {
-            addToast("Please enter at least 3 points", 'warning');
+            addToast("Insira pelo menos 3 pontos operacionais", 'warning');
             return;
         }
 
@@ -87,18 +83,18 @@ export const PumpCurveEditor: React.FC = () => {
                 model,
                 curve_points: points
             });
-            addToast("Pump Saved to Library!", 'success');
+            addToast("Bomba salva na biblioteca!", 'success');
             loadPumps();
         } catch (error: any) {
             console.error("Failed to save pump", error);
-            addToast(`Failed to save: ${error.response?.data?.detail || error.message}`, 'error');
+            addToast(`Falha ao salvar: ${error.response?.data?.detail || error.message}`, 'error');
         }
     };
 
     const handleDeletePump = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!selectedPumpId) return;
-        if (!confirm("Delete this pump from library?")) return;
+        if (!confirm("Excluir esta bomba da biblioteca?")) return;
 
         try {
             await api.pumps.delete(parseInt(selectedPumpId));
@@ -130,13 +126,13 @@ export const PumpCurveEditor: React.FC = () => {
             });
             setAiResults(res.data);
             if (res.data.length === 0) {
-                addToast("No suitable pumps found for this system.", 'warning');
+                addToast("Nenhuma bomba ideal encontrada para este sistema.", 'warning');
             } else {
-                addToast(`Found ${res.data.length} optimal pumps!`, 'success');
+                addToast(`Encontradas ${res.data.length} bombas recomendadas!`, 'success');
             }
         } catch (error: any) {
             console.error("Auto select failed", error);
-            addToast(error.response?.status === 403 ? "Premium Feature Required" : "Failed to auto-select pump", 'error');
+            addToast(error.response?.status === 403 ? "Recurso Premium Requerido" : "Falha na seleção inteligente", 'error');
         } finally {
             setIsAutoSelecting(false);
         }
@@ -146,7 +142,7 @@ export const PumpCurveEditor: React.FC = () => {
         setPoints(pump.curve_points);
         setPumpDetails(pump.manufacturer, pump.model);
         setAiResults([]); // Close list
-        addToast(`Applied ${pump.manufacturer} ${pump.model}`, 'success');
+        addToast(`Aplicada ${pump.manufacturer} ${pump.model}`, 'success');
     };
 
     const addPoint = () => {
@@ -165,58 +161,67 @@ export const PumpCurveEditor: React.FC = () => {
     };
 
     const pumpOptions = [
-        { label: "Select from Library...", value: "" },
+        { label: "Selecione uma Bomba da Biblioteca...", value: "" },
         ...savedPumps.map(p => ({ label: `${p.manufacturer} - ${p.model}`, value: p.id.toString() }))
     ];
 
     return (
-        <Card title="Pump Curve Data & Library">
-            <div className="space-y-4 mb-4 border-b border-slate-200 pb-4">
+        <div className="flex flex-col gap-5 text-[var(--color-text)]">
+            <div className="flex flex-col gap-4 border-b border-[var(--color-divider)] pb-4">
                 {/* Library Controls */}
-                <div className="flex gap-2 items-end">
+                <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-end">
                     <div className="flex-1">
                         <Select
-                            label="Load from Library"
+                            label="Carregar Curva da Biblioteca Catálogo"
                             options={pumpOptions}
                             value={selectedPumpId}
                             onChange={(e) => handleLoadPump(e.target.value)}
                         />
                     </div>
-                    <Button
-                        variant="primary"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20"
-                        onClick={handleAutoSelect}
-                        disabled={isAutoSelecting}
-                        icon={isAutoSelecting ? <Sparkles className="animate-spin" size={16} /> : <Search size={16} />}
-                        title="Busca Avançada com Inteligência Artificial [PREMIUM]"
-                    >
-                        Auto Select
-                    </Button>
-                    {selectedPumpId && (
+                    <div className="flex gap-2">
                         <Button
                             variant="primary"
-                            className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-                            onClick={handleDeletePump}
-                            icon={<Trash2 size={16} />}
+                            className="bg-[#9184d9] hover:bg-[#796cbf] text-white font-bold flex-1 sm:flex-initial"
+                            onClick={handleAutoSelect}
+                            disabled={isAutoSelecting}
+                            icon={isAutoSelecting ? <Sparkles className="animate-spin text-[#e0a94b]" size={15} /> : <Search size={15} />}
+                            title="Seleção Automática com Inteligência Algorítmica"
                         >
-                            Delete
+                            Auto Seleção AI
                         </Button>
-                    )}
+                        {selectedPumpId && (
+                            <Button
+                                variant="danger"
+                                className="bg-[#e06b6b]/15 text-[#e06b6b] hover:bg-[#e06b6b]/30 border border-[#e06b6b]/40"
+                                onClick={handleDeletePump}
+                                icon={<Trash2 size={15} />}
+                            >
+                                Excluir
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 {/* AI Results Dropdown */}
                 {aiResults.length > 0 && (
-                    <div className="mt-2 bg-white border border-indigo-200 rounded-lg shadow-lg p-3 w-full animate-in fade-in slide-in-from-top-2">
-                        <h4 className="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2 flex items-center gap-1"><Sparkles size={14}/> Top Recommendations</h4>
-                        <div className="flex flex-col gap-2">
+                    <div className="bg-[var(--color-surface)] border border-[#9184d9] rounded-xl p-4 shadow-xl animate-in fade-in duration-200">
+                        <h4 className="text-xs font-bold text-[#9184d9] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <Sparkles size={15} className="text-[#e0a94b]" /> Recomendações Hidráulicas da AI
+                        </h4>
+                        <div className="flex flex-col gap-2.5">
                             {aiResults.map((p, idx) => (
-                                <div key={idx} className="flex items-center justify-between bg-indigo-50/50 p-2 rounded border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                                <div key={idx} className="flex items-center justify-between bg-[var(--color-bg)]/60 p-3 rounded-lg border border-[var(--color-divider)] hover:border-[#9184d9]/50 transition-colors">
                                     <div>
-                                        <div className="font-semibold text-sm text-slate-800">{p.manufacturer} {p.model}</div>
-                                        <div className="text-xs text-slate-500">Operates at {p.flow_op.toFixed(1)} m³/h @ {p.head_op.toFixed(1)} m (Eff: {p.efficiency_op.toFixed(1)}%)</div>
+                                        <div className="font-bold text-sm text-white flex items-center gap-2">
+                                            <span>{p.manufacturer} {p.model}</span>
+                                            <span className="tag tag-accent text-[10px]">Recomendada</span>
+                                        </div>
+                                        <div className="text-xs text-muted mt-1 font-mono">
+                                            Ponto Ótimo: {p.flow_op.toFixed(1)} m³/h @ {p.head_op.toFixed(1)} m (Rendimento: {p.efficiency_op.toFixed(1)}%)
+                                        </div>
                                     </div>
-                                    <Button size="sm" onClick={() => applyAiPump(p)} className="bg-indigo-600 hover:bg-indigo-700 text-white h-7 text-xs px-3">
-                                        Apply
+                                    <Button size="sm" onClick={() => applyAiPump(p)} className="bg-[#5fd08a] text-[#161826] hover:bg-[#4ebe78] font-bold h-8 px-4 text-xs">
+                                        Aplicar Curva
                                     </Button>
                                 </div>
                             ))}
@@ -225,51 +230,51 @@ export const PumpCurveEditor: React.FC = () => {
                 )}
 
                 {/* Metadata Inputs */}
-                <div className="flex flex-col sm:flex-row gap-2 items-end w-full">
-                    <div className="grid grid-cols-2 gap-2 w-full sm:flex-1">
+                <div className="flex flex-col sm:flex-row gap-2.5 items-end w-full">
+                    <div className="grid grid-cols-2 gap-2.5 w-full sm:flex-1">
                         <Input
-                            label="Manufacturer"
+                            label="Fabricante da Bomba"
                             value={manufacturer}
                             onChange={(e) => setPumpDetails(e.target.value, model)}
-                            placeholder="e.g. KSB"
+                            placeholder="Ex: KSB, Sulzer, Schneider..."
                         />
                         <Input
-                            label="Model"
+                            label="Modelo da Bomba"
                             value={model}
                             onChange={(e) => setPumpDetails(manufacturer, e.target.value)}
-                            placeholder="e.g. MegaCPK 50-200"
+                            placeholder="Ex: MegaCPK 50-200"
                         />
                     </div>
                     <Button
                         onClick={handleSavePump}
-                        icon={<Save size={16} />}
-                        className="w-full sm:w-auto mb-[2px]"
-                        title="Save current curve to Library"
+                        icon={<Save size={15} />}
+                        className="w-full sm:w-auto bg-[#5fd08a] text-[#161826] hover:bg-[#4ebe78] font-bold"
+                        title="Salvar curva atual na biblioteca"
                     >
-                        Save
+                        Salvar
                     </Button>
                 </div>
                 
                 {/* Premium Controls */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full mt-4 bg-gradient-to-r from-amber-50 to-yellow-50 p-3 rounded-md border border-amber-200 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2 sm:mb-0 sm:col-span-3">
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-200 px-2 py-0.5 rounded tracking-wide">PREMIUM</span>
-                        <span className="text-sm font-medium text-amber-900">Advanced Hydraulics</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full mt-2 bg-[var(--color-bg)]/60 p-3.5 rounded-lg border border-[var(--color-divider)]">
+                    <div className="flex items-center gap-2 mb-1 sm:mb-0 sm:col-span-3">
+                        <span className="text-[10px] font-bold text-[#161826] bg-[#e0a94b] px-2 py-0.5 rounded uppercase">Inversor / Leis de Semelhança</span>
+                        <span className="text-xs font-semibold text-white">Simulação e Ajuste Rotacional (Rateau)</span>
                     </div>
                     <Input
-                        label="Base Speed (RPM)"
+                        label="RPM Nominal (Base da Curva)"
                         type="number"
                         value={pump_base_rpm || ''}
                         onChange={(e) => setPumpBaseRpm(Number(e.target.value))}
                     />
                     <Input
-                        label="Operating Speed (VFD)"
+                        label="RPM Operacional (Atual via VFD)"
                         type="number"
                         value={pump_current_rpm || ''}
                         onChange={(e) => setPumpCurrentRpm(Number(e.target.value))}
                     />
                     <Input
-                        label="Pumps in Parallel"
+                        label="Bombas Operando em Paralelo"
                         type="number"
                         min="1"
                         value={parallel_pumps || ''}
@@ -278,86 +283,87 @@ export const PumpCurveEditor: React.FC = () => {
                 </div>
             </div>
 
-            <div className="mb-4 text-sm text-slate-500">
-                Enter at least 3 points to define the pump curve.
+            <div className="flex items-center justify-between text-xs text-muted">
+                <span>Insira pelo menos <strong>3 pontos operacionais</strong> (Vazão x AMT) da curva do fabricante para interpolação polinomial.</span>
+                <Button size="sm" variant="secondary" onClick={addPoint} icon={<Plus size={13} className="mr-1" />} className="text-[#9184d9] border-[#9184d9]/30">
+                    Adicionar Ponto
+                </Button>
             </div>
 
             {points.length === 0 ? (
-                <div className="text-center py-8 bg-slate-50 rounded-lg border-dashed border-2 border-slate-200">
-                    <p className="text-slate-400 mb-2">No curve data defined.</p>
-                    <Button size="sm" onClick={addPoint} icon={<Plus size={14} />}>
-                        Add First Point
+                <div className="text-center py-10 bg-[var(--color-bg)]/40 rounded-lg border-dashed border border-[var(--color-divider)]">
+                    <p className="text-muted text-xs mb-3 italic">Nenhum ponto da curva inserido no momento.</p>
+                    <Button size="md" onClick={addPoint} icon={<Plus size={15} />} className="bg-[#9184d9] text-white">
+                        Adicionar Primeiro Ponto
                     </Button>
                 </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-slate-200">
+                <div className="border border-[var(--color-divider)] rounded-lg overflow-hidden">
+                    <table className="table">
                         <thead>
                             <tr>
-                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px] sm:min-w-[80px]">Flow <span className="hidden sm:inline">(m³/h)</span></th>
-                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[70px] sm:min-w-[80px]">Head <span className="hidden sm:inline">(m)</span></th>
-                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[60px] sm:min-w-[70px]">Eff <span className="hidden sm:inline">(%)</span></th>
-                                <th className="px-1 sm:px-3 py-2 text-left text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wider min-w-[60px] sm:min-w-[70px]">NPSHr <span className="hidden sm:inline">(m)</span></th>
-                                <th className="px-1 sm:px-3 py-2 w-8 sm:w-10"></th>
+                                <th>Vazão (m³/h)</th>
+                                <th>Alt. Manométrica (mca)</th>
+                                <th>Rendimento (%)</th>
+                                <th>NPSHr (m) <span className="text-[10px] font-normal opacity-70">(Opcional)</span></th>
+                                <th className="w-10"></th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-slate-200">
+                        <tbody>
                             {points.map((point, index) => (
                                 <tr key={index}>
-                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
+                                    <td className="py-2 px-3">
                                         <Input
                                             type="number"
                                             min="0"
                                             value={point.flow ?? ''}
                                             onChange={(e) => updatePoint(index, 'flow', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
-                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
+                                            className="h-8 text-xs font-mono"
+                                            placeholder="Ex: 25.0"
                                         />
                                     </td>
-                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
+                                    <td className="py-2 px-3">
                                         <Input
                                             type="number"
                                             min="0"
                                             value={point.head ?? ''}
                                             onChange={(e) => updatePoint(index, 'head', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
-                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
+                                            className="h-8 text-xs font-mono"
+                                            placeholder="Ex: 45.0"
                                         />
                                     </td>
-                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
+                                    <td className="py-2 px-3">
                                         <Input
                                             type="number"
                                             min="0"
                                             max="100"
                                             value={point.efficiency ?? ''}
                                             onChange={(e) => updatePoint(index, 'efficiency', e.target.value === '' ? '' as any : Math.min(100, Math.max(0, parseFloat(e.target.value))))}
-                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
+                                            className="h-8 text-xs font-mono"
+                                            placeholder="Ex: 72.5"
                                         />
                                     </td>
-                                    <td className="px-1 sm:px-3 py-1 sm:py-2">
+                                    <td className="py-2 px-3">
                                         <Input
                                             type="number"
                                             min="0"
                                             value={point.npshr ?? ''}
                                             onChange={(e) => updatePoint(index, 'npshr', e.target.value === '' ? '' as any : Math.max(0, parseFloat(e.target.value)))}
-                                            className="h-8 text-[11px] sm:text-sm px-1 sm:px-3"
-                                            placeholder="Opt"
+                                            className="h-8 text-xs font-mono"
+                                            placeholder="Ex: 2.1"
                                         />
                                     </td>
-                                    <td className="px-1 sm:px-3 py-1 sm:py-2 text-center">
-                                        <button onClick={() => removePoint(index)} className="text-slate-400 hover:text-red-500">
-                                            <Trash2 size={16} className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    <td className="py-2 px-3 text-center">
+                                        <button onClick={() => removePoint(index)} className="text-muted hover:text-[#e06b6b] p-1.5 transition-colors" title="Excluir ponto">
+                                            <Trash2 size={16} />
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                    <div className="mt-4">
-                        <Button size="sm" variant="secondary" onClick={addPoint} icon={<Plus size={14} className="w-full" />}>
-                            Add Point
-                        </Button>
-                    </div>
                 </div>
             )}
-        </Card>
+        </div>
     );
 };

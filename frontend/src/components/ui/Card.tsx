@@ -10,14 +10,14 @@ interface CardProps {
 
 export const Card: React.FC<CardProps> = ({ children, className, title, action }) => {
     return (
-        <div className={clsx("bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden", className)}>
+        <div className={clsx("card border border-[var(--color-divider)] overflow-hidden text-[var(--color-text)]", className)}>
             {(title || action) && (
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    {title && <h3 className="text-lg font-semibold text-slate-800">{title}</h3>}
+                <div className="px-5 py-3.5 border-b border-[var(--color-divider)] flex justify-between items-center bg-[var(--color-bg)]/40">
+                    {title && <h3 className="text-base font-bold text-white tracking-tight">{title}</h3>}
                     {action && <div>{action}</div>}
                 </div>
             )}
-            <div className="p-6">
+            <div className="p-5">
                 {children}
             </div>
         </div>

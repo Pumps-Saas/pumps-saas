@@ -20,21 +20,21 @@ export const Input: React.FC<InputProps> = ({
     return (
         <div className="w-full">
             {label && (
-                <label htmlFor={inputId} className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor={inputId} className="block text-xs font-semibold text-muted mb-1.5 uppercase tracking-wider">
                     {label}
                 </label>
             )}
             <input
                 id={inputId}
                 className={clsx(
-                    "block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-10 px-3 border",
-                    error ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500" : "",
+                    "input block w-full transition-colors",
+                    error ? "border-[#e06b6b] text-[#e06b6b] focus:border-[#e06b6b] focus:ring-[#e06b6b]" : "",
                     className
                 )}
                 {...props}
             />
-            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-            {helperText && !error && <p className="mt-1 text-sm text-slate-500">{helperText}</p>}
+            {error && <p className="mt-1 text-xs text-[#e06b6b]">{error}</p>}
+            {helperText && !error && <p className="mt-1 text-xs text-muted">{helperText}</p>}
         </div>
     );
 };

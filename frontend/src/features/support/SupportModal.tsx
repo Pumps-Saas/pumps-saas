@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { X, MessageSquare, Loader2, Paperclip } from 'lucide-react';
 import { apiClient } from '@/api/client';
 
@@ -44,21 +42,21 @@ export const SupportModal = ({ isOpen, onClose }: SupportModalProps) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center">
-                            <MessageSquare className="w-5 h-5 text-sky-600" />
+        <div className="dialog-backdrop animate-in fade-in duration-200">
+            <div className="dialog">
+                <div className="flex justify-between items-center pb-3 border-b border-[var(--color-divider)]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-[#9184d9]/20 border border-[#9184d9] flex items-center justify-center">
+                            <MessageSquare className="w-4 h-4 text-[#9184d9]" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold tracking-tight text-slate-800">Fale com o Suporte</h2>
-                            <p className="text-sm text-slate-500">Respondemos normalmente em algumas horas</p>
+                            <span className="dialog-title block">Fale com o Suporte</span>
+                            <span className="text-xs text-muted">Respondemos normalmente em algumas horas</span>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-slate-400 hover:text-slate-600 transition-colors p-2"
+                        className="text-muted hover:text-white transition-colors p-1"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -66,56 +64,54 @@ export const SupportModal = ({ isOpen, onClose }: SupportModalProps) => {
 
                 {success ? (
                     <div className="py-8 text-center animate-in fade-in slide-in-from-bottom-4">
-                        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="w-16 h-16 bg-[#5fd08a]/20 border border-[#5fd08a] rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-[#5fd08a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-bold text-slate-800">Mensagem Enviada!</h3>
-                        <p className="text-slate-500 mt-2">Nossa equipe responderá em breve por e-mail e através da aba de notificações do painel.</p>
+                        <h3 className="text-lg font-bold text-white">Mensagem Enviada!</h3>
+                        <p className="text-muted text-sm mt-2">Nossa equipe responderá em breve por e-mail e através da aba de notificações do painel.</p>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Assunto</label>
-                            <Input
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-2">
+                        <div className="field">
+                            <label>Assunto</label>
+                            <input
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
                                 placeholder="Dúvida, problema técnico ou sugestão"
-                                className="w-full"
+                                className="input"
                                 required
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Sua Mensagem</label>
+                        <div className="field">
+                            <label>Sua Mensagem</label>
                             <textarea
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 placeholder="Descreva como podemos ajudar você hoje..."
-                                className="w-full flex min-h-[120px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="input min-h-[110px]"
                                 required
                             />
                         </div>
 
-                        {/* Visual attachment placeholder without actual heavy file logic for this iteration */}
-                        <div className="flex items-center gap-2 text-sm text-slate-500 border border-slate-200 border-dashed rounded-md p-3 justify-center mb-6 bg-slate-50/50">
-                            <Paperclip className="w-4 h-4" />
+                        <div className="flex items-center gap-2 text-xs text-muted border border-[var(--color-divider)] border-dashed rounded-md p-2.5 justify-center bg-[var(--color-bg)]/40">
+                            <Paperclip className="w-3.5 h-3.5 text-[#9184d9]" />
                             <span>Anexar capturas de tela estará disponível em breve.</span>
                         </div>
 
-                        <div className="flex gap-3 pt-2">
-                            <Button
+                        <div className="dialog-actions pt-3 border-t border-[var(--color-divider)]">
+                            <button
                                 type="button"
-                                variant="outline"
-                                className="flex-1"
+                                className="btn btn-secondary"
                                 onClick={onClose}
                             >
                                 Cancelar
-                            </Button>
-                            <Button
+                            </button>
+                            <button
                                 type="submit"
-                                className="flex-1 bg-sky-600 hover:bg-sky-700 text-white"
+                                className="btn btn-primary"
                                 disabled={isSubmitting || !subject.trim() || !message.trim()}
                             >
                                 {isSubmitting ? (
@@ -126,7 +122,7 @@ export const SupportModal = ({ isOpen, onClose }: SupportModalProps) => {
                                 ) : (
                                     'Enviar Ticket'
                                 )}
-                            </Button>
+                            </button>
                         </div>
                     </form>
                 )}

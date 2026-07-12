@@ -27,7 +27,8 @@ export const ProjectManager = () => {
 
     // Store actions
     const loadState = useSystemStore((state) => state.loadState);
-    const calculateOperatingPoint = useSystemStore((state) => state.calculateOperatingPoint); // Import calc action
+    const calculateOperatingPoint = useSystemStore((state) => state.calculateOperatingPoint);
+    const setActiveView = useSystemStore((state) => state.setActiveView);
 
     // Select all state components needed for saving
     const systemState = useSystemStore((state) => ({
@@ -80,10 +81,10 @@ export const ProjectManager = () => {
             await api.projects.create({ name: newProjectName, description: '' });
             setNewProjectName('');
             loadProjects();
-            addToast("Project created successfully!", 'success');
+            addToast("Projeto criado com sucesso!", 'success');
         } catch (error: any) {
             console.error("Failed to create project", error);
-            addToast(`Failed to create project: ${error.response?.data?.detail || error.message}`, 'error');
+            addToast(`Falha ao criar projeto: ${error.response?.data?.detail || error.message}`, 'error');
         }
     };
 
@@ -97,10 +98,10 @@ export const ProjectManager = () => {
             });
             setNewScenarioName('');
             loadScenarios(selectedProject.id);
-            addToast("Scenario saved successfully!", 'success');
+            addToast("Cenário salvo com sucesso!", 'success');
         } catch (error: any) {
             console.error("Failed to save scenario", error);
-            addToast(`Failed to save scenario: ${error.response?.data?.detail || error.message}`, 'error');
+            addToast(`Falha ao salvar cenário: ${error.response?.data?.detail || error.message}`, 'error');
         }
     };
 
@@ -108,126 +109,153 @@ export const ProjectManager = () => {
         if (scenario.data && Object.keys(scenario.data).length > 0) {
             loadState(scenario.data);
             setTimeout(() => {
-                calculateOperatingPoint(); // Trigger calculation
+                calculateOperatingPoint();
+                setActiveView('calc');
             }, 100);
-            addToast(`Loaded scenario: ${scenario.name}`, 'info');
+            addToast(`Cenário carregado: ${scenario.name}`, 'info');
         }
     };
 
     const handleDeleteProject = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this project?")) return;
+        if (!window.confirm("Tem certeza que deseja excluir este projeto?")) return;
         try {
             await api.projects.delete(id);
             if (selectedProject?.id === id) setSelectedProject(null);
             loadProjects();
-            addToast("Project deleted.", 'info');
+            addToast("Projeto excluído.", 'info');
         } catch (error) {
             console.error("Failed to delete project", error);
-            addToast("Failed to delete project", 'error');
+            addToast("Falha ao excluir projeto", 'error');
         }
     };
 
     const handleDeleteScenario = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this scenario?")) return;
+        if (!window.confirm("Tem certeza que deseja excluir este cenário?")) return;
         try {
             await api.projects.deleteScenario(id);
             if (selectedProject) loadScenarios(selectedProject.id);
-            addToast("Scenario deleted.", 'info');
+            addToast("Cenário excluído.", 'info');
         } catch (error) {
             console.error("Failed to delete scenario", error);
-            addToast("Failed to delete scenario", 'error');
+            addToast("Falha ao excluir cenário", 'error');
         }
     };
 
     return (
-        <div className="p-4 h-full flex flex-col text-slate-300">
-            <h2 className="text-lg font-bold mb-4 flex items-center text-white">
-                <Folder className="mr-2 text-blue-500" size={20} /> Project Manager
-            </h2>
-
-            {/* Project List */}
-            <div className="mb-6 flex-1 overflow-y-auto">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Projects</h3>
-                <div className="space-y-1">
-                    {projects.map(p => (
-                        <div
-                            key={p.id}
-                            onClick={() => setSelectedProject(p)}
-                            className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${selectedProject?.id === p.id ? 'bg-blue-600 text-white shadow-sm' : 'hover:bg-slate-800 hover:text-white'}`}
-                        >
-                            <div className="flex items-center min-w-0">
-                                <Folder size={16} className={`mr-2 flex-shrink-0 ${selectedProject?.id === p.id ? 'text-white' : 'text-slate-400'}`} />
-                                <span className="truncate font-medium">{p.name}</span>
-                            </div>
-                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteProject(p.id); }} className="text-slate-500 hover:text-red-400">
-                                <Trash2 size={14} className="pointer-events-none" />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-                <div className="mt-2 flex gap-2">
-                    <input
-                        type="text"
-                        value={newProjectName}
-                        onChange={(e) => setNewProjectName(e.target.value)}
-                        placeholder="New Project..."
-                        className="flex-1 min-w-0 text-sm border border-slate-700 bg-slate-800 text-white placeholder-slate-500 rounded px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                    />
-                    <button onClick={handleCreateProject} className="p-1 shrink-0 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center transition-colors">
-                        <Plus size={16} />
-                    </button>
-                </div>
+        <div className="card border border-[var(--color-divider)] p-5 flex flex-col gap-5 text-[var(--color-text)]">
+            <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-3">
+                <h2 className="text-lg font-bold flex items-center text-white gap-2.5">
+                    <Folder className="text-[#9184d9]" size={20} /> Gerenciador de Projetos e Variações
+                </h2>
+                <span className="tag tag-outline">Hub de Projetos</span>
             </div>
 
-            {/* Scenario List (Active Project) */}
-            {selectedProject && (
-                <div className="flex-1 overflow-y-auto border-t border-slate-800 pt-4">
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                        Scenarios in {selectedProject.name}
-                    </h3>
-                    <div className="space-y-1">
-                        {scenarios.map(s => (
-                            <div
-                                key={s.id}
-                                className="flex items-center justify-between p-2 rounded hover:bg-slate-800 group transition-colors"
-                            >
-                                <div className="flex items-center min-w-0">
-                                    <FileText size={16} className="mr-2 flex-shrink-0 text-slate-400 group-hover:text-slate-300" />
-                                    <span className="truncate text-sm font-medium group-hover:text-white">{s.name}</span>
-                                </div>
-                                <div className="hidden group-hover:flex gap-1">
-                                    <button
-                                        onClick={() => handleLoadScenario(s)}
-                                        className="text-xs text-blue-400 hover:text-white hover:bg-blue-600 bg-slate-800 px-2 py-0.5 rounded flex items-center transition-colors"
-                                        title="Load Scenario"
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Lista de Projetos */}
+                <div className="flex flex-col gap-3">
+                    <h3 className="text-xs font-bold text-muted uppercase tracking-wider">Projetos Ativos</h3>
+                    <div className="flex flex-col gap-1.5 max-h-[260px] overflow-y-auto">
+                        {projects.length === 0 ? (
+                            <div className="text-xs text-muted italic py-3">Nenhum projeto cadastrado ainda.</div>
+                        ) : (
+                            projects.map(p => (
+                                <div
+                                    key={p.id}
+                                    onClick={() => setSelectedProject(p)}
+                                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border ${
+                                        selectedProject?.id === p.id 
+                                            ? 'bg-[#9184d9]/15 text-[#9184d9] border-[#9184d9]/40 font-semibold' 
+                                            : 'bg-[var(--color-bg)]/50 border-[var(--color-divider)] hover:border-white/30 text-white'
+                                    }`}
+                                >
+                                    <div className="flex items-center min-w-0 gap-2.5">
+                                        <Folder size={16} className={`shrink-0 ${selectedProject?.id === p.id ? 'text-[#9184d9]' : 'text-muted'}`} />
+                                        <span className="truncate text-sm">{p.name}</span>
+                                    </div>
+                                    <button 
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteProject(p.id); }} 
+                                        className="text-muted hover:text-[#e06b6b] p-1 transition-colors"
                                     >
-                                        <Play size={12} className="mr-1" /> Load
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteScenario(s.id); }}
-                                        className="text-xs text-red-400 hover:text-white hover:bg-red-600 bg-slate-800 px-2 py-0.5 rounded flex items-center transition-colors"
-                                        title="Delete Scenario"
-                                    >
-                                        <Trash2 size={12} className="pointer-events-none" />
+                                        <Trash2 size={14} />
                                     </button>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
-                    <div className="mt-2 flex gap-2">
+                    <div className="flex gap-2 mt-1">
                         <input
                             type="text"
-                            value={newScenarioName}
-                            onChange={(e) => setNewScenarioName(e.target.value)}
-                            placeholder="Current State Name..."
-                            className="flex-1 min-w-0 text-sm border border-slate-700 bg-slate-800 text-white placeholder-slate-500 rounded px-2 py-1 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                            value={newProjectName}
+                            onChange={(e) => setNewProjectName(e.target.value)}
+                            placeholder="Nome do Novo Projeto..."
+                            className="input text-xs"
                         />
-                        <button onClick={handleCreateScenario} className="p-1 shrink-0 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center transition-colors" title="Save Current State">
-                            <Save size={16} />
+                        <button onClick={handleCreateProject} className="btn btn-primary px-3 text-xs shrink-0" title="Criar Projeto">
+                            <Plus size={16} /> Criar
                         </button>
                     </div>
                 </div>
-            )}
+
+                {/* Lista de Cenários / Variações */}
+                <div className="flex flex-col gap-3 border-t lg:border-t-0 lg:border-l border-[var(--color-divider)] pt-4 lg:pt-0 lg:pl-6">
+                    <h3 className="text-xs font-bold text-muted uppercase tracking-wider">
+                        {selectedProject ? `Cenários em ${selectedProject.name}` : 'Selecione um projeto para ver cenários'}
+                    </h3>
+                    {selectedProject ? (
+                        <>
+                            <div className="flex flex-col gap-1.5 max-h-[260px] overflow-y-auto">
+                                {scenarios.length === 0 ? (
+                                    <div className="text-xs text-muted italic py-3">Nenhum cenário salvo neste projeto.</div>
+                                ) : (
+                                    scenarios.map(s => (
+                                        <div
+                                            key={s.id}
+                                            className="flex items-center justify-between p-3 rounded-lg bg-[var(--color-bg)]/50 border border-[var(--color-divider)] hover:border-white/30 group transition-all"
+                                        >
+                                            <div className="flex items-center min-w-0 gap-2.5">
+                                                <FileText size={16} className="shrink-0 text-muted group-hover:text-white" />
+                                                <span className="truncate text-sm font-medium text-white">{s.name}</span>
+                                            </div>
+                                            <div className="flex gap-1.5 shrink-0">
+                                                <button
+                                                    onClick={() => handleLoadScenario(s)}
+                                                    className="btn btn-primary py-1 px-2.5 text-xs gap-1"
+                                                    title="Carregar Cenário no Dimensionador"
+                                                >
+                                                    <Play size={12} /> Carregar
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteScenario(s.id); }}
+                                                    className="text-muted hover:text-[#e06b6b] p-1 transition-colors"
+                                                    title="Excluir Cenário"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            <div className="flex gap-2 mt-1">
+                                <input
+                                    type="text"
+                                    value={newScenarioName}
+                                    onChange={(e) => setNewScenarioName(e.target.value)}
+                                    placeholder="Nome da Variação (Ex: Vazão Máxima + VFD)..."
+                                    className="input text-xs"
+                                />
+                                <button onClick={handleCreateScenario} className="btn btn-secondary px-3 text-xs shrink-0 text-[#5fd08a] border-[#5fd08a]/40 hover:bg-[#5fd08a]/10" title="Salvar Estado Atual no Projeto">
+                                    <Save size={16} /> Salvar
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center border border-dashed border-[var(--color-divider)] rounded-lg p-6 text-center text-muted text-xs">
+                            Selecione um projeto na coluna à esquerda para visualizar e gerenciar variações e cenários salvos.
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 };

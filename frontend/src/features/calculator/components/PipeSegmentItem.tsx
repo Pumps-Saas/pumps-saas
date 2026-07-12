@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
 import { PipeSection, PipeFitting } from '@/types/engineering';
-import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { FittingsManager } from './FittingsManager';
@@ -18,7 +17,6 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
     const [isExpanded, setIsExpanded] = useState(false);
     const { materials, diameters } = useReferenceStore();
 
-    // Convert reference objects to options
     const materialOptions = Object.entries(materials).map(([name, roughness]) => ({
         label: name,
         value: roughness
@@ -31,14 +29,12 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
             value: d_mm
         }));
 
-    // Handlers
     const handleChange = (field: keyof PipeSection, value: any) => {
         onUpdate(segment.id, { [field]: value });
     };
 
     const handleMaterialChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const roughness = parseFloat(e.target.value);
-        // We could also store the material name if desired
         onUpdate(segment.id, { roughness_mm: roughness, material: e.target.options[e.target.selectedIndex].text });
     };
 
@@ -55,53 +51,54 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
     };
 
     return (
-        <Card className="mb-4 border-l-4 border-l-blue-500">
-            <div className="flex flex-col sm:flex-row justify-between sm:items-start items-stretch gap-3 mb-4">
+        <div className="card border border-[var(--color-divider)] p-4 mb-3.5 bg-[var(--color-bg)]/40 hover:border-white/20 transition-all border-l-4 border-l-[#9184d9]">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center items-stretch gap-3 mb-3.5">
                 <div className="flex-1">
-                    <Input
+                    <input
+                        type="text"
                         value={segment.name}
                         onChange={(e) => handleChange('name', e.target.value)}
-                        placeholder="Segment Name"
-                        className="font-semibold text-lg border-slate-200"
+                        placeholder="Nome do Trecho (Ex: Sucção Principal)"
+                        className="input font-bold text-sm bg-transparent border-[var(--color-divider)]"
                     />
                 </div>
                 <div className="flex space-x-2 items-center justify-end sm:justify-start">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-xs flex items-center text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                        className="text-xs flex items-center text-[#9184d9] bg-[#9184d9]/15 border border-[#9184d9]/30 px-2.5 py-1.5 rounded-lg hover:bg-[#9184d9]/25 transition-colors font-medium"
                     >
-                        <Settings2 size={14} className="mr-1" />
-                        {isExpanded ? 'Hide Advanced' : 'Fittings / Equipment'}
+                        <Settings2 size={13} className="mr-1.5" />
+                        {isExpanded ? 'Ocultar Valvulação' : `Acessórios (${(segment.fittings || []).length}) / Perdas Fixas`}
                         {isExpanded ? <ChevronUp size={14} className="ml-1" /> : <ChevronDown size={14} className="ml-1" />}
                     </button>
-                    <button onClick={() => onRemove(segment.id)} className="text-slate-400 hover:text-red-500">
-                        <Trash2 size={20} />
+                    <button onClick={() => onRemove(segment.id)} className="text-muted hover:text-[#e06b6b] p-1.5 transition-colors" title="Remover Trecho">
+                        <Trash2 size={17} />
                     </button>
                 </div>
             </div>
 
-            <div className={`grid gap-4 ${compact ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'}`}>
+            <div className={`grid gap-3.5 ${compact ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
                 <Input
-                    label="Length (m)"
+                    label="Comprimento (m)"
                     type="number"
                     min="0"
                     value={segment.length_m}
                     onChange={(e) => handleChange('length_m', Math.max(0, parseFloat(e.target.value) || 0))}
                 />
                 <Select
-                    label="Diameter"
-                    options={diameterOptions.length > 0 ? diameterOptions : [{ label: "Loading...", value: 0 }]}
+                    label="Diâmetro Nominal"
+                    options={diameterOptions.length > 0 ? diameterOptions : [{ label: "Carregando...", value: 0 }]}
                     value={segment.diameter_mm}
                     onChange={(e) => handleChange('diameter_mm', parseFloat(e.target.value))}
                 />
                 <Select
-                    label="Material"
-                    options={materialOptions.length > 0 ? materialOptions : [{ label: "Loading...", value: 0 }]}
+                    label="Material da Tubulação"
+                    options={materialOptions.length > 0 ? materialOptions : [{ label: "Carregando...", value: 0 }]}
                     value={segment.roughness_mm}
                     onChange={handleMaterialChange}
                 />
                 <Input
-                    label="Roughness (mm)"
+                    label="Rugosidade (mm)"
                     type="number"
                     min="0"
                     step="0.001"
@@ -111,30 +108,30 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
             </div>
 
             {isExpanded && (
-                <div className="mt-6 pt-4 border-t border-slate-100 space-y-4">
+                <div className="mt-5 pt-4 border-t border-[var(--color-divider)] flex flex-col gap-4 animate-in fade-in duration-200">
 
                     {/* Equipment Loss */}
-                    <div>
-                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                            Fixed Losses
+                    <div className="bg-[var(--color-surface)] p-3.5 rounded-lg border border-[var(--color-divider)]">
+                        <h4 className="text-[11px] font-bold text-[#e0a94b] uppercase tracking-wider mb-2.5">
+                            Perdas de Carga Concentradas Fixas no Trecho
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Input
-                                label="Equipment Head Loss (m)"
+                                label="Perda Fixa / Equipamento (mca)"
                                 type="number"
                                 min="0"
                                 value={segment.equipment_loss_m}
                                 onChange={(e) => handleChange('equipment_loss_m', Math.max(0, parseFloat(e.target.value) || 0))}
-                                helperText="Losses from heat exchangers, filters, etc."
+                                helperText="Perda de carga em trocadores de calor, filtros ou medidores instalados no trecho."
                             />
                         </div>
                     </div>
 
                     {/* Fittings Manager */}
-                    <div>
-                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center">
-                            <Settings2 className="w-3 h-3 mr-1" />
-                            Fittings & Accessories
+                    <div className="bg-[var(--color-surface)] p-3.5 rounded-lg border border-[var(--color-divider)]">
+                        <h4 className="text-[11px] font-bold text-[#9184d9] uppercase tracking-wider mb-2.5 flex items-center">
+                            <Settings2 className="w-3.5 h-3.5 mr-1.5" />
+                            Catálogo de Acessórios & Valvulação (Fator K)
                         </h4>
                         <FittingsManager
                             fittings={segment.fittings || []}
@@ -144,6 +141,6 @@ export const PipeSegmentItem: React.FC<PipeSegmentItemProps> = ({ segment, onUpd
                     </div>
                 </div>
             )}
-        </Card>
+        </div>
     );
 };

@@ -60,6 +60,14 @@ interface SystemStore extends SystemState {
     isCalculating: boolean;
     calculationError: string | null;
     calculateOperatingPoint: () => Promise<void>;
+
+    // UI & Navigation State (Nocturne Handoff)
+    activeView: 'hub' | 'calc' | 'results' | 'pumps' | 'finance' | 'report';
+    setActiveView: (view: 'hub' | 'calc' | 'results' | 'pumps' | 'finance' | 'report') => void;
+    uiLanguage: 'pt' | 'en';
+    setUiLanguage: (lang: 'pt' | 'en') => void;
+    uiTheme: 'dark' | 'light';
+    setUiTheme: (theme: 'dark' | 'light') => void;
 }
 
 const DEFAULT_FLUID: Fluid = {
@@ -108,6 +116,14 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
     operatingPoint: null,
     isCalculating: false,
     calculationError: null,
+
+    // UI & Navigation State defaults
+    activeView: 'calc',
+    setActiveView: (view) => set({ activeView: view }),
+    uiLanguage: 'pt',
+    setUiLanguage: (lang) => set({ uiLanguage: lang }),
+    uiTheme: 'dark',
+    setUiTheme: (theme) => set({ uiTheme: theme }),
 
     setFluid: (fluid) => set({ fluid }),
     setStaticHead: (head) => set({ static_head: head }),

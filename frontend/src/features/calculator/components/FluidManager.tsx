@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Save } from 'lucide-react';
+import { Trash2, Save, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 
 import { useSystemStore } from '../stores/useSystemStore';
 import { useReferenceStore } from '../stores/useReferenceStore';
-import { Card } from '@/components/ui/Card';
 import { api } from '@/api/client';
 import { useToast } from '@/components/ui/Toast';
 
@@ -59,7 +58,7 @@ export const FluidManager: React.FC = () => {
         // Check if Custom
         const custom = customFluids.find(f => f.id.toString() === val);
         if (custom) {
-            applyFluid(custom.name, custom.properties.rho, custom.properties.nu, custom.properties.pv_kpa);
+            applyFluid(custom.name, custom.density, custom.viscosity, custom.vapor_pressure);
         }
     };
 
@@ -69,137 +68,143 @@ export const FluidManager: React.FC = () => {
         setRho(r);
         setNu(n);
         setPv(p);
-        setIsCustom(false);
     };
 
     const handleSaveCustom = async () => {
-        if (!customName) {
-            addToast("Please enter a name", 'warning');
-            return;
-        }
-        if (rho <= 0) {
-            addToast("Density must be positive", 'warning');
-            return;
-        }
-        if (nu < 0) {
-            addToast("Viscosity cannot be negative", 'warning');
-            return;
-        }
-        if (pv < 0) {
-            addToast("Vapor pressure cannot be negative", 'warning');
+        if (!customName || rho <= 0 || nu < 0) {
+            addToast("Please provide valid fluid properties.", "error");
             return;
         }
 
         try {
-            await api.fluids.create({
+            const payload = {
                 name: customName,
-                properties: { rho, nu, pv_kpa: pv }
-            });
-            addToast("Custom Fluid Saved!", 'success');
-            loadCustomFluids();
+                density: rho,
+                viscosity: nu,
+                vapor_pressure: pv
+            };
+            const res = await api.fluids.create(payload);
+            setCustomFluids([...customFluids, res.data]);
+            applyFluid(res.data.name, res.data.density, res.data.viscosity, res.data.vapor_pressure);
             setIsCustom(false);
-        } catch (error: any) {
-            console.error("Failed to save fluid", error);
-            addToast(`Failed to save: ${error.response?.data?.detail || error.message}`, 'error');
+            addToast("Fluido customizado salvo com sucesso!", "success");
+        } catch (error) {
+            console.error("Failed to save custom fluid", error);
+            addToast("Erro ao salvar fluido customizado.", "error");
         }
     };
 
     const handleDeleteCustom = async (id: number, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm("Delete this custom fluid?")) return;
+        if (!window.confirm("Are you sure you want to delete this custom fluid?")) return;
         try {
             await api.fluids.delete(id);
-            loadCustomFluids();
-            if (activeCustomId === id.toString()) setSelectedStandard(""); // Clear selection if deleted
+            setCustomFluids(customFluids.filter(f => f.id !== id));
+            addToast("Custom fluid deleted.", "info");
+            // Reset to Water if deleted was active
+            if (standardFluids["Water (20°C)"]) {
+                const w = standardFluids["Water (20°C)"];
+                applyFluid("Water (20°C)", w.rho, w.nu, w.pv_kpa);
+            }
         } catch (error) {
-            console.error("Failed to delete", error);
+            console.error("Failed to delete custom fluid", error);
+            addToast("Failed to delete custom fluid.", "error");
         }
     };
 
-    // Prepare Options
-    // Note: Select component handles simple options. For groups we might need native select or improve UI component.
-    // For now, let's prefix custom fluids to differentiate.
+    // Prepare options list
+    const standardOptions = Object.keys(standardFluids).map(key => ({
+        label: `${key} (ρ: ${standardFluids[key].rho})`,
+        value: key
+    }));
+
+    const customOptions = customFluids.map(f => ({
+        label: `* ${f.name} (ρ: ${f.density})`,
+        value: f.id.toString()
+    }));
+
     const allOptions = [
-        { label: "--- Standard Fluids ---", value: "", disabled: true },
-        ...Object.keys(standardFluids).map(key => ({ label: key, value: key })),
-        { label: "--- My Custom Fluids ---", value: "", disabled: true },
-        ...customFluids.map(f => ({ label: f.name, value: f.id.toString() }))
+        ...standardOptions,
+        ...(customOptions.length > 0 ? [{ label: "--- Custom Fluids ---", value: "", disabled: true }] : []),
+        ...customOptions
     ];
 
-    const activeCustomId = customFluids.find(f => f.name === currentFluid.name && f.properties.rho === currentFluid.rho)?.id.toString();
+    const activeCustomId = customFluids.find(f => f.name === currentFluid.name)?.id?.toString();
     const activeValue = standardFluids[currentFluid.name] ? currentFluid.name : (activeCustomId || "");
 
     return (
-        <Card title="Fluid Properties" className="h-full">
-            <div className="space-y-4">
-                <div className="flex gap-2">
-                    <div className="flex-1">
-                        <Select
-                            label="Select Fluid"
-                            options={[{ label: "Select...", value: "" }, ...allOptions]}
-                            value={activeValue}
-                            onChange={handleDoSelection}
-                            disabled={isCustom}
-                        />
-                    </div>
-                    <div className="flex items-end pb-1">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsCustom(!isCustom)}
-                            className={isCustom ? "bg-blue-50 border-blue-200 text-blue-700" : ""}
-                        >
-                            {isCustom ? "Cancel" : "New"}
-                        </Button>
-                    </div>
+        <div className="flex flex-col gap-3.5 text-[var(--color-text)]">
+            <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                    <Select
+                        label="Selecionar Fluido da Biblioteca"
+                        options={[{ label: "Selecione o fluido...", value: "" }, ...allOptions]}
+                        value={activeValue}
+                        onChange={handleDoSelection}
+                        disabled={isCustom}
+                    />
                 </div>
-
-                {/* Display Current or Edit Custom */}
-                <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-md border border-slate-100">
-                    {isCustom ? (
-                        <>
-                            <div className="col-span-2">
-                                <Input label="Name" value={customName} onChange={e => setCustomName(e.target.value)} />
-                            </div>
-                            <Input label="Density (kg/m³)" type="number" min="0.001" step="0.1" value={rho} onChange={e => setRho(parseFloat(e.target.value))} />
-                            <Input label="Viscosity (m²/s)" type="number" min="0" step="1e-7" value={nu} onChange={e => setNu(parseFloat(e.target.value))} />
-                            <Input label="Vapor Press. (kPa)" type="number" min="0" step="0.01" value={pv} onChange={e => setPv(parseFloat(e.target.value))} />
-                            <div className="col-span-2 pt-2">
-                                <Button size="sm" onClick={handleSaveCustom} className="w-full" icon={<Save size={16} />}>
-                                    Save to Library
-                                </Button>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="col-span-2 flex justify-between items-start border-b border-slate-200 pb-1 mb-1">
-                                <div className="font-semibold text-slate-700">{currentFluid.name}</div>
-                                {activeCustomId && (
-                                    <button
-                                        onClick={(e) => handleDeleteCustom(parseInt(activeCustomId), e)}
-                                        className="text-gray-400 hover:text-red-500"
-                                        title="Delete from Library"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                )}
-                            </div>
-                            <div>
-                                <span className="text-xs text-slate-500 block">Density</span>
-                                <span className="font-mono text-sm">{currentFluid.rho} kg/m³</span>
-                            </div>
-                            <div>
-                                <span className="text-xs text-slate-500 block">Viscosity</span>
-                                <span className="font-mono text-sm">{currentFluid.nu.toExponential(2)} m²/s</span>
-                            </div>
-                            <div className="col-span-2">
-                                <span className="text-xs text-slate-500 block">Vapor Pressure (Abs)</span>
-                                <span className="font-mono text-sm">{currentFluid.pv_kpa} kPa</span>
-                            </div>
-                        </>
-                    )}
+                <div>
+                    <Button
+                        variant="secondary"
+                        size="md"
+                        onClick={() => setIsCustom(!isCustom)}
+                        className={isCustom ? "border-[#e06b6b]/40 text-[#e06b6b]" : "border-[#9184d9]/40 text-[#9184d9]"}
+                        icon={isCustom ? <X size={15} /> : <Plus size={15} />}
+                    >
+                        {isCustom ? "Cancelar" : "Customizado"}
+                    </Button>
                 </div>
             </div>
-        </Card>
+
+            {/* Display Current or Edit Custom */}
+            <div className="grid grid-cols-2 gap-3 bg-[var(--color-bg)]/60 p-3.5 rounded-lg border border-[var(--color-divider)]">
+                {isCustom ? (
+                    <>
+                        <div className="col-span-2">
+                            <Input label="Nome do Fluido" value={customName} onChange={e => setCustomName(e.target.value)} />
+                        </div>
+                        <Input label="Massa Específica ρ (kg/m³)" type="number" min="0.001" step="0.1" value={rho} onChange={e => setRho(parseFloat(e.target.value))} />
+                        <Input label="Viscosidade Cinemática ν (m²/s)" type="number" min="0" step="1e-7" value={nu} onChange={e => setNu(parseFloat(e.target.value))} />
+                        <Input label="Pressão de Vapor Pv (kPa abs)" type="number" min="0" step="0.01" value={pv} onChange={e => setPv(parseFloat(e.target.value))} />
+                        <div className="col-span-2 pt-2">
+                            <Button size="md" onClick={handleSaveCustom} className="w-full bg-[#5fd08a] text-[#161826] hover:bg-[#4ebe78] font-bold" icon={<Save size={16} />}>
+                                Salvar na Biblioteca Customizada
+                            </Button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="col-span-2 flex justify-between items-center border-b border-[var(--color-divider)] pb-2 mb-1">
+                            <div className="font-bold text-white text-sm flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-[#5fd08a]"></span>
+                                {currentFluid.name}
+                            </div>
+                            {activeCustomId && (
+                                <button
+                                    onClick={(e) => handleDeleteCustom(parseInt(activeCustomId), e)}
+                                    className="text-muted hover:text-[#e06b6b] p-1 transition-colors"
+                                    title="Excluir da Biblioteca Customizada"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            )}
+                        </div>
+                        <div>
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted block">Massa Específica (ρ)</span>
+                            <span className="font-mono text-sm text-white font-semibold">{currentFluid.rho} kg/m³</span>
+                        </div>
+                        <div>
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted block">Viscosidade (ν)</span>
+                            <span className="font-mono text-sm text-white font-semibold">{currentFluid.nu.toExponential(2)} m²/s</span>
+                        </div>
+                        <div className="col-span-2">
+                            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted block">Pressão de Vapor Absoluta (Pv)</span>
+                            <span className="font-mono text-sm text-white font-semibold">{currentFluid.pv_kpa} kPa</span>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
     );
 };

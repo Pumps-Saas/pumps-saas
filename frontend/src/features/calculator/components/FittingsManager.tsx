@@ -57,31 +57,31 @@ export const FittingsManager: React.FC<FittingsManagerProps> = ({ fittings, onAd
     }));
 
     return (
-        <div className="space-y-4">
-            <div className="bg-white p-3 rounded-md border border-slate-200">
-                <h5 className="text-xs font-semibold text-slate-500 mb-2 uppercase">Add New Fitting</h5>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+        <div className="flex flex-col gap-3.5 text-[var(--color-text)]">
+            <div className="bg-[var(--color-bg)]/60 p-3.5 rounded-lg border border-[var(--color-divider)]">
+                <h5 className="text-[11px] font-bold text-muted mb-2.5 uppercase tracking-wider">Adicionar Acessório / Valvulação</h5>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-end">
 
-                    <div className="md:col-span-12 flex gap-2 mb-2">
+                    <div className="md:col-span-12 flex gap-2 mb-1">
                         <button
-                            className={`text-xs px-2 py-1 rounded ${!isCustom ? 'bg-blue-100 text-blue-700' : 'text-slate-500'}`}
+                            className={`text-xs px-2.5 py-1 rounded transition-colors ${!isCustom ? 'bg-[#9184d9]/20 text-[#9184d9] font-bold border border-[#9184d9]/40' : 'text-muted hover:text-white'}`}
                             onClick={() => setIsCustom(false)}
                         >
-                            Standard
+                            Normatizado (Biblioteca)
                         </button>
                         <button
-                            className={`text-xs px-2 py-1 rounded ${isCustom ? 'bg-blue-100 text-blue-700' : 'text-slate-500'}`}
+                            className={`text-xs px-2.5 py-1 rounded transition-colors ${isCustom ? 'bg-[#9184d9]/20 text-[#9184d9] font-bold border border-[#9184d9]/40' : 'text-muted hover:text-white'}`}
                             onClick={() => setIsCustom(true)}
                         >
-                            Custom
+                            Customizado (Manual)
                         </button>
                     </div>
 
                     {!isCustom ? (
                         <div className="md:col-span-6">
                             <Select
-                                label="Type"
-                                options={[{ label: "Select...", value: "" }, ...standardsOptions]}
+                                label="Tipo de Acessório"
+                                options={[{ label: "Selecione...", value: "" }, ...standardsOptions]}
                                 value={selectedStandard}
                                 onChange={(e) => setSelectedStandard(e.target.value)}
                             />
@@ -90,15 +90,15 @@ export const FittingsManager: React.FC<FittingsManagerProps> = ({ fittings, onAd
                         <>
                             <div className="md:col-span-4">
                                 <Input
-                                    label="Name"
+                                    label="Nome"
                                     value={customName}
                                     onChange={(e) => setCustomName(e.target.value)}
-                                    placeholder="Valve X"
+                                    placeholder="Válvula Esfera..."
                                 />
                             </div>
                             <div className="md:col-span-2">
                                 <Input
-                                    label="K Factor"
+                                    label="Fator K"
                                     type="number"
                                     value={customK}
                                     onChange={(e) => setCustomK(parseFloat(e.target.value))}
@@ -109,7 +109,7 @@ export const FittingsManager: React.FC<FittingsManagerProps> = ({ fittings, onAd
 
                     <div className="md:col-span-3">
                         <Input
-                            label="Qty"
+                            label="Qtd"
                             type="number"
                             min="1"
                             value={quantity}
@@ -119,13 +119,13 @@ export const FittingsManager: React.FC<FittingsManagerProps> = ({ fittings, onAd
 
                     <div className="md:col-span-3">
                         <Button
-                            size="sm"
+                            size="md"
                             onClick={handleAdd}
-                            className="w-full"
+                            className="w-full bg-[#9184d9] text-white hover:bg-[#796cbf]"
                             disabled={!isCustom && !selectedStandard}
                             icon={<Plus size={14} />}
                         >
-                            Add
+                            Adicionar
                         </Button>
                     </div>
                 </div>
@@ -133,36 +133,36 @@ export const FittingsManager: React.FC<FittingsManagerProps> = ({ fittings, onAd
 
             {/* List */}
             {fittings.length > 0 && (
-                <div className="border rounded-md overflow-hidden">
-                    <table className="min-w-full text-xs text-left">
-                        <thead className="bg-slate-50 font-medium text-slate-500">
+                <div className="border border-[var(--color-divider)] rounded-lg overflow-hidden">
+                    <table className="table">
+                        <thead>
                             <tr>
-                                <th className="px-3 py-2">Item</th>
-                                <th className="px-3 py-2">K</th>
-                                <th className="px-3 py-2">Qty</th>
-                                <th className="px-3 py-2">Total K</th>
-                                <th className="px-3 py-2"></th>
+                                <th>Item</th>
+                                <th>K Unit.</th>
+                                <th>Qtd</th>
+                                <th className="text-white">Total K</th>
+                                <th></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody>
                             {fittings.map((f, idx) => (
                                 <tr key={idx}>
-                                    <td className="px-3 py-2 font-medium">{f.name}</td>
-                                    <td className="px-3 py-2 text-slate-500">{f.k}</td>
-                                    <td className="px-3 py-2">{f.quantity}</td>
-                                    <td className="px-3 py-2 font-bold text-slate-700">{(f.k * f.quantity).toFixed(2)}</td>
-                                    <td className="px-3 py-2 text-right">
-                                        <button onClick={() => onRemove(idx)} className="text-slate-400 hover:text-red-500">
+                                    <td className="font-medium text-white">{f.name}</td>
+                                    <td className="text-muted">{f.k}</td>
+                                    <td>{f.quantity}</td>
+                                    <td className="font-bold text-[#9184d9]">{(f.k * f.quantity).toFixed(2)}</td>
+                                    <td className="text-right">
+                                        <button onClick={() => onRemove(idx)} className="text-muted hover:text-[#e06b6b] p-1 transition-colors">
                                             <Trash2 size={14} />
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
-                        <tfoot className="bg-slate-50 font-semibold text-slate-700">
-                            <tr>
-                                <td colSpan={3} className="px-3 py-2 text-right">Total K:</td>
-                                <td className="px-3 py-2 text-blue-600">
+                        <tfoot>
+                            <tr className="bg-[var(--color-bg)] font-bold">
+                                <td colSpan={3} className="text-right text-muted py-2.5 px-3">Soma Total do Fator K:</td>
+                                <td className="text-[#5fd08a] text-sm py-2.5 px-3">
                                     {fittings.reduce((acc, f) => acc + (f.k * f.quantity), 0).toFixed(2)}
                                 </td>
                                 <td></td>

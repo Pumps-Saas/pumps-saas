@@ -52,9 +52,9 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
         emptyMessage: string,
         compact: boolean = false
     ) => (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-3">
             {sections.length === 0 && (
-                <div className="text-center py-4 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200 text-slate-400 text-sm">
+                <div className="text-center py-5 bg-[var(--color-bg)]/40 rounded-lg border border-dashed border-[var(--color-divider)] text-muted text-xs italic">
                     {emptyMessage}
                 </div>
             )}
@@ -72,82 +72,94 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
 
     if (type === 'suction') {
         return (
-            <div className="space-y-4">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-medium text-slate-800">Suction Side</h3>
+            <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center mb-1">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#e0a94b]"></span>
+                        Tubulação de Sucção (Aspiração da Bomba)
+                    </h3>
                     <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => addSuction(createDefaultSection(`Suction ${suctionSections.length + 1}`))}
-                        icon={<Plus size={16} />}
+                        variant="secondary"
+                        onClick={() => addSuction(createDefaultSection(`Sucção ${suctionSections.length + 1}`))}
+                        icon={<Plus size={14} />}
+                        className="text-[#5fd08a] border-[#5fd08a]/30 hover:bg-[#5fd08a]/10"
                     >
-                        Add Section
+                        Adicionar Trecho
                     </Button>
                 </div>
-                {renderSections(suctionSections, updateSuction, removeSuction, "No suction sections defined.")}
+                {renderSections(suctionSections, updateSuction, removeSuction, "Nenhum trecho de sucção cadastrado. Clique no botão acima para inserir a tubulação.")}
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
+        <div className="flex flex-col gap-6">
             {/* Discharge Before Junction */}
-            <div className="space-y-4">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-medium text-slate-800">Discharge (Main Line)</h3>
+            <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center mb-1">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#9184d9]"></span>
+                        Recalque Principal (Antes da Bifurcação/Paralelo)
+                    </h3>
                     <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => addDischargeBefore(createDefaultSection(`Main ${dischargeBefore.length + 1}`))}
-                        icon={<Plus size={16} />}
+                        variant="secondary"
+                        onClick={() => addDischargeBefore(createDefaultSection(`Recalque Inicial ${dischargeBefore.length + 1}`))}
+                        icon={<Plus size={14} />}
+                        className="text-[#5fd08a] border-[#5fd08a]/30 hover:bg-[#5fd08a]/10"
                     >
-                        Add Section
+                        Adicionar Trecho
                     </Button>
                 </div>
-                {renderSections(dischargeBefore, updateDischargeBefore, removeDischargeBefore, "No main discharge sections defined.")}
+                {renderSections(dischargeBefore, updateDischargeBefore, removeDischargeBefore, "Nenhum trecho inicial de recalque cadastrado.")}
             </div>
 
             {/* Parallel Branches */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="bg-[var(--color-bg)]/40 p-4 rounded-xl border border-[var(--color-divider)]">
                 <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-2">
-                        <GitBranch className="text-blue-600" />
-                        <h3 className="text-lg font-medium text-slate-800">Parallel Branches</h3>
+                    <div className="flex items-center gap-2 text-white font-bold text-sm">
+                        <GitBranch className="text-[#9184d9] w-4 h-4" />
+                        <span>Bifurcações e Ramais em Paralelo</span>
                     </div>
                     <Button
                         size="sm"
-                        onClick={() => addParallelBranch(`Branch ${Object.keys(dischargeParallel).length + 1}`)}
-                        icon={<Plus size={16} />}
+                        onClick={() => addParallelBranch(`Ramal ${Object.keys(dischargeParallel).length + 1}`)}
+                        icon={<Plus size={14} />}
+                        className="bg-[#9184d9] text-white hover:bg-[#796cbf]"
                     >
-                        Add Branch
+                        Criar Ramal Paralelo
                     </Button>
                 </div>
 
                 {Object.keys(dischargeParallel).length === 0 && (
-                    <div className="text-center py-4 text-slate-400 text-sm">
-                        No parallel branches. Flow is single-path.
+                    <div className="text-center py-4 text-muted text-xs italic">
+                        Nenhum ramal em paralelo configurado. O escoamento segue em linha única principal.
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 gap-5 mt-3">
                     {Object.entries(dischargeParallel).map(([branchName, sections]) => (
-                        <div key={branchName} className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-                            <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-                                <h4 className="font-semibold text-slate-700">{branchName}</h4>
+                        <div key={branchName} className="card border border-[var(--color-divider)] p-4 bg-[var(--color-surface)] shadow-md">
+                            <div className="flex justify-between items-center mb-3.5 pb-2.5 border-b border-[var(--color-divider)]">
+                                <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                                    <GitBranch className="w-3.5 h-3.5 text-[#5fd08a]" />
+                                    {branchName}
+                                </h4>
                                 <div className="flex gap-2">
                                     <Button
                                         size="sm"
-                                        variant="outline"
-                                        className="h-7 px-2 text-xs"
-                                        onClick={() => addSectionToBranch(branchName, createDefaultSection(`${branchName} - Sec ${sections.length + 1}`))}
-                                        title="Add Section to Branch"
+                                        variant="secondary"
+                                        className="h-7 px-2.5 text-xs text-[#5fd08a] border-[#5fd08a]/30 hover:bg-[#5fd08a]/10"
+                                        onClick={() => addSectionToBranch(branchName, createDefaultSection(`${branchName} - Trecho ${sections.length + 1}`))}
+                                        title="Adicionar Trecho a Este Ramal"
                                     >
-                                        <Plus size={14} />
+                                        <Plus size={13} className="mr-1" /> Trecho
                                     </Button>
                                     <button
                                         onClick={() => removeParallelBranch(branchName)}
-                                        className="text-slate-400 hover:text-red-500 p-1"
-                                        title="Remove Branch"
+                                        className="text-muted hover:text-[#e06b6b] p-1 transition-colors"
+                                        title="Excluir Ramal Paralelo"
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -157,8 +169,8 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
                                 sections,
                                 (id, s) => updateSectionInBranch(branchName, id, s),
                                 (id) => removeSectionFromBranch(branchName, id),
-                                "Empty branch.",
-                                false // Regular mode for parallel branches (User requested bigger inputs)
+                                "Ramal paralelo vazio. Adicione um trecho no botão acima.",
+                                false
                             )}
                         </div>
                     ))}
@@ -166,19 +178,23 @@ export const PipeSegmentManager: React.FC<PipeSegmentManagerProps> = ({ type }) 
             </div>
 
             {/* Discharge After Junction */}
-            <div className="space-y-4">
-                <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-medium text-slate-800">Discharge (Final Line)</h3>
+            <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center mb-1">
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#5fd08a]"></span>
+                        Recalque Final (Após Junção / Linha de Entrega)
+                    </h3>
                     <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => addDischargeAfter(createDefaultSection(`Final ${dischargeAfter.length + 1}`))}
-                        icon={<Plus size={16} />}
+                        variant="secondary"
+                        onClick={() => addDischargeAfter(createDefaultSection(`Recalque Final ${dischargeAfter.length + 1}`))}
+                        icon={<Plus size={14} />}
+                        className="text-[#5fd08a] border-[#5fd08a]/30 hover:bg-[#5fd08a]/10"
                     >
-                        Add Section
+                        Adicionar Trecho
                     </Button>
                 </div>
-                {renderSections(dischargeAfter, updateDischargeAfter, removeDischargeAfter, "No final discharge sections defined.")}
+                {renderSections(dischargeAfter, updateDischargeAfter, removeDischargeAfter, "Nenhum trecho de entrega final cadastrado.")}
             </div>
         </div>
     );
