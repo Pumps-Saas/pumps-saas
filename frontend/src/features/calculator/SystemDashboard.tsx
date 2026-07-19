@@ -424,42 +424,25 @@ export const SystemDashboard: React.FC = () => {
                     </div>
 
                     {/* DIREITA: Botoeira Principal, Destaques em Tempo Real & Diagrama Sticky */}
-                    <div className="lg:col-span-5 flex flex-col gap-5 lg:sticky lg:top-20">
+                    <div className="lg:col-span-5 flex flex-col gap-5">
                         
-                        {/* Botoeira de Ação e Status */}
-                        <div className="card border border-[var(--color-divider)] p-4 flex flex-col sm:flex-row gap-3 items-center justify-between bg-gradient-to-r from-[#232532] to-[#262a60]">
-                            <div>
-                                <div className="text-sm font-bold text-white flex items-center gap-2">
-                                    <Activity className="w-4 h-4 text-[#5fd08a]" />
-                                    <span>Motor Hidráulico Integrado</span>
-                                </div>
-                                <div className="text-xs text-muted mt-0.5">Pressão atmosférica calculada: <strong className="text-white">{pAtm.toFixed(3)} bar</strong></div>
-                            </div>
-
-                            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-                                {result && (
-                                    <button onClick={handleGeneratePDF} className="btn btn-secondary text-xs shrink-0 border-[#9184d9]/40 hover:bg-[#9184d9]/10 text-white">
-                                        <FileText className="w-3.5 h-3.5 text-[#9184d9]" /> PDF
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => calculate()}
-                                    disabled={isCalculating}
-                                    className="btn btn-primary bg-[#9184d9] text-white hover:bg-[#796cbf] font-bold py-2 px-5 text-sm shadow-lg w-full sm:w-auto flex items-center justify-center gap-2"
-                                >
-                                    {isCalculating ? <Sparkles className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-                                    <span>{uiLanguage === 'pt' ? 'Calcular Ponto' : 'Calculate'}</span>
-                                </button>
-                            </div>
-                        </div>
-
                         {/* Diagrama 2D Dinâmico do Sistema (Print 1) */}
-                        <div className="card border border-[var(--color-divider)] p-4">
+                        <div className="card border border-[var(--color-divider)] p-4 flex-1 flex flex-col">
                             <div className="flex items-center justify-between border-b border-[var(--color-divider)] pb-2.5 mb-3">
                                 <span className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
                                     <LayoutGrid className="w-4 h-4 text-[#9184d9]" /> Diagrama do Sistema
                                 </span>
-                                <span className="tag tag-accent text-[10px]">Dinâmico</span>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px] text-muted hidden sm:inline-block">P. Atm: {pAtm.toFixed(3)} bar</span>
+                                    <button
+                                        onClick={() => calculate()}
+                                        disabled={isCalculating}
+                                        className="btn btn-primary bg-[#9184d9] text-white hover:bg-[#796cbf] font-bold py-1.5 px-4 text-xs shadow-lg flex items-center justify-center gap-2"
+                                    >
+                                        {isCalculating ? <Sparkles className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+                                        <span>{uiLanguage === 'pt' ? 'Calcular Ponto' : 'Calculate'}</span>
+                                    </button>
+                                </div>
                             </div>
                             <SystemSchematic result={result} />
                         </div>

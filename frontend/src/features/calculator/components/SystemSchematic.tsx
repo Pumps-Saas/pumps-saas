@@ -111,10 +111,10 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
     };
 
     return (
-        <div className="w-full bg-[var(--color-surface)] rounded-xl border border-[var(--color-divider)] p-4 relative overflow-hidden">
+        <div className="w-full bg-[var(--color-surface)] rounded-xl border border-[var(--color-divider)] p-4 relative overflow-hidden flex flex-col justify-center">
             <style dangerouslySetInnerHTML={{ __html: `
                 @keyframes bmbFlow {
-                    from { stroke-dashoffset: 24; }
+                    from { stroke-dashoffset: 40; }
                     to { stroke-dashoffset: 0; }
                 }
                 @keyframes bmbSpin {
@@ -125,37 +125,36 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                     animation: bmbFlow 1.2s linear infinite;
                 }
                 .pump-spinning {
-                    transform-origin: 220px 210px;
+                    transform-origin: 340px 510px;
                     animation: bmbSpin 3.5s linear infinite;
                 }
             `}} />
 
             <svg 
-                viewBox="0 0 520 275" 
+                viewBox="0 0 900 650" 
                 className="w-full h-auto block select-none"
-                style={{ maxHeight: printMode ? '240px' : '300px' }}
             >
                 {/* 1. SUCTION TANK */}
-                <rect x={15} y={165} width={70} height={70} rx={4} fill="none" stroke="var(--color-neutral-600, #75798c)" strokeWidth={1.5} />
-                <rect x={17} y={190} width={66} height={43} fill="color-mix(in srgb, #9184d9 22%, transparent)" />
-                <text x={50} y={248} fill="var(--color-neutral-500, #75798c)" fontSize={9} textAnchor="middle" fontWeight="600">Sucção</text>
+                <rect x={20} y={430} width={100} height={100} rx={6} fill="none" stroke="var(--color-neutral-600, #75798c)" strokeWidth={2} />
+                <rect x={22} y={470} width={96} height={58} fill="color-mix(in srgb, #9184d9 22%, transparent)" />
+                <text x={70} y={555} fill="var(--color-neutral-500, #75798c)" fontSize={14} textAnchor="middle" fontWeight="600">Sucção</text>
 
                 {/* 2. DISCHARGE TANK */}
-                <rect x={430} y={25} width={70} height={65} rx={4} fill="none" stroke="var(--color-neutral-600, #75798c)" strokeWidth={1.5} />
-                <rect x={432} y={40} width={66} height={48} fill="color-mix(in srgb, #9184d9 22%, transparent)" />
-                <text x={465} y={102} fill="var(--color-neutral-500, #75798c)" fontSize={9} textAnchor="middle" fontWeight="600">Recalque</text>
+                <rect x={780} y={20} width={100} height={100} rx={6} fill="none" stroke="var(--color-neutral-600, #75798c)" strokeWidth={2} />
+                <rect x={782} y={60} width={96} height={58} fill="color-mix(in srgb, #9184d9 22%, transparent)" />
+                <text x={830} y={145} fill="var(--color-neutral-500, #75798c)" fontSize={14} textAnchor="middle" fontWeight="600">Recalque</text>
 
                 {/* 3. PUMP SYMBOL */}
-                <circle cx={220} cy={210} r={22} fill="var(--color-surface, #161826)" stroke="#9184d9" strokeWidth={2} />
+                <circle cx={340} cy={510} r={42} fill="var(--color-surface, #161826)" stroke="#9184d9" strokeWidth={3.5} />
                 <g className={printMode ? '' : 'pump-spinning'}>
-                    <path d="M 220 196 A 14 14 0 0 1 232 218 M 220 196 A 14 14 0 0 0 208 218 M 220 196 L 220 210" fill="none" stroke="#9184d9" strokeWidth={2} />
+                    <path d="M 340 484 A 26 26 0 0 1 362 526 M 340 484 A 26 26 0 0 0 318 526 M 340 484 L 340 510" fill="none" stroke="#9184d9" strokeWidth={3.5} />
                 </g>
-                <text x={220} y={246} fill="#9184d9" fontSize={9} textAnchor="middle" fontWeight="700" letterSpacing="0.05em">BOMBA</text>
+                <text x={340} y={575} fill="#9184d9" fontSize={14} textAnchor="middle" fontWeight="700" letterSpacing="0.05em">BOMBA</text>
 
                 {/* 4. SUCTION PIPE SERIES & REDUCTIONS */}
                 {(() => {
-                    const startX = 85;
-                    const endX = 198;
+                    const startX = 120;
+                    const endX = 298;
                     const totalWidth = endX - startX;
                     const count = Math.max(suctionSections.length, 1);
                     const segWidth = totalWidth / count;
@@ -164,24 +163,31 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                         const sx = startX + idx * segWidth;
                         const ex = startX + (idx + 1) * segWidth;
                         const cx = (sx + ex) / 2;
+                        // Alternate badge position up and down for horizontal pipes to avoid overlap
+                        const cy = idx % 2 === 0 ? 435 : 585;
                         const { v, loss } = getSectionMetrics(sec);
                         const nextSec = suctionSections[idx + 1];
 
                         return (
                             <g key={`suc-${sec.id || idx}`}>
-                                <path d={`M ${sx} 210 L ${ex} 210`} fill="none" stroke="#9184d9" strokeWidth={3} strokeDasharray="8 4" className={printMode ? '' : 'flow-animated'} />
-                                {nextSec && renderReductionCone(ex, 210, sec.diameter_mm, nextSec.diameter_mm, false)}
+                                <path d={`M ${sx} 510 L ${ex} 510`} fill="none" stroke="#9184d9" strokeWidth={4} strokeDasharray="12 6" className={printMode ? '' : 'flow-animated'} />
+                                {nextSec && renderReductionCone(ex, 510, sec.diameter_mm, nextSec.diameter_mm, false)}
                                 {/* Section label badge */}
-                                <rect x={cx - 36} y={166} width={72} height={36} rx={4} fill="#1e2030" stroke="#9184d9" strokeWidth={0.8} />
-                                <text x={cx} y={176} fill="#ffffff" fontSize={7.5} textAnchor="middle" fontWeight="600">
+                                <rect x={cx - 72} y={cy - 43} width={144} height={86} rx={6} fill="#1e2030" stroke="#9184d9" strokeWidth={1.5} />
+                                <text x={cx} y={cy - 22} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
                                     {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
                                 </text>
-                                <text x={cx} y={187} fill={getVelColor(v)} fontSize={7.5} textAnchor="middle" fontWeight="700">
+                                <text x={cx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
+                                    Q: {f(flowM3h, 1)} m³/h
+                                </text>
+                                <text x={cx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
                                     V: {f(v, 2)} m/s
                                 </text>
-                                <text x={cx} y={197} fill="#a7a1db" fontSize={7} textAnchor="middle" fontFamily="monospace">
+                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
                                     Δh: {f(loss, 2)}m
                                 </text>
+                                {/* Connector line to pipe */}
+                                <line x1={cx} y1={idx % 2 === 0 ? cy + 43 : cy - 43} x2={cx} y2={idx % 2 === 0 ? 508 : 512} stroke="#9184d9" strokeWidth={1.5} strokeDasharray="2 2" />
                             </g>
                         );
                     });
@@ -189,8 +195,8 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
 
                 {/* 5. DISCHARGE BEFORE SERIES & REDUCTIONS */}
                 {(() => {
-                    const startX = 242;
-                    const endX = 330;
+                    const startX = 382;
+                    const endX = 580;
                     const totalWidth = endX - startX;
                     const count = Math.max(dischargeBefore.length, 1);
                     const segWidth = totalWidth / count;
@@ -199,24 +205,29 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                         const sx = startX + idx * segWidth;
                         const ex = startX + (idx + 1) * segWidth;
                         const cx = (sx + ex) / 2;
+                        const cy = idx % 2 === 0 ? 435 : 585;
                         const { v, loss } = getSectionMetrics(sec);
                         const nextSec = dischargeBefore[idx + 1];
 
                         return (
                             <g key={`db-${sec.id || idx}`}>
-                                <path d={`M ${sx} 210 L ${ex} 210`} fill="none" stroke="#9184d9" strokeWidth={3} strokeDasharray="8 4" className={printMode ? '' : 'flow-animated'} />
-                                {nextSec && renderReductionCone(ex, 210, sec.diameter_mm, nextSec.diameter_mm, false)}
+                                <path d={`M ${sx} 510 L ${ex} 510`} fill="none" stroke="#9184d9" strokeWidth={4} strokeDasharray="12 6" className={printMode ? '' : 'flow-animated'} />
+                                {nextSec && renderReductionCone(ex, 510, sec.diameter_mm, nextSec.diameter_mm, false)}
                                 {/* Section label badge */}
-                                <rect x={cx - 36} y={166} width={72} height={36} rx={4} fill="#1e2030" stroke="#9184d9" strokeWidth={0.8} />
-                                <text x={cx} y={176} fill="#ffffff" fontSize={7.5} textAnchor="middle" fontWeight="600">
+                                <rect x={cx - 72} y={cy - 43} width={144} height={86} rx={6} fill="#1e2030" stroke="#9184d9" strokeWidth={1.5} />
+                                <text x={cx} y={cy - 22} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
                                     {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
                                 </text>
-                                <text x={cx} y={187} fill={getVelColor(v)} fontSize={7.5} textAnchor="middle" fontWeight="700">
+                                <text x={cx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
+                                    Q: {f(flowM3h, 1)} m³/h
+                                </text>
+                                <text x={cx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
                                     V: {f(v, 2)} m/s
                                 </text>
-                                <text x={cx} y={197} fill="#a7a1db" fontSize={7} textAnchor="middle" fontFamily="monospace">
+                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
                                     Δh: {f(loss, 2)}m
                                 </text>
+                                <line x1={cx} y1={idx % 2 === 0 ? cy + 43 : cy - 43} x2={cx} y2={idx % 2 === 0 ? 508 : 512} stroke="#9184d9" strokeWidth={1.5} strokeDasharray="2 2" />
                             </g>
                         );
                     });
@@ -224,66 +235,85 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
 
                 {/* 6. DISCHARGE PARALLEL BRANCHES OR VERTICAL RUN */}
                 {(() => {
-                    const turnX = 330;
+                    const turnX = 580;
                     if (parallelCount === 0) {
-                        // Simple single vertical pipe run
                         return (
                             <g>
-                                <path d={`M ${turnX} 210 L ${turnX} 65`} fill="none" stroke="#9184d9" strokeWidth={3} strokeDasharray="8 4" className={printMode ? '' : 'flow-animated'} />
+                                <path d={`M ${turnX} 510 L ${turnX} 110`} fill="none" stroke="#9184d9" strokeWidth={4} strokeDasharray="12 6" className={printMode ? '' : 'flow-animated'} />
                             </g>
                         );
                     }
 
-                    // Multi-branch Manifold Bifurcation
                     const branches = parallelKeys.map(k => ({ key: k, sections: dischargeParallel[k] || [] }));
-                    const spread = Math.min(68, 140 / parallelCount);
+                    const spread = Math.min(180, 320 / parallelCount);
                     const flowFraction = 1 / Math.max(parallelCount, 1);
 
                     return (
                         <g>
                             {/* Bottom Manifold Split Header */}
-                            <path d={`M ${turnX} 210 L ${turnX} 195`} fill="none" stroke="#9184d9" strokeWidth={3} />
+                            <path d={`M ${turnX} 510 L ${turnX} 470`} fill="none" stroke="#9184d9" strokeWidth={4} />
                             {parallelCount > 1 && (
                                 <path 
-                                    d={`M ${turnX - ((parallelCount - 1) * spread) / 2} 195 L ${turnX + ((parallelCount - 1) * spread) / 2} 195`} 
-                                    fill="none" stroke="#9184d9" strokeWidth={2.5} 
+                                    d={`M ${turnX - ((parallelCount - 1) * spread) / 2} 470 L ${turnX + ((parallelCount - 1) * spread) / 2} 470`} 
+                                    fill="none" stroke="#9184d9" strokeWidth={4} 
                                 />
                             )}
-                            <circle cx={turnX} cy={195} r={4} fill="#e0a94b" />
-                            <text x={turnX - 10} y={226} fill="#e0a94b" fontSize={7.5} textAnchor="end" fontWeight="700">
+                            <circle cx={turnX} cy={470} r={6} fill="#e0a94b" />
+                            <text x={turnX - 16} y={500} fill="#e0a94b" fontSize={14} textAnchor="end" fontWeight="700">
                                 Bifurcação ({parallelCount} Ramais)
                             </text>
 
                             {/* Top Manifold Join Header */}
-                            <path d={`M ${turnX} 80 L ${turnX} 65`} fill="none" stroke="#9184d9" strokeWidth={3} />
+                            <path d={`M ${turnX} 150 L ${turnX} 110`} fill="none" stroke="#9184d9" strokeWidth={4} />
                             {parallelCount > 1 && (
                                 <path 
-                                    d={`M ${turnX - ((parallelCount - 1) * spread) / 2} 80 L ${turnX + ((parallelCount - 1) * spread) / 2} 80`} 
-                                    fill="none" stroke="#9184d9" strokeWidth={2.5} 
+                                    d={`M ${turnX - ((parallelCount - 1) * spread) / 2} 150 L ${turnX + ((parallelCount - 1) * spread) / 2} 150`} 
+                                    fill="none" stroke="#9184d9" strokeWidth={4} 
                                 />
                             )}
-                            <circle cx={turnX} cy={80} r={4} fill="#5fd08a" />
+                            <circle cx={turnX} cy={150} r={6} fill="#5fd08a" />
 
                             {/* Individual Parallel Branches */}
                             {branches.map((br, bIdx) => {
                                 const bx = turnX + (bIdx - (parallelCount - 1) / 2) * spread;
-                                const firstSec = br.sections[0] || { diameter_mm: 50, length_m: 10, id: `br-${bIdx}` };
-                                const { v, loss } = getSectionMetrics(firstSec, flowFraction);
+                                const branchHeight = 320; // from 470 to 150
+                                const count = Math.max(br.sections.length, 1);
+                                const secHeight = branchHeight / count;
 
                                 return (
                                     <g key={`branch-${br.key}`}>
-                                        <path d={`M ${bx} 195 L ${bx} 80`} fill="none" stroke="#9184d9" strokeWidth={2.2} strokeDasharray="6 3" className={printMode ? '' : 'flow-animated'} />
-                                        {/* Branch info badge */}
-                                        <rect x={bx - 32} y={122} width={64} height={38} rx={4} fill="#161826" stroke="#9184d9" strokeWidth={1} />
-                                        <text x={bx} y={132} fill="#ffffff" fontSize={7} textAnchor="middle" fontWeight="600">
-                                            R{bIdx + 1}: {getNominalLabel(firstSec.diameter_mm)}
-                                        </text>
-                                        <text x={bx} y={143} fill={getVelColor(v)} fontSize={7.5} textAnchor="middle" fontWeight="700">
-                                            V: {f(v, 2)} m/s
-                                        </text>
-                                        <text x={bx} y={154} fill="#a7a1db" fontSize={7} textAnchor="middle" fontFamily="monospace">
-                                            Δh: {f(loss, 2)}m
-                                        </text>
+                                        {br.sections.length === 0 && (
+                                            <path d={`M ${bx} 470 L ${bx} 150`} fill="none" stroke="#9184d9" strokeWidth={3} strokeDasharray="10 5" className={printMode ? '' : 'flow-animated'} />
+                                        )}
+                                        {br.sections.map((sec, sIdx) => {
+                                            const startY = 470 - sIdx * secHeight;
+                                            const endY = 470 - (sIdx + 1) * secHeight;
+                                            const cy = (startY + endY) / 2;
+                                            const { v, loss } = getSectionMetrics(sec, flowFraction);
+                                            const nextSec = br.sections[sIdx + 1];
+
+                                            return (
+                                                <g key={`br-${br.key}-sec-${sec.id || sIdx}`}>
+                                                    <path d={`M ${bx} ${startY} L ${bx} ${endY}`} fill="none" stroke="#9184d9" strokeWidth={3.5} strokeDasharray="10 5" className={printMode ? '' : 'flow-animated'} />
+                                                    {nextSec && renderReductionCone(bx, endY, sec.diameter_mm, nextSec.diameter_mm, true)}
+                                                    
+                                                    {/* Branch info badge */}
+                                                    <rect x={bx - 72} y={cy - 43} width={144} height={86} rx={6} fill="#161826" stroke="#9184d9" strokeWidth={1.5} />
+                                                    <text x={bx} y={cy - 22} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
+                                                        R{bIdx + 1}: {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
+                                                    </text>
+                                                    <text x={bx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
+                                                        Q: {f(flowM3h * flowFraction, 1)} m³/h
+                                                    </text>
+                                                    <text x={bx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
+                                                        V: {f(v, 2)} m/s
+                                                    </text>
+                                                    <text x={bx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
+                                                        Δh: {f(loss, 2)}m
+                                                    </text>
+                                                </g>
+                                            );
+                                        })}
                                     </g>
                                 );
                             })}
@@ -293,8 +323,8 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
 
                 {/* 7. DISCHARGE AFTER SERIES & REDUCTIONS */}
                 {(() => {
-                    const startX = 330;
-                    const endX = 430;
+                    const startX = 580;
+                    const endX = 780;
                     const totalWidth = endX - startX;
                     const count = Math.max(dischargeAfter.length, 1);
                     const segWidth = totalWidth / count;
@@ -303,34 +333,39 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                         const sx = startX + idx * segWidth;
                         const ex = startX + (idx + 1) * segWidth;
                         const cx = (sx + ex) / 2;
+                        const cy = idx % 2 === 0 ? 35 : 185;
                         const { v, loss } = getSectionMetrics(sec);
                         const nextSec = dischargeAfter[idx + 1];
 
                         return (
                             <g key={`da-${sec.id || idx}`}>
-                                <path d={`M ${sx} 65 L ${ex} 65`} fill="none" stroke="#9184d9" strokeWidth={3} strokeDasharray="8 4" className={printMode ? '' : 'flow-animated'} />
-                                {nextSec && renderReductionCone(ex, 65, sec.diameter_mm, nextSec.diameter_mm, false)}
+                                <path d={`M ${sx} 110 L ${ex} 110`} fill="none" stroke="#9184d9" strokeWidth={4} strokeDasharray="12 6" className={printMode ? '' : 'flow-animated'} />
+                                {nextSec && renderReductionCone(ex, 110, sec.diameter_mm, nextSec.diameter_mm, false)}
                                 {/* Section label badge */}
-                                <rect x={cx - 36} y={20} width={72} height={36} rx={4} fill="#1e2030" stroke="#9184d9" strokeWidth={0.8} />
-                                <text x={cx} y={30} fill="#ffffff" fontSize={7.5} textAnchor="middle" fontWeight="600">
+                                <rect x={cx - 72} y={cy - 43} width={144} height={86} rx={6} fill="#1e2030" stroke="#9184d9" strokeWidth={1.5} />
+                                <text x={cx} y={cy - 22} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
                                     {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
                                 </text>
-                                <text x={cx} y={41} fill={getVelColor(v)} fontSize={7.5} textAnchor="middle" fontWeight="700">
+                                <text x={cx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
+                                    Q: {f(flowM3h, 1)} m³/h
+                                </text>
+                                <text x={cx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
                                     V: {f(v, 2)} m/s
                                 </text>
-                                <text x={cx} y={51} fill="#a7a1db" fontSize={7} textAnchor="middle" fontFamily="monospace">
+                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
                                     Δh: {f(loss, 2)}m
                                 </text>
+                                <line x1={cx} y1={idx % 2 === 0 ? cy + 43 : cy - 43} x2={cx} y2={idx % 2 === 0 ? 108 : 112} stroke="#9184d9" strokeWidth={1.5} strokeDasharray="2 2" />
                             </g>
                         );
                     });
                 })()}
 
                 {/* 8. DIMENSION LINE (Static Head ΔZ) */}
-                <line x1={495} y1={210} x2={495} y2={88} stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1} strokeDasharray="2 2" />
-                <path d="M 492 92 L 495 86 L 498 92 M 492 206 L 495 212 L 498 206" fill="none" stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1} />
-                <text x={506} y={146} fill="var(--color-neutral-400, #595d6c)" fontSize={8.5} fontWeight="600">ΔZ (Desnível):</text>
-                <text x={506} y={157} fill="#ffffff" fontSize={9.5} fontWeight="700">{f(staticHead, 1)}m</text>
+                <line x1={880} y1={510} x2={880} y2={150} stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} strokeDasharray="4 4" />
+                <path d="M 875 156 L 880 148 L 885 156 M 875 504 L 880 512 L 885 504" fill="none" stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} />
+                <text x={870} y={320} fill="var(--color-neutral-400, #595d6c)" fontSize={14} fontWeight="600" textAnchor="end">ΔZ (Desnível):</text>
+                <text x={870} y={345} fill="#ffffff" fontSize={17} fontWeight="700" textAnchor="end">{f(staticHead, 1)}m</text>
             </svg>
         </div>
     );
