@@ -22,6 +22,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
     const getSectionMetrics = (section: PipeSection, branchFlowFraction = 1) => {
         let v = 0;
         let loss = 0;
+        let q = 0;
         if (result?.details) {
             const detail = result.details.find(d => d.section_id === section.id);
             if (detail) {
@@ -29,17 +30,24 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                 loss = detail.total_loss_m || 0;
             }
         }
-        // Fallback live velocity & friction estimation if not yet calculated by backend
-        if (v === 0 && section.diameter_mm > 0) {
-            const area = Math.PI * Math.pow(section.diameter_mm / 1000 / 2, 2);
-            v = ((flowM3h * branchFlowFraction) / 3600) / area;
+        
+        const area = Math.PI * Math.pow((section.diameter_mm || 0) / 1000 / 2, 2);
+        
+        if (v > 0) {
+            // True flow computed by backend based on calculated velocity
+            q = v * area * 3600;
+        } else if (section.diameter_mm > 0) {
+            // Fallback live velocity estimation
+            q = flowM3h * branchFlowFraction;
+            v = (q / 3600) / area;
         }
+
         if (loss === 0 && section.diameter_mm > 0 && v > 0) {
             const dM = section.diameter_mm / 1000;
             // Darcy-Weisbach simple approximation f ~ 0.02
             loss = 0.02 * ((section.length_m || 1) / dM) * (Math.pow(v, 2) / (2 * 9.81));
         }
-        return { v, loss };
+        return { v, loss, q };
     };
 
     const getVelColor = (v: number) => {
@@ -89,9 +97,6 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
             return (
                 <g key={`red-${x}-${y}`}>
                     <polygon points={pts} fill="#e0a94b" stroke="#ffffff" strokeWidth={1} />
-                    <text x={x} y={y - 14} fill="#e0a94b" fontSize={7} textAnchor="middle" fontWeight="700">
-                        {label}
-                    </text>
                 </g>
             );
         } else {
@@ -102,9 +107,6 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
             return (
                 <g key={`red-${x}-${y}`}>
                     <polygon points={pts} fill="#e0a94b" stroke="#ffffff" strokeWidth={1} />
-                    <text x={x + 16} y={y + 3} fill="#e0a94b" fontSize={7} textAnchor="start" fontWeight="700">
-                        {label}
-                    </text>
                 </g>
             );
         }
@@ -145,11 +147,11 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                 <text x={830} y={145} fill="var(--color-neutral-500, #75798c)" fontSize={14} textAnchor="middle" fontWeight="600">Recalque</text>
 
                 {/* 3. PUMP SYMBOL */}
-                <circle cx={340} cy={510} r={42} fill="var(--color-surface, #161826)" stroke="#9184d9" strokeWidth={3.5} />
+                <circle cx={340} cy={510} r={28} fill="var(--color-surface, #161826)" stroke="#9184d9" strokeWidth={3} />
                 <g className={printMode ? '' : 'pump-spinning'}>
-                    <path d="M 340 484 A 26 26 0 0 1 362 526 M 340 484 A 26 26 0 0 0 318 526 M 340 484 L 340 510" fill="none" stroke="#9184d9" strokeWidth={3.5} />
+                    <path d="M 340 492 A 18 18 0 0 1 355 520 M 340 492 A 18 18 0 0 0 325 520 M 340 492 L 340 510" fill="none" stroke="#9184d9" strokeWidth={3} />
                 </g>
-                <text x={340} y={575} fill="#9184d9" fontSize={14} textAnchor="middle" fontWeight="700" letterSpacing="0.05em">BOMBA</text>
+                <text x={340} y={555} fill="#9184d9" fontSize={14} textAnchor="middle" fontWeight="700" letterSpacing="0.05em">BOMBA</text>
 
                 {/* 4. SUCTION PIPE SERIES & REDUCTIONS */}
                 {(() => {
@@ -165,7 +167,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                         const cx = (sx + ex) / 2;
                         // Alternate badge position up and down for horizontal pipes to avoid overlap
                         const cy = idx % 2 === 0 ? 435 : 585;
-                        const { v, loss } = getSectionMetrics(sec);
+                        const { v, loss, q } = getSectionMetrics(sec);
                         const nextSec = suctionSections[idx + 1];
 
                         return (
@@ -178,12 +180,12 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                                     {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
                                 </text>
                                 <text x={cx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
-                                    Q: {f(flowM3h, 1)} m³/h
+                                    Q: {f(q, 1)} m³/h
                                 </text>
                                 <text x={cx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
                                     V: {f(v, 2)} m/s
                                 </text>
-                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
+                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={14} textAnchor="middle" fontWeight="700">
                                     Δh: {f(loss, 2)}m
                                 </text>
                                 {/* Connector line to pipe */}
@@ -206,7 +208,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                         const ex = startX + (idx + 1) * segWidth;
                         const cx = (sx + ex) / 2;
                         const cy = idx % 2 === 0 ? 435 : 585;
-                        const { v, loss } = getSectionMetrics(sec);
+                        const { v, loss, q } = getSectionMetrics(sec);
                         const nextSec = dischargeBefore[idx + 1];
 
                         return (
@@ -219,12 +221,12 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                                     {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
                                 </text>
                                 <text x={cx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
-                                    Q: {f(flowM3h, 1)} m³/h
+                                    Q: {f(q, 1)} m³/h
                                 </text>
                                 <text x={cx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
                                     V: {f(v, 2)} m/s
                                 </text>
-                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
+                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={14} textAnchor="middle" fontWeight="700">
                                     Δh: {f(loss, 2)}m
                                 </text>
                                 <line x1={cx} y1={idx % 2 === 0 ? cy + 43 : cy - 43} x2={cx} y2={idx % 2 === 0 ? 508 : 512} stroke="#9184d9" strokeWidth={1.5} strokeDasharray="2 2" />
@@ -259,9 +261,6 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                                 />
                             )}
                             <circle cx={turnX} cy={470} r={6} fill="#e0a94b" />
-                            <text x={turnX - 16} y={500} fill="#e0a94b" fontSize={14} textAnchor="end" fontWeight="700">
-                                Bifurcação ({parallelCount} Ramais)
-                            </text>
 
                             {/* Top Manifold Join Header */}
                             <path d={`M ${turnX} 150 L ${turnX} 110`} fill="none" stroke="#9184d9" strokeWidth={4} />
@@ -289,7 +288,7 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                                             const startY = 470 - sIdx * secHeight;
                                             const endY = 470 - (sIdx + 1) * secHeight;
                                             const cy = (startY + endY) / 2;
-                                            const { v, loss } = getSectionMetrics(sec, flowFraction);
+                                            const { v, loss, q } = getSectionMetrics(sec, flowFraction);
                                             const nextSec = br.sections[sIdx + 1];
 
                                             return (
@@ -303,12 +302,12 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                                                         R{bIdx + 1}: {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
                                                     </text>
                                                     <text x={bx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
-                                                        Q: {f(flowM3h * flowFraction, 1)} m³/h
+                                                        Q: {f(q, 1)} m³/h
                                                     </text>
                                                     <text x={bx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
                                                         V: {f(v, 2)} m/s
                                                     </text>
-                                                    <text x={bx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
+                                                    <text x={bx} y={cy + 37} fill="#a7a1db" fontSize={14} textAnchor="middle" fontWeight="700">
                                                         Δh: {f(loss, 2)}m
                                                     </text>
                                                 </g>
@@ -333,8 +332,8 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                         const sx = startX + idx * segWidth;
                         const ex = startX + (idx + 1) * segWidth;
                         const cx = (sx + ex) / 2;
-                        const cy = idx % 2 === 0 ? 35 : 185;
-                        const { v, loss } = getSectionMetrics(sec);
+                        const cy = idx % 2 === 0 ? 55 : 185;
+                        const { v, loss, q } = getSectionMetrics(sec);
                         const nextSec = dischargeAfter[idx + 1];
 
                         return (
@@ -347,12 +346,12 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                                     {getNominalLabel(sec.diameter_mm)} · {num(sec.length_m)}m
                                 </text>
                                 <text x={cx} y={cy - 3} fill="#ffffff" fontSize={14} textAnchor="middle" fontWeight="600">
-                                    Q: {f(flowM3h, 1)} m³/h
+                                    Q: {f(q, 1)} m³/h
                                 </text>
                                 <text x={cx} y={cy + 18} fill={getVelColor(v)} fontSize={14} textAnchor="middle" fontWeight="700">
                                     V: {f(v, 2)} m/s
                                 </text>
-                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={12.5} textAnchor="middle" fontFamily="monospace">
+                                <text x={cx} y={cy + 37} fill="#a7a1db" fontSize={14} textAnchor="middle" fontWeight="700">
                                     Δh: {f(loss, 2)}m
                                 </text>
                                 <line x1={cx} y1={idx % 2 === 0 ? cy + 43 : cy - 43} x2={cx} y2={idx % 2 === 0 ? 108 : 112} stroke="#9184d9" strokeWidth={1.5} strokeDasharray="2 2" />
@@ -362,10 +361,10 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                 })()}
 
                 {/* 8. DIMENSION LINE (Static Head ΔZ) */}
-                <line x1={880} y1={510} x2={880} y2={150} stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} strokeDasharray="4 4" />
-                <path d="M 875 156 L 880 148 L 885 156 M 875 504 L 880 512 L 885 504" fill="none" stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} />
-                <text x={870} y={320} fill="var(--color-neutral-400, #595d6c)" fontSize={14} fontWeight="600" textAnchor="end">ΔZ (Desnível):</text>
-                <text x={870} y={345} fill="#ffffff" fontSize={17} fontWeight="700" textAnchor="end">{f(staticHead, 1)}m</text>
+                <line x1={895} y1={510} x2={895} y2={20} stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} strokeDasharray="4 4" />
+                <path d="M 890 28 L 895 20 L 900 28 M 890 504 L 895 512 L 900 504" fill="none" stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} />
+                <text x={885} y={260} fill="var(--color-neutral-400, #595d6c)" fontSize={14} fontWeight="600" textAnchor="end">ΔZ (Desnível):</text>
+                <text x={885} y={285} fill="#ffffff" fontSize={17} fontWeight="700" textAnchor="end">{f(staticHead, 1)}m</text>
             </svg>
         </div>
     );

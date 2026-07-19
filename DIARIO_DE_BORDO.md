@@ -5,6 +5,22 @@
 
 ---
 
+## 19/07/2026 — Otimização de UI/UX e Alinhamento Preciso do Diagrama do Sistema
+
+### 🎯 O que foi realizado
+- **Desacoplamento do Scroll Sticky**: A coluna da direita do Painel do Sistema (Diagrama + Live Metrics) perdeu o travamento `sticky top-20` no layout Grid, resolvendo o problema crônico de "espaço vazio" no topo e permitindo que o bloco se alinhe nativamente à caixa adjacente de Condições do Sistema.
+- **Aspect Ratio Tático (900x650)**: O `viewBox` do SVG `SystemSchematic.tsx` foi altamente estendido na vertical e "espremido" nas laterais para empurrar o container inteiro para baixo. Isso garante o alinhamento total do bloco à base do cartão de "Propriedades do Fluido" de maneira simétrica (conforme layout exigido pelo arquiteto).
+- **Ziguezague Alternado em Trechos em Série**: Inserimos uma condicional lógica par/ímpar (`cy = idx % 2 === 0 ? 435 : 585`) que desenha as caixas informativas e os dados dos tubos alternadamente **acima** e **abaixo** do eixo do fluxo hidráulico. Conexões tracejadas amarram o rótulo ao respectivo trecho.
+- **Escala Textual Agressiva**: Removendo as "margens mortas" do viewBox e dobrando o raio da bomba e as espessuras dos tubos, as caixas de informações saltaram de 90px para 144px de largura, proporcionando fontes muito mais encorpadas.
+- **⚠️ MOTOR DE FÍSICA NO DIAGRAMA (CRÍTICO)**: Reescrevemos a inteligência do componente `SystemSchematic.tsx` para abandonar a estimativa cega de divisão de vazão em ramais ($Q_{total} / n$). O frontend agora aplica **engenharia reversa** ($Q = v \times A \times 3600$) lendo a velocidade de fluxo exata resolvida iterativamente pelo **motor de cálculo do backend**. Ramais em paralelo (com perdas e diâmetros distintos) agora renderizam o balanço autêntico de vazão de fluidos na UI.
+
+### 💼 Impacto no Negócio
+- **Polimento Perceptível (SaaS Premium)**: Ao forçar o alinhamento das linhas horizontais no grid e abolir sobreposição de textos em tubulações difíceis por meio do "ziguezague", evita-se uma barreira de quebra de confiança visual. O produto sustenta o visual robusto de um software enterprise de alto valor.
+- **Acessibilidade Tática (Chão de Fábrica)**: Num ambiente industrial com tablets, o engenheiro bate o olho e enxerga com precisão os valores-chave de Velocidade e Queda de Pressão sem esforço visual.
+- **⚠️ Precisão Matemática Irrefutável (Diferencial de Venda)**: A exibição imediata do fluxo hidráulico assimetricamente balanceado eleva o Pumps SaaS do nível de uma "calculadora web" para um **simulador hidrodinâmico real**. Quando o cliente observa o fluido escolhendo logicamente a rede de menor resistência de forma autônoma na tela, a ferramenta passa total autoridade técnica, ajudando a justificar o fechamento de licenças premium para projetistas.
+
+---
+
 ## 12/07/2026 (Parte 4) — Checkpoint `v2`: P&ID Autoexplicativo com Diâmetros Nominais Padronizados & Desnível Estático Puro (`ΔZ`)
 
 ### 🎯 O que foi realizado

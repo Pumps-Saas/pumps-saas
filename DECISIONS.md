@@ -4,6 +4,13 @@ Este documento mantém o histórico de decisões técnicas, premissas de negóci
 
 ---
 
+## 2026-07-19 — Renderização Dinâmica em Ziguezague de Trechos P&ID e viewBox estendido
+Decisão: No componente genérico de renderização SVG `SystemSchematic.tsx`, alterou-se a proporção do diagrama para 900x650 (quase quadrado) limitando o `minHeight`, e implantou-se uma lógica par-ímpar para desenhar caixas de badges para cima e para baixo.
+Motivo: Atender uma exigência imperativa de UX e engenharia. Redes de tubulação do mundo real muitas vezes agrupam 2 ou mais componentes curtos em série (ex: válvula de retenção + registro de gaveta em um gap de meio metro), o que destruía a leitura gráfica do fluxo com sobreposições brutais se as badges estivessem no mesmo eixo Y.
+Trade-off aceito: Adição de uma quebra visual e de conectores SVG auxiliares para relacionar a caixa em ziguezague ao trecho flutuante. A escalabilidade do diagrama passa a ser infinita para trechos retos de fluidos incompressíveis sem quebrar a leitura.
+
+---
+
 ## 2026-07-12 — Parâmetro de Dias de Operação no Ano (`days_per_year`) configurável no cálculo de LCC
 Decisão: Adoção de um campo explícito `days_per_year` (padrão 365) no painel de configuração de energia e custos do Frontend e no payload do Backend (`OperatingPointRequest`).
 Motivo: Eliminar a premissa rígida de 365 dias por ano no cálculo do custo de energia (`cost_per_year`), permitindo modelar com precisão regimes industriais sazonais e intermitentes (ex: usinas de cana-de-açúcar que operam em torno de 220 dias na safra).
