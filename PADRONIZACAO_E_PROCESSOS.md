@@ -88,6 +88,12 @@ Os seguintes tipos de arquivo não devem fazer parte do controle de versão ofic
 
 > **Regra de Contenção de Resíduos:** A IA ou o desenvolvedor que gerar arquivos de teste durante a resolução de um bug tem a obrigação de limpá-los (`rm` / `git rm`) antes de finalizar a tarefa ou solicitar revisão.
 
+### 4.2. Extração de Histórico de Sessões (Backup da IA)
+Ao finalizar uma sessão densa de programação ou arquitetura com o usuário, a Inteligência Artificial **deve**, obrigatoriamente, propor ou executar a extração do log bruto de sua memória (`transcript_full.jsonl` localizado na pasta do sistema `.gemini/antigravity-ide/brain/`).
+* O conteúdo extraído deve ser limpo e convertido para o formato legível Markdown.
+* O arquivo resultante (ex: `HISTORICO_COMPLETO_DD_MM_AAAA.md`) deve ser salvo e movido para a pasta raiz `historico_conversas/`.
+* Isso garante que as discussões arquiteturais, os prompts e os raciocínios técnicos fiquem salvos junto ao código-fonte, evitando perda de contexto quando o ambiente da IA for resetado.
+
 ---
 
 ## 5. Instruções Operacionais e Melhoria de Processos
