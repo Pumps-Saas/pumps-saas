@@ -29,6 +29,7 @@ export const PumpCurveEditor: React.FC = () => {
     // Persistence State
     const [savedPumps, setSavedPumps] = useState<any[]>([]);
     const [selectedPumpId, setSelectedPumpId] = useState("");
+    const [isLoadingPumps, setIsLoadingPumps] = useState(true);
 
     // AI Select State
     const pSuction = useSystemStore(state => state.pressure_suction_bar_g);
@@ -48,22 +49,29 @@ export const PumpCurveEditor: React.FC = () => {
     }, []);
 
     const loadPumps = async () => {
+        setIsLoadingPumps(true);
         try {
             const res = await api.pumps.list();
             setSavedPumps(res.data);
         } catch (error) {
             console.error("Failed to load pumps", error);
+        } finally {
+            setIsLoadingPumps(false);
         }
     };
 
-    const handleLoadPump = (pumpId: string) => {
+    const handleLoadPump = async (pumpId: string) => {
         setSelectedPumpId(pumpId);
         if (!pumpId) return;
 
-        const pump = savedPumps.find(p => p.id.toString() === pumpId);
-        if (pump) {
+        try {
+            const res = await api.pumps.get(pumpId);
+            const pump = res.data;
             setPoints(pump.curve_points);
             setPumpDetails(pump.manufacturer, pump.model);
+        } catch (error) {
+            console.error("Failed to fetch full pump details", error);
+            addToast("Falha ao carregar curva da bomba", 'error');
         }
     };
 
@@ -161,7 +169,7 @@ export const PumpCurveEditor: React.FC = () => {
     };
 
     const pumpOptions = [
-        { label: "Selecione uma Bomba da Biblioteca...", value: "" },
+        { label: isLoadingPumps ? "Carregando biblioteca de bombas..." : "Selecione uma Bomba da Biblioteca...", value: "" },
         ...savedPumps.map(p => ({ label: `${p.manufacturer} - ${p.model}`, value: p.id.toString() }))
     ];
 

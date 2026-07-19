@@ -45,6 +45,7 @@ export const api = {
     },
     pumps: {
         list: () => apiClient.get('/pumps/'),
+        get: (id: number | string) => apiClient.get(`/pumps/${id}`),
         create: (data: any) => apiClient.post('/pumps/', data),
         delete: (id: number) => apiClient.delete(`/pumps/${id}`),
         autoSelect: (systemData: any) => apiClient.post('/global-pumps/auto-select', systemData),

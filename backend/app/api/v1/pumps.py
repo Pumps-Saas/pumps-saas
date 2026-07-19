@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, or_
 
 from app.api import deps
-from app.models import User, Pump, PumpCreate, PumpRead
+from app.models import User, Pump, PumpCreate, PumpRead, PumpReadBasic
 import numpy as np
 
 router = APIRouter()
@@ -39,12 +39,12 @@ def create_pump(
     session.refresh(pump)
     return pump
 
-@router.get("/", response_model=List[PumpRead])
+@router.get("/", response_model=List[PumpReadBasic])
 def read_pumps(
     session: Session = Depends(deps.get_session),
     current_user: User = Depends(deps.get_current_active_user),
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 1000,
 ) -> Any:
     """
     Retrieve pumps from the user's catalog. Premium users also see global pumps.

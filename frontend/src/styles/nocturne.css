@@ -74,6 +74,48 @@ h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: var(--font-headi
 
 .lighten { mix-blend-mode: lighten; background-color: transparent; }
 
+/* -------------------------------------------------------------------------- */
+/* LIGHT MODE GLOBAL OVERRIDES (Safe Text-White Conversion)                 */
+/* -------------------------------------------------------------------------- */
+.light-mode .text-white,
+.light-mode .text-\[\#e9e9ed\] {
+  color: #111827 !important;
+}
+
+/* Preserve white text ONLY on explicitly solid backgrounds */
+.light-mode .bg-\[\#9184d9\],
+.light-mode .bg-\[\#e06b6b\],
+.light-mode .bg-\[\#262a60\] {
+  color: #ffffff !important;
+}
+.light-mode .bg-\[\#9184d9\] .text-white,
+.light-mode .bg-\[\#e06b6b\] .text-white,
+.light-mode .bg-\[\#262a60\] .text-white,
+.light-mode .bg-gradient-to-r .text-white,
+.light-mode .bg-gradient-to-b .text-white {
+  color: #ffffff !important;
+}
+
+/* Fix subtle white backgrounds on light mode (e.g. bg-white/5 used for subtle dark mode highlights) */
+.light-mode .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+.light-mode .hover\:bg-white\/5:hover {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+.light-mode .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+.light-mode .border-white\/30 {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Make muted text slightly darker/more readable in light mode */
+.light-mode .text-muted {
+  color: rgba(41, 43, 49, 0.65) !important;
+}
+
+
 /* Components */
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; font-size: 15px; line-height: 1.55; font-weight: 400; }

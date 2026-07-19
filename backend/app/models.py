@@ -137,6 +137,12 @@ class PumpRead(PumpBase):
     id: int
     created_at: datetime
 
+class PumpReadBasic(SQLModel):
+    id: int
+    manufacturer: str
+    model: str
+    is_global: bool
+
 # --- Support Workflow Models ---
 
 class SupportTicketBase(SQLModel):

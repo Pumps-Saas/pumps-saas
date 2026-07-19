@@ -11,6 +11,7 @@ import {
     ReferenceLine
 } from 'recharts';
 import { OperatingPointResult } from '@/types/engineering';
+import { useSystemStore } from '@/features/calculator/stores/useSystemStore';
 
 interface NPSHChartProps {
     data: any[];
@@ -19,13 +20,18 @@ interface NPSHChartProps {
 }
 
 export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, printMode = false }) => {
+    const uiTheme = useSystemStore(state => state.uiTheme);
+    const isLight = printMode || uiTheme === 'light';
+
     // Style Constants - High Quality (Scaled for 1200x900)
     const axisFontSize = printMode ? 24 : 12;
     const labelFontSize = printMode ? 28 : 14;
     const legendFontSize = printMode ? 28 : 14;
     const lineWidth = printMode ? 4 : 2;
     const dotSize = printMode ? 6 : 4;
-    const gridStroke = printMode ? "#e2e8f0" : "rgba(255,255,255,0.15)";
+    const gridStroke = isLight ? "#e2e8f0" : "rgba(255,255,255,0.15)";
+    const labelFill = isLight ? '#333' : '#fff';
+    const tickFill = isLight ? '#666' : '#ccc';
 
     const chartMargins = printMode
         ? { top: 40, right: 60, left: 100, bottom: 90 }
@@ -60,15 +66,15 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             type="number"
                             unit=" m³/h"
                             domain={[0, 'auto']}
-                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: printMode ? -60 : -40, style: { fontSize: labelFontSize, fill: printMode ? '#333' : '#fff', fontWeight: 600 } }}
-                            tick={{ fontSize: axisFontSize, fill: printMode ? '#666' : '#ccc' }}
+                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: printMode ? -60 : -40, style: { fontSize: labelFontSize, fill: labelFill, fontWeight: 600 } }}
+                            tick={{ fontSize: axisFontSize, fill: tickFill }}
                             tickFormatter={(val) => Math.round(val).toString()}
                             tickMargin={printMode ? 20 : 10}
                         />
                         <YAxis
-                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: printMode ? '#333' : '#fff', fontWeight: 600, textAnchor: 'middle' }, offset: printMode ? 0 : 10, dx: printMode ? -60 : -10 }}
+                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: labelFill, fontWeight: 600, textAnchor: 'middle' }, offset: printMode ? 0 : 10, dx: printMode ? -60 : -10 }}
                             domain={[0, 'auto']}
-                            tick={{ fontSize: axisFontSize, fill: printMode ? '#666' : '#ccc' }}
+                            tick={{ fontSize: axisFontSize, fill: tickFill }}
                             tickFormatter={(val) => Math.round(val).toString()}
                             tickMargin={printMode ? 15 : 10}
                         />
@@ -78,7 +84,9 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                                 typeof value === 'number' ? value.toFixed(2) + ' m' : value,
                                 name === 'npshAvailable' ? 'NPSH Available' : name === 'baseNpshRequired' ? 'Base NPSH Req.' : 'Adj. NPSH Req.'
                             ]}
-                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.5)' }}
+                            labelStyle={{ color: '#cbd5e1', fontWeight: 600, paddingBottom: '4px', borderBottom: '1px solid #334155', marginBottom: '4px' }}
+                            itemStyle={{ fontWeight: 500 }}
                         />
                         <Legend
                             verticalAlign="top"

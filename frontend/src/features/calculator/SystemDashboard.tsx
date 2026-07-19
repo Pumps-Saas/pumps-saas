@@ -558,9 +558,11 @@ export const SystemDashboard: React.FC = () => {
                             <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
                                 <FileText className="w-6 h-6 text-[#9184d9]" /> Memorial Técnico de Cálculo & Exportação
                             </h2>
-                            <p className="text-xs text-muted mt-1 max-w-xl">
-                                Relatório completo documentando o balanço de energia hidráulica, parcelas de perdas e gráficos para anexar a folhas de dados de especificação.
-                            </p>
+                            <div className="mb-4">
+                                <p className="text-sm text-white/80 font-medium leading-relaxed max-w-3xl">
+                                    Relatório completo documentando o balanço de energia hidráulica, parcelas de perdas e gráficos para anexar a folhas de dados de especificação.
+                                </p>
+                            </div>
                         </div>
                         <div className="flex gap-3 shrink-0">
                             <button

@@ -24,6 +24,16 @@ Trade-off aceito: Adição de mais um campo numérico na interface de entrada, j
 
 ---
 
+## 2026-07-19 — Otimização Extrema (Auto-Select AI)
+Decisão: O algoritmo de recomendação de bombas foi reescrito para gerar um polinômio da Curva do Sistema *uma única vez* e utilizar interseção matemática direta ($O(1)$) com os coeficientes das bombas, ao invés de buscar a raiz utilizando a biblioteca `scipy` em um loop.
+Motivo: Degradação massiva de performance (loop aninhado de raízes) que resultava em travamento da interface. O tempo de recomendação caiu de ~30s para *< 10ms*.
+
+## 2026-07-19 — Estrutura de DTO para listagem de bombas
+Decisão: Implementação de Data Transfer Objects (DTO) rigorosos como `PumpReadBasic` vs `PumpRead` para endpoints de listagem.
+Motivo: A serialização de colunas JSON pesadas (`curve_points`) no modelo antigo (`PumpRead`) travava a Event Loop do FastAPI (I/O Bound) ao carregar mais de 100 bombas na interface. Listas agora carregam apenas metadados (`PumpReadBasic`), enquanto o detalhe pesado é retornado via *Lazy Loading* com chamadas específicas por ID (`GET /pumps/{id}`).
+
+---
+
 ## 2026-07-11 — NPSHa via pressão de sucção manual (sem campo separado de elevação)
 Decisão: usuário informa pressão de sucção (barg) já incluindo efeito de elevação/coluna de líquido, em vez de campos separados de cota geométrica + pressão de tanque.
 Motivo: simplicidade de entrada; o cálculo de coluna líquida é feito manualmente pelo engenheiro usuário, prática comum em projetos de processo.
