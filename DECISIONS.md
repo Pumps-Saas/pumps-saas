@@ -4,6 +4,12 @@ Este documento mantém o histórico de decisões técnicas, premissas de negóci
 
 ---
 
+## 2026-07-19 — Controle Dinâmico do Domínio Recharts (Fix de Pontos Flutuantes)
+Decisão: Eixos X (Vazão) nas telas de HeadFlowChart e NPSHChart mudaram de configuração de domínio dependente (`domain={['dataMin', 'dataMax']}`) para domínio com fim autônomo (`domain={[0, 'auto']}`), associados a funções customizadas de exibição de labels `tickFormatter={(val) => Math.round(val)}`.
+Trade-off: A renderização gráfica pode descolar a malha alguns pixels da última coordenada interpolada de dados (quando o valor de dados não for exato, ex: 273.5999), mas previne as quebras de passo da UI mantendo um eixo harmonizado, íntegro (0, 70, 140, 210, 280) e com zero confusão cognitiva para o usuário sem exigir normalização destrutiva na base de dados do Backend.
+
+---
+
 ## 2026-07-19 — Renderização Dinâmica em Ziguezague de Trechos P&ID e viewBox estendido
 Decisão: No componente genérico de renderização SVG `SystemSchematic.tsx`, alterou-se a proporção do diagrama para 900x650 (quase quadrado) limitando o `minHeight`, e implantou-se uma lógica par-ímpar para desenhar caixas de badges para cima e para baixo.
 Motivo: Atender uma exigência imperativa de UX e engenharia. Redes de tubulação do mundo real muitas vezes agrupam 2 ou mais componentes curtos em série (ex: válvula de retenção + registro de gaveta em um gap de meio metro), o que destruía a leitura gráfica do fluxo com sobreposições brutais se as badges estivessem no mesmo eixo Y.

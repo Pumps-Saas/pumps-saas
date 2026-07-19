@@ -25,7 +25,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
     const legendFontSize = printMode ? 28 : 14;
     const lineWidth = printMode ? 4 : 2;
     const dotSize = printMode ? 6 : 4;
-    const gridStroke = printMode ? "#ccc" : "#e2e8f0";
+    const gridStroke = printMode ? "#e2e8f0" : "rgba(255,255,255,0.15)";
 
     const chartMargins = printMode
         ? { top: 40, right: 60, left: 100, bottom: 90 }
@@ -54,20 +54,22 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
             <div className={innerClass}>
                 <ResponsiveContainer width="100%" height={printMode ? "85%" : "100%"}>
                     <ComposedChart data={data} margin={chartMargins}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                        <CartesianGrid stroke={gridStroke} />
                         <XAxis
                             dataKey="flow"
                             type="number"
                             unit=" m³/h"
-                            domain={['dataMin', 'dataMax']}
-                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: printMode ? -60 : -40, style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600 } }}
-                            tick={{ fontSize: axisFontSize, fill: '#666' }}
+                            domain={[0, 'auto']}
+                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: printMode ? -60 : -40, style: { fontSize: labelFontSize, fill: printMode ? '#333' : '#fff', fontWeight: 600 } }}
+                            tick={{ fontSize: axisFontSize, fill: printMode ? '#666' : '#ccc' }}
+                            tickFormatter={(val) => Math.round(val).toString()}
                             tickMargin={printMode ? 20 : 10}
                         />
                         <YAxis
-                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: '#333', fontWeight: 600, textAnchor: 'middle' }, offset: printMode ? 0 : 10, dx: printMode ? -60 : -10 }}
+                            label={{ value: 'NPSH (m)', angle: -90, position: 'insideLeft', style: { fontSize: labelFontSize, fill: printMode ? '#333' : '#fff', fontWeight: 600, textAnchor: 'middle' }, offset: printMode ? 0 : 10, dx: printMode ? -60 : -10 }}
                             domain={[0, 'auto']}
-                            tick={{ fontSize: axisFontSize, fill: '#666' }}
+                            tick={{ fontSize: axisFontSize, fill: printMode ? '#666' : '#ccc' }}
+                            tickFormatter={(val) => Math.round(val).toString()}
                             tickMargin={printMode ? 15 : 10}
                         />
                         <Tooltip
@@ -92,7 +94,6 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             stroke="#10b981" // Emerald 500
                             name="NPSH Available"
                             strokeWidth={lineWidth}
-                            strokeDasharray="5 5"
                             dot={false}
                             connectNulls
                             isAnimationActive={false}
@@ -105,7 +106,6 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             stroke="#f59e0b" // Amber 500
                             name="Adj. NPSH Req."
                             strokeWidth={lineWidth}
-                            strokeDasharray="3 3"
                             dot={{ r: dotSize, fill: '#f59e0b' }}
                             connectNulls
                             isAnimationActive={false}
