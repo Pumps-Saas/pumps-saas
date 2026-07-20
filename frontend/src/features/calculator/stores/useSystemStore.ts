@@ -243,9 +243,12 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
                 efficiency_motor: state.efficiency_motor,
                 hours_per_day: state.hours_per_day,
                 days_per_year: state.days_per_year,
-                energy_cost_per_kwh: state.energy_cost_per_kwh,
+                energy_cost_per_kwh: state.energy_cost_per_kwh ?? 0.80,
 
-                pump_curve_points: state.pump_curve,
+                pump_curve_points: state.pump_curve.map(p => {
+                    const { id, ...rest } = p as any;
+                    return rest;
+                }),
                 speed_ratio: state.pump_base_rpm ? (state.pump_current_rpm / state.pump_base_rpm) : 1.0,
                 parallel_pumps: state.parallel_pumps
             };
@@ -295,8 +298,14 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         calculationError: null
     }),
 
-    loadState: (state) => set((currentState) => ({
-        ...currentState,
-        ...state
-    }))
+    loadState: (state) => set((currentState) => {
+        // Only load data fields, ignore functions or UI states
+        const {
+            activeView, uiLanguage, uiTheme, operatingPoint, isCalculating, calculationError, ...validState
+        } = state as any;
+        return {
+            ...currentState,
+            ...validState
+        };
+    })
 }));

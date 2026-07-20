@@ -30,22 +30,8 @@ export const ProjectManager = () => {
     const calculateOperatingPoint = useSystemStore((state) => state.calculateOperatingPoint);
     const setActiveView = useSystemStore((state) => state.setActiveView);
 
-    // Select all state components needed for saving
-    const systemState = useSystemStore((state) => ({
-        fluid: state.fluid,
-        suction_sections: state.suction_sections,
-        discharge_sections_before: state.discharge_sections_before,
-        discharge_parallel_sections: state.discharge_parallel_sections,
-        discharge_sections_after: state.discharge_sections_after,
-        static_head: state.static_head,
-        pump_curve: state.pump_curve,
-        pump_manufacturer: state.pump_manufacturer,
-        pump_model: state.pump_model,
-        pressure_suction_bar_g: state.pressure_suction_bar_g,
-        pressure_discharge_bar_g: state.pressure_discharge_bar_g,
-        atmospheric_pressure_bar: state.atmospheric_pressure_bar,
-        altitude_m: state.altitude_m,
-    }));
+    // We don't need a manually tracked systemState hook anymore. 
+    // We will use useSystemStore.getState() on save.
 
     useEffect(() => {
         loadProjects();
@@ -94,9 +80,19 @@ export const ProjectManager = () => {
         if (!selectedProject || !newScenarioName) return;
 
         try {
+            const fullState = useSystemStore.getState();
+            // Clone the state to strip functions and unnecessary UI state
+            const stateToSave = JSON.parse(JSON.stringify(fullState));
+            delete stateToSave.activeView;
+            delete stateToSave.uiLanguage;
+            delete stateToSave.uiTheme;
+            delete stateToSave.operatingPoint;
+            delete stateToSave.isCalculating;
+            delete stateToSave.calculationError;
+
             await api.projects.addScenario(selectedProject.id, {
                 name: newScenarioName,
-                data: systemState
+                data: stateToSave
             });
             setNewScenarioName('');
             loadScenarios(selectedProject.id);
