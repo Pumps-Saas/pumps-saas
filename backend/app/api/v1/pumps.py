@@ -68,7 +68,10 @@ def read_pump(
     """
     Get pump by ID.
     """
-    statement = select(Pump).where(Pump.id == pump_id, Pump.user_id == current_user.id)
+    statement = select(Pump).where(
+        Pump.id == pump_id,
+        or_(Pump.user_id == current_user.id, Pump.is_global == True)
+    )
     pump = session.exec(statement).first()
     if not pump:
         raise HTTPException(status_code=404, detail="Pump not found")

@@ -40,8 +40,12 @@ def calculate_parallel_loss(
             
         # Establish bracket for flow optimization
         q_high = total_flow_m3h if total_flow_m3h > 0 else 1.0
+        iters = 0
         while calculate_series_loss(branch_lists[branch_idx], q_high, fluid) < target_head:
             q_high *= 2.0
+            iters += 1
+            if iters > 50: # prevent infinite loop (deadlock) if resistance is effectively zero
+                break
             
         def err(q: float) -> float:
             return calculate_series_loss(branch_lists[branch_idx], q, fluid) - target_head
@@ -61,8 +65,12 @@ def calculate_parallel_loss(
         H_max = H_min + 1.0
         
     # Expand bracket iteratively if needed to ensure valid root finding
+    iters_h = 0
     while total_flow_error(H_max) < 0:
         H_max *= 2.0
+        iters_h += 1
+        if iters_h > 50:
+            break
 
     try:
         # Solve for the exact manifold pressure drop that perfectly satisfies mass conservation
