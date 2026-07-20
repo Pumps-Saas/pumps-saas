@@ -39,6 +39,8 @@ export const ProjectManager = () => {
         discharge_sections_after: state.discharge_sections_after,
         static_head: state.static_head,
         pump_curve: state.pump_curve,
+        pump_manufacturer: state.pump_manufacturer,
+        pump_model: state.pump_model,
         pressure_suction_bar_g: state.pressure_suction_bar_g,
         pressure_discharge_bar_g: state.pressure_discharge_bar_g,
         atmospheric_pressure_bar: state.atmospheric_pressure_bar,

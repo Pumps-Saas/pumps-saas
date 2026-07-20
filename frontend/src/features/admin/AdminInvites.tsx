@@ -53,13 +53,13 @@ export const AdminInvites: React.FC = () => {
         <div className="space-y-6 max-w-4xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800">Access Invites Generator</h2>
-                    <p className="text-slate-500 text-sm mt-1">Create and manage access tokens for new customers.</p>
+                    <h2 className="text-2xl font-bold text-white">Access Invites Generator</h2>
+                    <p className="text-muted text-sm mt-1">Create and manage access tokens for new customers.</p>
                 </div>
                 <button
                     onClick={handleGenerate}
                     disabled={generating}
-                    className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    className="mt-4 sm:mt-0 btn btn-primary"
                 >
                     {generating ? (
                         <Loader2 className="animate-spin h-5 w-5 mr-2" />
@@ -70,62 +70,62 @@ export const AdminInvites: React.FC = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="card border border-[var(--color-divider)] overflow-hidden p-0">
                 <div className="overflow-x-auto">
                     {invites.length === 0 ? (
                         <div className="p-12 text-center flex flex-col items-center">
-                            <div className="h-16 w-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                            <div className="h-16 w-16 bg-[var(--color-accent)]/10 text-[var(--color-accent)] rounded-full flex items-center justify-center mb-4">
                                 <LinkIcon className="h-8 w-8" />
                             </div>
-                            <h3 className="text-lg font-medium text-slate-900">No Invites Generated Yet</h3>
-                            <p className="text-slate-500 mt-2 max-w-sm">
+                            <h3 className="text-lg font-medium text-white">No Invites Generated Yet</h3>
+                            <p className="text-muted mt-2 max-w-sm">
                                 Click the button above to generate a unique invite link. You can send this link to a new customer to bypass the registration lock.
                             </p>
                         </div>
                     ) : (
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead className="bg-slate-50">
+                        <table className="min-w-full divide-y divide-[var(--color-divider)]">
+                            <thead className="bg-[var(--color-bg)]/50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Token Code</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Created At</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Action</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Token Code</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Created At</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-muted uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-slate-100">
+                            <tbody className="bg-transparent divide-y divide-[var(--color-divider)]">
                                 {invites.map((invite) => (
-                                    <tr key={invite.code} className="hover:bg-slate-50 transition-colors">
+                                    <tr key={invite.code} className="hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4">
-                                            <span className="font-mono text-sm font-bold bg-slate-100 px-3 py-1 rounded text-slate-800">
+                                            <span className="font-mono text-sm font-bold bg-[var(--color-bg)]/50 border border-[var(--color-divider)] px-3 py-1 rounded text-[var(--color-text)]">
                                                 {invite.code}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             {invite.used_by_id ? (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <span className="tag bg-[#e06b6b]/10 text-[#e06b6b]">
                                                     Used
                                                 </span>
                                             ) : new Date(invite.expires_at) < new Date() ? (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                                <span className="tag tag-neutral">
                                                     Expired
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                <span className="tag bg-[#5fd08a]/10 text-[#5fd08a]">
                                                     Valid
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-600">
+                                        <td className="px-6 py-4 text-sm text-[var(--color-text)]">
                                             {new Date(invite.created_at).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button
                                                 onClick={() => handleCopy(invite.code)}
                                                 disabled={!!invite.used_by_id}
-                                                className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-30 disabled:hover:text-blue-600 disabled:cursor-not-allowed transition-colors"
+                                                className="inline-flex items-center text-sm font-medium text-[var(--color-accent)] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                             >
                                                 {copiedId === invite.code ? (
-                                                    <><CheckCircle className="h-4 w-4 mr-1 text-emerald-500" /> Copied</>
+                                                    <><CheckCircle className="h-4 w-4 mr-1 text-[#5fd08a]" /> Copied</>
                                                 ) : (
                                                     <><Copy className="h-4 w-4 mr-1" /> Copy Link</>
                                                 )}

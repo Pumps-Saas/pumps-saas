@@ -58,7 +58,7 @@ export const EconomicDashboard: React.FC = () => {
             {/* Header / Nocturne Banner */}
             <div className="bg-gradient-to-r from-[#262a60] to-[#353b80] rounded-xl p-6 border border-[#9184d9]/40 shadow-lg text-white flex justify-between items-center">
                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2.5">
+                    <h2 className="text-2xl font-bold flex items-center gap-2.5 text-white">
                         <DollarSign className="w-6 h-6 text-[#5fd08a]" />
                         Análise Econômica (LCC - Life Cycle Cost)
                     </h2>
@@ -66,7 +66,7 @@ export const EconomicDashboard: React.FC = () => {
                 </div>
                 <div className="hidden sm:flex bg-[var(--color-bg)]/60 px-5 py-2.5 rounded-xl border border-[var(--color-divider)] items-center gap-3">
                     <div className="flex flex-col text-right">
-                        <span className="text-[10px] text-muted uppercase tracking-wider font-semibold">Custo Total Acumulado (10 Anos)</span>
+                        <span className="text-[10px] text-white/70 uppercase tracking-wider font-semibold">Custo Total Acumulado (10 Anos)</span>
                         <span className="text-2xl font-black text-[#5fd08a]">R$ {(capex + opex * 10).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                 </div>

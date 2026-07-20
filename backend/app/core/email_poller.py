@@ -53,9 +53,10 @@ async def poll_support_emails():
             if isinstance(response_part, tuple):
                 msg = email.message_from_bytes(response_part[1])
                 
-                if msg.get("X-Pumps-Notification") == "Original":
-                    # Leave the original ticket notification UNREAD for the Admin to see
-                    mark_as_read = False
+                if msg.get("X-Pumps-Notification"):
+                    if msg.get("X-Pumps-Notification") == "Original":
+                        # Leave the original ticket notification UNREAD for the Admin to see
+                        mark_as_read = False
                     continue
                 
                 subject, encoding = decode_header(msg["Subject"])[0]
@@ -134,7 +135,8 @@ async def poll_support_emails():
                                 email_to=ticket.user.email,
                                 subject=f"Re: [Ticket #{ticket.id}] {ticket.subject}",
                                 text_content=f"Você recebeu uma resposta da equipe de suporte:\n\n{reply_text}\n\n--\nPumps SaaS",
-                                reply_to=settings.EMAILS_FROM_EMAIL
+                                reply_to=settings.EMAILS_FROM_EMAIL,
+                                headers={"X-Pumps-Notification": "System-Reply"}
                             ))
         
         if mark_as_read:

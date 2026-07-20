@@ -113,7 +113,7 @@ export const generatePDFReport = (data: ReportData) => {
 
     // --- Header ---
     doc.setFontSize(22);
-    doc.setTextColor(41, 128, 185); // Blue
+    doc.setTextColor(145, 132, 217); // Purple
     doc.text("Pump Analysis Report", margin, yPos);
 
     yPos += 10;
@@ -179,7 +179,7 @@ export const generatePDFReport = (data: ReportData) => {
                 ['Total Head', bd.total.toFixed(2), 'Total Dynamic Head required']
             ],
             theme: 'striped',
-            headStyles: { fillColor: [41, 128, 185] },
+            headStyles: { fillColor: [145, 132, 217] },
             styles: { fontSize: 9 }
         });
         yPos = doc.lastAutoTable.finalY + 10;
@@ -239,7 +239,7 @@ export const generatePDFReport = (data: ReportData) => {
         body: curveBody,
         theme: 'striped',
         styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
-        headStyles: { halign: 'center', fillColor: [41, 128, 185] },
+        headStyles: { halign: 'center', fillColor: [145, 132, 217] },
         margin: { left: margin, right: margin }
     });
     yPos = doc.lastAutoTable.finalY + 15;
@@ -252,7 +252,7 @@ export const generatePDFReport = (data: ReportData) => {
 
         // Header Page 2
         doc.setFontSize(16);
-        doc.setTextColor(41, 128, 185);
+        doc.setTextColor(145, 132, 217);
         doc.text("System Analysis & Visualization", margin, yPos);
         yPos += 15;
 
@@ -354,7 +354,7 @@ export const generatePDFReport = (data: ReportData) => {
         head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']],
         body: suctionRows,
         theme: 'striped',
-        headStyles: { fillColor: [52, 152, 219] },
+        headStyles: { fillColor: [145, 132, 217] },
         styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
         columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
     });
@@ -378,7 +378,7 @@ export const generatePDFReport = (data: ReportData) => {
         head: [['Segment', 'Length', 'Diameter', 'Material', 'Head Loss']],
         body: dischargeRows,
         theme: 'striped',
-        headStyles: { fillColor: [52, 152, 219] },
+        headStyles: { fillColor: [145, 132, 217] },
         styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
         columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
     });
@@ -410,7 +410,7 @@ export const generatePDFReport = (data: ReportData) => {
         const xOffset = margin + (chartWidth - renderWidth) / 2;
 
         doc.setFontSize(12);
-        doc.setTextColor(41, 128, 185);
+        doc.setTextColor(145, 132, 217);
         doc.text("Calculated Network Diagram", margin, yPos - 5);
 
         // Usage JPEG
@@ -423,7 +423,7 @@ export const generatePDFReport = (data: ReportData) => {
         yPos = 20;
 
         doc.setFontSize(16);
-        doc.setTextColor(41, 128, 185);
+        doc.setTextColor(145, 132, 217);
         doc.text("5. Financial Analysis (LCC)", margin, yPos);
         yPos += 12;
 

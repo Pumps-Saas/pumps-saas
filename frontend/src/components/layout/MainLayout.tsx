@@ -16,12 +16,14 @@ import {
     ChevronRight,
     Activity,
     X,
-    Check
+    Check,
+    Bell
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useSystemStore } from '../../features/calculator/stores/useSystemStore';
 import { SupportModal } from '../../features/support/SupportModal';
+import { NotificationModal } from '../../features/support/NotificationModal';
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -44,6 +46,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     const [isProfileDlg, setIsProfileDlg] = useState(false);
     const [isSettingsDlg, setIsSettingsDlg] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
     // Profile form state
     const [profileName, setProfileName] = useState(user?.email?.split('@')[0] || 'Engenheiro Principal');
@@ -225,6 +228,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                                         </button>
 
                                         <button
+                                            onClick={() => { setUserMenuOpen(false); setIsNotificationsOpen(true); }}
+                                            className="flex items-center justify-between px-2.5 py-2 rounded-lg text-[#e9e9ed] hover:bg-white/5 transition-colors text-left w-full"
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <Bell className="w-4 h-4 text-[#9184d9]" />
+                                                <span>{uiLanguage === 'pt' ? 'Notificações' : 'Notifications'}</span>
+                                            </div>
+                                            <span className="w-4 h-4 rounded-full bg-[#e06b6b] text-white flex items-center justify-center text-[10px] font-bold shadow-[0_0_8px_rgba(224,107,107,0.4)]">!</span>
+                                        </button>
+
+                                        <button
                                             onClick={() => { setUserMenuOpen(false); setIsSettingsDlg(true); }}
                                             className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[#e9e9ed] hover:bg-white/5 transition-colors text-left w-full"
                                         >
@@ -343,6 +357,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                                 </div>
                             </div>
 
+                            <div className="flex flex-col gap-3">
+                                <div className="field">
+                                    <label>E-mail</label>
+                                    <input type="email" className="input opacity-70" value={user?.email || ''} readOnly />
+                                </div>
+                                <div className="field">
+                                    <label>{uiLanguage === 'pt' ? 'Telefone' : 'Phone'}</label>
+                                    <input type="text" className="input opacity-70" value="+55 11 98888-1234" readOnly />
+                                </div>
+                            </div>
+
                             <div className="card border border-[var(--color-divider)] p-3 mt-1">
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-bold text-[#9184d9]">Pumps SaaS PRO</span>
@@ -360,6 +385,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
             {/* Suporte Modal */}
             {isSupportOpen && <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />}
+
+            {/* Notifications Modal */}
+            <NotificationModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
         </div>
     );
 };

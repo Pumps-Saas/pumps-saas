@@ -28,7 +28,7 @@ const AdminLayout: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-100 flex font-sans">
+        <div className="min-h-screen bg-[var(--color-bg)] flex font-sans text-[var(--color-text)]">
             {/* Mobile Overlay */}
             {isSidebarOpen && (
                 <div
@@ -39,9 +39,9 @@ const AdminLayout: React.FC = () => {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed md:static inset-y-0 left-0 z-50 bg-slate-900 text-slate-300 w-64 flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0 md:ml-0' : '-translate-x-full md:-ml-64 md:translate-x-0'}`}>
-                <div className="h-16 flex items-center px-4 font-bold text-white text-lg border-b border-slate-700 bg-slate-950">
-                    <span className="text-blue-500 mr-2">Admin</span> Console
+            <aside className={`fixed md:static inset-y-0 left-0 z-50 bg-[var(--color-surface)] text-[var(--color-text)] w-64 flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out border-r border-[var(--color-divider)] ${isSidebarOpen ? 'translate-x-0 md:ml-0' : '-translate-x-full md:-ml-64 md:translate-x-0'}`}>
+                <div className="h-16 flex items-center px-4 font-bold text-white text-lg border-b border-[var(--color-divider)] bg-[var(--color-bg)]/30">
+                    <span className="text-[var(--color-accent)] mr-2">Admin</span> Console
                 </div>
 
                 <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
@@ -57,8 +57,8 @@ const AdminLayout: React.FC = () => {
                             }}
                             className={({ isActive }) =>
                                 `flex items-center px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${isActive
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'hover:bg-slate-800 hover:text-white'
+                                    ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)] shadow-sm'
+                                    : 'hover:bg-white/5 hover:text-white'
                                 }`
                             }
                         >
@@ -68,14 +68,14 @@ const AdminLayout: React.FC = () => {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-slate-700">
+                <div className="p-4 border-t border-[var(--color-divider)]">
                     <div className="flex items-center mb-4">
-                        <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold mr-3">
+                        <div className="h-8 w-8 rounded-full bg-[var(--color-accent)]/20 flex items-center justify-center text-[var(--color-accent)] font-bold mr-3 border border-[var(--color-accent)]/30">
                             A
                         </div>
                         <div className="text-sm truncate">
                             <div className="font-medium text-white">System Admin</div>
-                            <div className="text-slate-400 text-xs truncate">{user.email}</div>
+                            <div className="text-muted text-xs truncate">{user.email}</div>
                         </div>
                     </div>
                 </div>
@@ -84,27 +84,27 @@ const AdminLayout: React.FC = () => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header */}
-                <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm z-10">
+                <header className="bg-[var(--color-surface)] border-b border-[var(--color-divider)] h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-sm z-10">
                     <div className="flex items-center">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-2 mr-4 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="p-2 mr-4 rounded-md text-muted hover:text-white hover:bg-white/5 focus:outline-none"
                         >
                             <Menu className="h-5 w-5" />
                         </button>
-                        <h1 className="text-lg font-semibold text-slate-800">Mission Control</h1>
+                        <h1 className="text-lg font-semibold text-white">Mission Control</h1>
                     </div>
 
                     <div className="flex items-center space-x-3">
                         <NavLink
                             to="/dashboard"
-                            className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors mr-4"
+                            className="text-sm font-medium text-muted hover:text-[var(--color-accent)] transition-colors mr-4"
                         >
                             Back to App
                         </NavLink>
                         <button
                             onClick={logout}
-                            className="flex items-center text-sm font-medium text-slate-500 hover:text-red-600 transition-colors"
+                            className="flex items-center text-sm font-medium text-muted hover:text-[#e06b6b] transition-colors"
                         >
                             <LogOut className="h-4 w-4 mr-1.5" />
                             Logout
@@ -113,7 +113,7 @@ const AdminLayout: React.FC = () => {
                 </header>
 
                 {/* Dashboard Content Area */}
-                <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-slate-50">
+                <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-[var(--color-bg)]">
                     <div className="max-w-7xl mx-auto">
                         <Outlet />
                     </div>
