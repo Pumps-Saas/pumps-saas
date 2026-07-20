@@ -24,6 +24,20 @@ Trade-off aceito: Adição de mais um campo numérico na interface de entrada, j
 
 ---
 
+## 2026-07-20 — Prevenção de Deadlock via Circuit Breaker em Motor Hidráulico
+Decisão: Inserção de uma barreira de iteração (limite de 50 ciclos) nos loops `while` de busca de raízes para cálculo de perdas em paralelo (`calculate_parallel_loss` em `optimization.py`).
+Motivo: Tubulações hipotéticas ou acidentais sem perda (comprimento nulo e diâmetro válido) faziam a resistência tender a zero e o extrapolador duplicar a estimativa de vazão infinitamente ($Q_{high} \times 2$), travando o Worker único na infraestrutura (Render).
+Trade-off aceito: Em sistemas cujas perdas por atrito cheguem à casa dos centésimos de milímetro e exijam cálculos absurdamente longos, o sistema abortará e reverterá o cálculo na 50ª iteração, o que não reflete tubulações do mundo real, mas protege a nuvem.
+
+---
+
+## 2026-07-20 — Conversão de html2canvas para html2canvas-pro e rgba()
+Decisão: Migração da engine de relatórios PDF `html2canvas` para a variação comunitária modernizada `html2canvas-pro`. Todos os tokens CSS `color-mix()` foram também reescritos para suas equivalências clássicas `rgba()` (injetando `rgb(...)` via variáveis nas classes utilitárias globais).
+Motivo: A biblioteca anterior apresentava erro de sintaxe (*Attempting to parse an unsupported color function "color"*) ao lidar com cores do TailwindCSS v3.4 ou renderizações avançadas de navegadores Safari (P3/sRGB).
+Trade-off aceito: Aumento sutil no volume de variáveis no `:root` e maior complexidade de temas. Maior flexibilidade e fim absoluto das quebras de download do memorial.
+
+---
+
 ## 2026-07-19 — Otimização Extrema (Auto-Select AI)
 Decisão: O algoritmo de recomendação de bombas foi reescrito para gerar um polinômio da Curva do Sistema *uma única vez* e utilizar interseção matemática direta ($O(1)$) com os coeficientes das bombas, ao invés de buscar a raiz utilizando a biblioteca `scipy` em um loop.
 Motivo: Degradação massiva de performance (loop aninhado de raízes) que resultava em travamento da interface. O tempo de recomendação caiu de ~30s para *< 10ms*.
