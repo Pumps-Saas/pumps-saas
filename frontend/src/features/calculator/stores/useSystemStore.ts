@@ -280,12 +280,15 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
         discharge_sections_after: [],
         static_head: 10,
         pump_curve: [],
+        pump_manufacturer: "",
+        pump_model: "",
         pump_base_rpm: 1750,
         pump_current_rpm: 1750,
         parallel_pumps: 1,
         pressure_suction_bar_g: 0,
         pressure_discharge_bar_g: 0,
         atmospheric_pressure_bar: 1.01325,
+        altitude_m: 0,
         efficiency_motor: 0.90,
         hours_per_day: 24,
         days_per_year: 365,
@@ -304,7 +307,35 @@ export const useSystemStore = create<SystemStore>((set, get) => ({
             activeView, uiLanguage, uiTheme, operatingPoint, isCalculating, calculationError, ...validState
         } = state as any;
         return {
-            ...currentState,
+            ...currentState, // Keeps functions and UI state
+            
+            // Apply defaults for all engineering data to prevent bleeding previous scenario's state
+            fluid: DEFAULT_FLUID,
+            suction_sections: [],
+            discharge_sections_before: [],
+            discharge_parallel_sections: {},
+            discharge_sections_after: [],
+            static_head: 10,
+            pump_curve: [],
+            pump_manufacturer: "",
+            pump_model: "",
+            pump_base_rpm: 1750,
+            pump_current_rpm: 1750,
+            parallel_pumps: 1,
+            pressure_suction_bar_g: 0,
+            pressure_discharge_bar_g: 0,
+            atmospheric_pressure_bar: 1.01325,
+            altitude_m: 0,
+            efficiency_motor: 0.90,
+            hours_per_day: 24,
+            days_per_year: 365,
+            energy_cost_per_kwh: 0.80,
+            pump_cost: 15000,
+            installation_cost: 5000,
+            maintenance_rate: 2,
+            operatingPoint: null,
+            
+            // Finally merge the incoming valid state
             ...validState
         };
     })
