@@ -74,13 +74,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             document.documentElement.style.setProperty('--color-bg', '#f3f5fe');
             document.documentElement.style.setProperty('--color-surface', '#ffffff');
             document.documentElement.style.setProperty('--color-text', '#292b31');
+            document.documentElement.style.setProperty('--color-text-rgb', '41, 43, 49');
             document.documentElement.style.setProperty('--color-divider', 'rgba(41, 43, 49, 0.16)');
             document.body.classList.add('light-mode');
         } else {
             document.documentElement.style.setProperty('--color-bg', '#161826');
             document.documentElement.style.setProperty('--color-surface', '#232532');
             document.documentElement.style.setProperty('--color-text', '#e9e9ed');
-            document.documentElement.style.setProperty('--color-divider', 'color-mix(in srgb, #e9e9ed 16%, transparent)');
+            document.documentElement.style.setProperty('--color-text-rgb', '233, 233, 237');
+            document.documentElement.style.setProperty('--color-divider', 'rgba(233, 233, 237, 0.16)');
             document.body.classList.remove('light-mode');
         }
     };

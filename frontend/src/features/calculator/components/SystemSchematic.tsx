@@ -138,12 +138,12 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
             >
                 {/* 1. SUCTION TANK */}
                 <rect x={20} y={430} width={100} height={100} rx={6} fill="none" stroke="var(--color-neutral-600, #75798c)" strokeWidth={2} />
-                <rect x={22} y={470} width={96} height={58} fill="color-mix(in srgb, #9184d9 22%, transparent)" />
+                <rect x={22} y={470} width={96} height={58} fill="rgba(145, 132, 217, 0.22)" />
                 <text x={70} y={555} fill="var(--color-neutral-500, #75798c)" fontSize={14} textAnchor="middle" fontWeight="600">Sucção</text>
 
                 {/* 2. DISCHARGE TANK */}
                 <rect x={780} y={20} width={100} height={100} rx={6} fill="none" stroke="var(--color-neutral-600, #75798c)" strokeWidth={2} />
-                <rect x={782} y={60} width={96} height={58} fill="color-mix(in srgb, #9184d9 22%, transparent)" />
+                <rect x={782} y={60} width={96} height={58} fill="rgba(145, 132, 217, 0.22)" />
                 <text x={830} y={145} fill="var(--color-neutral-500, #75798c)" fontSize={14} textAnchor="middle" fontWeight="600">Recalque</text>
 
                 {/* 3. PUMP SYMBOL */}

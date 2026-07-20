@@ -5,9 +5,12 @@
   --color-bg: #161826;
   --color-surface: #232532;
   --color-text: #e9e9ed;
+  --color-text-rgb: 233, 233, 237;
+  --color-accent-rgb: 145, 132, 217;
+  --color-neutral-900-rgb: 41, 43, 49;
   --color-accent: #9184d9;
   --color-accent-2: #a7a1db;
-  --color-divider: color-mix(in srgb, #e9e9ed 16%, transparent);
+  --color-divider: rgba(233, 233, 237, 0.16);
 
   /* Tonal ramps */
   --color-neutral-100: #f3f5fe;
@@ -135,12 +138,12 @@ img { display: block; max-width: 100%; }
 figure { margin: 0; }
 figcaption {
   font-size: 11px; margin-top: var(--space-1);
-  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  color: rgba(var(--color-text-rgb), 0.55);
 }
-.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.text-muted { color: rgba(var(--color-text-rgb), 0.55); }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+::selection { background: rgba(var(--color-accent-rgb), 0.3); }
 
 .hr {
   height: 1px; border: 0; margin: var(--space-4) 0;
@@ -163,21 +166,21 @@ figcaption {
 .btn svg { display: block; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-primary { color: var(--color-accent); border-color: var(--color-accent); }
-.btn-primary:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
-.btn-primary:active { background: color-mix(in srgb, var(--color-accent) 22%, transparent); }
+.btn-primary:hover { background: rgba(var(--color-accent-rgb), 0.12); }
+.btn-primary:active { background: rgba(var(--color-accent-rgb), 0.22); }
 .btn-secondary { border-color: var(--color-divider); color: var(--color-text); }
-.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
-.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.btn-secondary:hover { background: rgba(var(--color-text-rgb), 0.07); }
+.btn-secondary:active { background: rgba(var(--color-text-rgb), 0.14); }
 .btn-ghost { color: var(--color-accent); padding-inline: var(--space-1); }
-.btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
-.btn-ghost:active { background: color-mix(in srgb, var(--color-accent) 18%, transparent); }
+.btn-ghost:hover { background: rgba(var(--color-accent-rgb), 0.1); }
+.btn-ghost:active { background: rgba(var(--color-accent-rgb), 0.18); }
 .btn-icon { width: 34px; height: 34px; padding: 0; }
 .btn-block { width: 100%; margin-top: var(--space-2); }
 
 /* Forms */
 .field > label {
   display: block; font-size: 12px; margin-bottom: 5px;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  color: rgba(var(--color-text-rgb), 0.7);
 }
 .input {
   width: 100%; min-height: 36px; padding: 6px 10px; font: inherit;
@@ -186,7 +189,7 @@ figcaption {
   border: 1px solid var(--color-divider); border-radius: var(--radius-md);
   transition: border-color 0.15s ease;
 }
-.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:hover { border-color: rgba(var(--color-text-rgb), 0.45); }
 .input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
 textarea.input { min-height: 90px; resize: vertical; }
 
@@ -215,7 +218,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 }
 .seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
 .seg-opt:has(input:checked) { color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
-.seg-opt:not(:has(input:checked)):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:not(:has(input:checked)):hover { background: rgba(var(--color-text-rgb), 0.07); }
 .seg-opt:has(input:focus-visible) { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 
 /* Cards */
@@ -231,7 +234,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 .card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
 .card-meta {
   display: flex; align-items: center; gap: 6px; font-size: 11px;
-  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  color: rgba(var(--color-text-rgb), 0.5);
 }
 .elev-sm { box-shadow: var(--shadow-sm); }
 .elev-md { box-shadow: var(--shadow-md); }
@@ -265,7 +268,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th {
   text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  color: rgba(var(--color-text-rgb), 0.6);
   padding: var(--space-2); border-bottom: 1px solid transparent;
 }
 .table td {
@@ -279,23 +282,23 @@ textarea.input { min-height: 90px; resize: vertical; }
 }
 .table tbody tr {
   background: linear-gradient(to right,
-    transparent, color-mix(in srgb, var(--color-text) 8%, transparent) 48px,
-    color-mix(in srgb, var(--color-text) 8%, transparent) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+    transparent, rgba(var(--color-text-rgb), 0.08) 48px,
+    rgba(var(--color-text-rgb), 0.08) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
 }
 .table tbody tr:hover {
   background:
-    linear-gradient(color-mix(in srgb, var(--color-text) 4%, transparent),
-                    color-mix(in srgb, var(--color-text) 4%, transparent)) no-repeat 0 0 / 100% 100%,
+    linear-gradient(rgba(var(--color-text-rgb), 0.04),
+                    rgba(var(--color-text-rgb), 0.04)) no-repeat 0 0 / 100% 100%,
     linear-gradient(to right,
-      transparent, color-mix(in srgb, var(--color-text) 8%, transparent) 48px,
-      color-mix(in srgb, var(--color-text) 8%, transparent) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+      transparent, rgba(var(--color-text-rgb), 0.08) 48px,
+      rgba(var(--color-text-rgb), 0.08) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
 }
 
 /* Dialog */
 .dialog-backdrop {
   position: fixed; inset: 0; display: grid; place-items: center;
   padding: var(--space-4); z-index: 60;
-  background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
+  background: rgba(var(--color-neutral-900-rgb), 0.5);
   backdrop-filter: blur(4px);
 }
 .dialog {
