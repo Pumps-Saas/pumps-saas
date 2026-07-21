@@ -59,19 +59,17 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                 </h4>
             )}
 
-            {/* Print Mode OP Box: Centered below the title */}
-            {printMode && operatingPoint && (
-                <div className="flex justify-center mb-2" style={{ width: '100%' }}>
+            <div className={innerClass}>
+                {/* Print Mode OP Box: Absolute centered above legend */}
+                {printMode && operatingPoint && (
                     <div
-                        className="bg-white/90 rounded shadow-sm text-green-700 font-semibold"
-                        style={{ fontSize: legendFontSize, border: '2px solid #bbf7d0', padding: '16px 32px', fontFamily: 'sans-serif', textAlign: 'center' }}
+                        className="bg-white/90 rounded shadow-sm text-green-700 font-semibold absolute"
+                        style={{ fontSize: legendFontSize, border: '2px solid #bbf7d0', padding: '12px 32px', fontFamily: 'sans-serif', textAlign: 'center', top: -35, left: '50%', transform: 'translateX(-50%)', zIndex: 10, whiteSpace: 'nowrap' }}
                     >
                         OP: {operatingPoint.flow_op.toFixed(1)} m³/h @ {operatingPoint.head_op.toFixed(1)} m
                     </div>
-                </div>
-            )}
-
-            <div className={innerClass}>
+                )}
+                
                 <ResponsiveContainer width="100%" height={printMode ? "85%" : "100%"}>
                     <ComposedChart data={data} margin={chartMargins}>
                         <CartesianGrid stroke={gridStroke} />

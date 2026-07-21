@@ -58,21 +58,19 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                 </h4>
             )}
 
-            {/* Print Mode NPSH Box: Centered below the title */}
-            {printMode && operatingPoint && operatingPoint.npsh_available && operatingPoint.npsh_required !== null && (
-                <div className="flex justify-center mb-2" style={{ width: '100%' }}>
+            <div className={innerClass}>
+                {/* Print Mode NPSH Box: Absolute centered above legend */}
+                {printMode && operatingPoint && operatingPoint.npsh_available && operatingPoint.npsh_required !== null && (
                     <div
-                        className="bg-white/90 rounded text-slate-600 font-medium"
-                        style={{ fontSize: legendFontSize, border: '2px solid #334155', padding: '16px 32px', fontFamily: 'sans-serif', textAlign: 'center' }}
+                        className="bg-white/90 rounded text-slate-600 font-medium absolute"
+                        style={{ fontSize: legendFontSize, border: '2px solid #334155', padding: '12px 32px', fontFamily: 'sans-serif', textAlign: 'center', top: -35, left: '50%', transform: 'translateX(-50%)', zIndex: 10, whiteSpace: 'nowrap' }}
                     >
                         <span>NPSHa: {operatingPoint.npsh_available.toFixed(2)}m</span>
                         <span style={{ margin: '0 16px' }}>|</span>
                         <span>NPSHr: {operatingPoint.npsh_required?.toFixed(2)}m</span>
                     </div>
-                </div>
-            )}
-
-            <div className={innerClass}>
+                )}
+                
                 <ResponsiveContainer width="100%" height={printMode ? "85%" : "100%"}>
                     <ComposedChart data={data} margin={chartMargins}>
                         <CartesianGrid stroke={gridStroke} />
