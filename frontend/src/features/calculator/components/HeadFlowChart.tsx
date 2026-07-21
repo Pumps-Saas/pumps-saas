@@ -55,9 +55,22 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                 </h3>
             ) : (
                 <h4 className="text-sm font-semibold text-slate-500 mb-2 text-center uppercase tracking-wider flex-none">
-                    System vs Pump Head
+                    System Analysis
                 </h4>
             )}
+
+            {/* Print Mode OP Box: Centered below the title */}
+            {printMode && operatingPoint && (
+                <div className="flex justify-center mb-2" style={{ width: '100%' }}>
+                    <div
+                        className="bg-white/90 rounded shadow-sm text-green-700 font-semibold"
+                        style={{ fontSize: legendFontSize, border: '2px solid #bbf7d0', padding: '16px 32px', fontFamily: 'sans-serif', textAlign: 'center' }}
+                    >
+                        OP: {operatingPoint.flow_op.toFixed(1)} m³/h @ {operatingPoint.head_op.toFixed(1)} m
+                    </div>
+                </div>
+            )}
+
             <div className={innerClass}>
                 <ResponsiveContainer width="100%" height={printMode ? "85%" : "100%"}>
                     <ComposedChart data={data} margin={chartMargins}>
@@ -146,11 +159,11 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                     </ComposedChart>
                 </ResponsiveContainer>
 
-                {/* OP Label - Aligned with Legend if possible, or placed clearly */}
-                {operatingPoint && (
+                {/* Screen Mode OP Label - Absolute positioned */}
+                {!printMode && operatingPoint && (
                     <div
-                        className={`bg-white/90 p-1.5 rounded border border-green-200 shadow-sm text-green-700 font-semibold pointer-events-none`}
-                        style={printMode ? { fontSize: legendFontSize, border: '2px solid #bbf7d0', position: 'absolute', top: 150, right: 60, padding: '16px', fontFamily: 'sans-serif' } : { position: 'absolute', top: 8, right: 16, fontSize: '12px' }}
+                        className={`bg-white/90 p-1.5 rounded border border-green-200 shadow-sm text-green-700 font-semibold pointer-events-none absolute`}
+                        style={{ top: 8, right: 16, fontSize: '12px' }}
                     >
                         OP: {operatingPoint.flow_op.toFixed(1)} m³/h @ {operatingPoint.head_op.toFixed(1)} m
                     </div>

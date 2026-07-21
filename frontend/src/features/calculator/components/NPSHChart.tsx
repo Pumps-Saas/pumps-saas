@@ -57,6 +57,21 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                     NPSH Analysis
                 </h4>
             )}
+
+            {/* Print Mode NPSH Box: Centered below the title */}
+            {printMode && operatingPoint && operatingPoint.npsh_available && operatingPoint.npsh_required !== null && (
+                <div className="flex justify-center mb-2" style={{ width: '100%' }}>
+                    <div
+                        className="bg-white/90 rounded text-slate-600 font-medium"
+                        style={{ fontSize: legendFontSize, border: '2px solid #334155', padding: '16px 32px', fontFamily: 'sans-serif', textAlign: 'center' }}
+                    >
+                        <span>NPSHa: {operatingPoint.npsh_available.toFixed(2)}m</span>
+                        <span style={{ margin: '0 16px' }}>|</span>
+                        <span>NPSHr: {operatingPoint.npsh_required?.toFixed(2)}m</span>
+                    </div>
+                </div>
+            )}
+
             <div className={innerClass}>
                 <ResponsiveContainer width="100%" height={printMode ? "85%" : "100%"}>
                     <ComposedChart data={data} margin={chartMargins}>
@@ -144,8 +159,9 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
 
                     </ComposedChart>
                 </ResponsiveContainer>
-                {operatingPoint && operatingPoint.npsh_available && operatingPoint.npsh_required !== null && (
-                    <div className={`absolute bg-white/90 rounded border shadow-sm text-slate-600 font-medium pointer-events-none ${printMode ? 'border-2 text-slate-700' : 'text-xs'}`} style={printMode ? { fontSize: legendFontSize, top: 150, right: 60, padding: '24px', fontFamily: 'sans-serif' } : { top: 8, right: 16, padding: '6px' }}>
+                {/* Screen Mode NPSH Box - Absolute positioned */}
+                {!printMode && operatingPoint && operatingPoint.npsh_available && operatingPoint.npsh_required !== null && (
+                    <div className="absolute bg-white/90 rounded border shadow-sm text-slate-600 font-medium pointer-events-none text-xs" style={{ top: 8, right: 16, padding: '6px' }}>
                         <div>NPSHa: {operatingPoint.npsh_available.toFixed(2)}m</div>
                         <div>NPSHr: {operatingPoint.npsh_required?.toFixed(2)}m</div>
                     </div>
