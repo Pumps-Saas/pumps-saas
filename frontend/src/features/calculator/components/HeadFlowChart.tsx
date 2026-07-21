@@ -64,7 +64,7 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                 {printMode && operatingPoint && (
                     <div
                         className="bg-white/90 rounded shadow-sm text-green-700 font-semibold absolute"
-                        style={{ fontSize: legendFontSize, border: '2px solid #bbf7d0', padding: '12px 32px', fontFamily: 'sans-serif', textAlign: 'center', top: -35, left: '50%', transform: 'translateX(-50%)', zIndex: 10, whiteSpace: 'nowrap' }}
+                        style={{ fontSize: legendFontSize, border: '2px solid #bbf7d0', padding: '12px 32px', fontFamily: 'sans-serif', textAlign: 'center', top: -15, left: '50%', transform: 'translateX(-50%)', zIndex: 10, whiteSpace: 'nowrap' }}
                     >
                         OP: {operatingPoint.flow_op.toFixed(1)} m³/h @ {operatingPoint.head_op.toFixed(1)} m
                     </div>
