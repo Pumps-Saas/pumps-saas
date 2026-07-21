@@ -94,7 +94,7 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                             verticalAlign="top"
                             height={printMode ? 70 : 40}
                             iconType="circle"
-                            wrapperStyle={{ fontSize: legendFontSize, paddingTop: '0px', paddingBottom: printMode ? '40px' : '10px', display: 'flex', justifyContent: 'center', width: '100%' }}
+                            wrapperStyle={{ fontSize: legendFontSize, paddingTop: '0px', paddingBottom: printMode ? '40px' : '10px', display: 'flex', justifyContent: 'center', width: '100%', fontFamily: 'sans-serif' }}
                         />
 
                         {/* Adjusted Pump Curve */}
@@ -150,7 +150,7 @@ export const HeadFlowChart: React.FC<HeadFlowChartProps> = ({ data, operatingPoi
                 {operatingPoint && (
                     <div
                         className={`bg-white/90 p-1.5 rounded border border-green-200 shadow-sm text-green-700 font-semibold pointer-events-none`}
-                        style={printMode ? { fontSize: legendFontSize, border: '2px solid #bbf7d0', position: 'absolute', top: 5, right: 40, padding: '16px' } : { position: 'absolute', top: 8, right: 16, fontSize: '12px' }}
+                        style={printMode ? { fontSize: legendFontSize, border: '2px solid #bbf7d0', position: 'absolute', top: 80, right: 60, padding: '16px', fontFamily: 'sans-serif' } : { position: 'absolute', top: 8, right: 16, fontSize: '12px' }}
                     >
                         OP: {operatingPoint.flow_op.toFixed(1)} m³/h @ {operatingPoint.head_op.toFixed(1)} m
                     </div>

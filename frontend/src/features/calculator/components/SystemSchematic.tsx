@@ -362,8 +362,8 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
                 {/* 8. DIMENSION LINE (Static Head ΔZ) */}
                 <line x1={895} y1={510} x2={895} y2={20} stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} strokeDasharray="4 4" />
                 <path d="M 890 28 L 895 20 L 900 28 M 890 504 L 895 512 L 900 504" fill="none" stroke="var(--color-neutral-700, #b2b6ca)" strokeWidth={1.5} />
-                <text x={885} y={260} fill="var(--color-neutral-400, #595d6c)" fontSize={14} fontWeight="600" textAnchor="end">ΔZ (Desnível):</text>
-                <text x={885} y={285} fill="var(--color-text)" fontSize={17} fontWeight="700" textAnchor="end">{f(staticHead, 1)}m</text>
+                <text x={885} y={260} fill={printMode ? "#666666" : "var(--color-neutral-400, #595d6c)"} fontSize={14} fontWeight="600" textAnchor="end">ΔZ (Desnível):</text>
+                <text x={885} y={285} fill={printMode ? "#111111" : "var(--color-text, #ffffff)"} fontSize={17} fontWeight="700" textAnchor="end">{f(staticHead, 1)}m</text>
             </svg>
         </div>
     );
