@@ -112,7 +112,17 @@ export const SystemSchematic: React.FC<SystemSchematicProps> = ({ result, printM
     };
 
     return (
-        <div className="w-full bg-[var(--color-surface)] rounded-xl border border-[var(--color-divider)] p-4 relative overflow-hidden flex flex-col justify-center">
+        <div 
+            className="w-full rounded-xl border border-[var(--color-divider)] p-4 relative overflow-hidden flex flex-col justify-center"
+            style={printMode ? {
+                '--color-bg': '#f3f5fe',
+                '--color-surface': '#ffffff',
+                '--color-text': '#292b31',
+                '--color-text-rgb': '41, 43, 49',
+                '--color-divider': 'rgba(41, 43, 49, 0.16)',
+                backgroundColor: '#ffffff'
+            } as React.CSSProperties : { backgroundColor: 'var(--color-surface)' }}
+        >
             <style dangerouslySetInnerHTML={{ __html: `
                 @keyframes bmbFlow {
                     from { stroke-dashoffset: 40; }

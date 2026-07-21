@@ -145,7 +145,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                     </ComposedChart>
                 </ResponsiveContainer>
                 {operatingPoint && operatingPoint.npsh_available && operatingPoint.npsh_required !== null && (
-                    <div className={`absolute bg-white/90 rounded border shadow-sm text-slate-600 font-medium pointer-events-none ${printMode ? 'border-2 text-slate-700' : 'text-xs'}`} style={printMode ? { fontSize: legendFontSize, top: 80, right: 60, padding: '24px', fontFamily: 'sans-serif' } : { top: 8, right: 16, padding: '6px' }}>
+                    <div className={`absolute bg-white/90 rounded border shadow-sm text-slate-600 font-medium pointer-events-none ${printMode ? 'border-2 text-slate-700' : 'text-xs'}`} style={printMode ? { fontSize: legendFontSize, top: 150, right: 60, padding: '24px', fontFamily: 'sans-serif' } : { top: 8, right: 16, padding: '6px' }}>
                         <div>NPSHa: {operatingPoint.npsh_available.toFixed(2)}m</div>
                         <div>NPSHr: {operatingPoint.npsh_required?.toFixed(2)}m</div>
                     </div>
