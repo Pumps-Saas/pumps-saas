@@ -11,6 +11,13 @@ Trade-off aceito: Exige o uso preciso e pontual de "números mágicos" de CSS (`
 
 ---
 
+## 2026-07-20 — Identidade de Bomba Incorporada aos Snapshots de Cenários
+Decisão: O Backend e o schema do banco de dados (modelos `OperatingPointRead` e correlatos) foram alterados para trafegar e persistir as propriedades de leitura `pump_manufacturer` e `pump_model` gravadas dentro do snapshot estático (`operating_point`).
+Motivo: Evitar o "congelamento" ou poluição visual de informações de bomba entre abas. Quando um cenário (`scenario`) era carregado, a UI recuperava a física hidráulica corretamente, mas ignorava a qual bomba aquela física pertencia. A bomba selecionada anteriormente ficava presa na tela e no PDF, destruindo a confiabilidade do documento exportado.
+Trade-off aceito: Quebra sutil de normalização de banco de dados (já que os dados descritivos da bomba poderiam ser recuperados via Join com a tabela de bombas, mas a decisão de persistir no snapshot blinda o cenário caso a bomba matriz seja deletada no futuro).
+
+---
+
 ## 2026-07-19 — Controle Dinâmico do Domínio Recharts (Fix de Pontos Flutuantes)
 Decisão: Eixos X (Vazão) nas telas de HeadFlowChart e NPSHChart mudaram de configuração de domínio dependente (`domain={['dataMin', 'dataMax']}`) para domínio com fim autônomo (`domain={[0, 'auto']}`), associados a funções customizadas de exibição de labels `tickFormatter={(val) => Math.round(val)}`.
 Trade-off: A renderização gráfica pode descolar a malha alguns pixels da última coordenada interpolada de dados (quando o valor de dados não for exato, ex: 273.5999), mas previne as quebras de passo da UI mantendo um eixo harmonizado, íntegro (0, 70, 140, 210, 280) e com zero confusão cognitiva para o usuário sem exigir normalização destrutiva na base de dados do Backend.

@@ -8,7 +8,9 @@
 ## 20/07/2026 — Layout Top-Down em Gráficos PDF e Consistência do Tema Claro
 
 ### 🎯 O que foi realizado
+- **Identidade da Bomba em Cenários Salvos**: Corrigido o bug onde o carregamento de cenários antigos "congelava" o rótulo da última bomba clicada ou omitia os dados da máquina original. O Backend e Frontend foram atualizados para persistir e resgatar ativamente o `pump_manufacturer` e `pump_model` gravados dentro do snapshot do Ponto de Operação (`operating_point`), devolvendo o contexto exato da bomba para as caixas informativas e para o relatório em PDF.
 - **Isolamento de Tema (Print Mode)**: O diagrama esquemático da rede (`SystemSchematic.tsx`) foi blindado contra a preferência de tema escuro/claro do navegador do usuário no momento da impressão do PDF. Por meio de substituição direta de variáveis CSS in-line (`--color-surface`, `--color-bg`), o componente agora força a renderização num tema claro, melhorando a visibilidade da cota de Desnível (`ΔZ`) sobre o papel.
+- **Alinhamento Geométrico de Tabelas e Títulos**: Padronização dos cabeçalhos secundários para a cor roxa (Nocturne), além da inserção de larguras fixas rígidas (`cellWidth: [50, 30, 30, 40]`) para as tabelas de tubulação, garantindo simetria perfeita nas linhas verticais do PDF independentemente do comprimento do nome do trecho.
 - **Posicionamento Absoluto Não-Destrutivo (Gráficos)**: As caixinhas informativas de Ponto de Operação e NPSH nos gráficos do PDF estavam causando estouro de layout (cortando o Eixo X) ao serem inseridas como blocos Flex. Elas retornaram para o modelo de **Posicionamento Absoluto**, mas agora fixadas rigorosamente centralizadas (`left: 50%`) na margem negativa do topo (`top: -15px`). 
 
 ### 💼 Impacto no Negócio
