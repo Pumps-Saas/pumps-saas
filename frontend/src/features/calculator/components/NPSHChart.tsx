@@ -49,7 +49,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
         <div className={containerClass}>
             {/* Title for both Print and Screen modes, styled differently */}
             {printMode ? (
-                <h3 className="text-black font-sans mb-8 text-center w-full" style={{ fontSize: '64px', fontWeight: 'bold' }}>
+                <h3 className="text-black font-sans mb-8 text-center w-full" style={{ fontSize: '64px', fontWeight: 'bold', fontFamily: 'sans-serif', textAlign: 'center' }}>
                     NPSH Available vs Required
                 </h3>
             ) : (
