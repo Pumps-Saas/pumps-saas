@@ -135,7 +135,7 @@ export const generatePDFReport = (data: ReportData) => {
 
     // --- 1. Executive Summary (Results) ---
     doc.setFontSize(14);
-    doc.setTextColor(0);
+    doc.setTextColor(145, 132, 217);
     doc.text("1. Calculation Results", margin, yPos);
     yPos += 8;
 
@@ -187,6 +187,7 @@ export const generatePDFReport = (data: ReportData) => {
 
     // --- 2. System Parameters ---
     doc.setFontSize(14);
+    doc.setTextColor(145, 132, 217);
     doc.text("2. System Parameters", margin, yPos);
     yPos += 8;
 
@@ -216,10 +217,12 @@ export const generatePDFReport = (data: ReportData) => {
     }
 
     doc.setFontSize(14);
+    doc.setTextColor(145, 132, 217);
     doc.text("3. Pump Curve Data", margin, yPos);
     yPos += 8;
 
     // Manufacturer Info
+    doc.setTextColor(0);
     doc.setFontSize(10);
     doc.text(`Manufacturer: ${data.pump.manufacturer || 'Generic'}`, margin, yPos);
     doc.text(`Model: ${data.pump.model || 'Custom Curve'}`, margin + 100, yPos);
@@ -332,11 +335,12 @@ export const generatePDFReport = (data: ReportData) => {
 
     // --- 4. Pipe Network Details (Moved Here) ---
     doc.setFontSize(14);
-    doc.setTextColor(0);
+    doc.setTextColor(145, 132, 217);
     doc.text("4. Pipe Network Details", margin, yPos);
     yPos += 8;
 
     // Suction Table
+    doc.setTextColor(0);
     doc.setFontSize(11);
     doc.text("Suction Line", margin, yPos);
     yPos += 4;
@@ -356,7 +360,7 @@ export const generatePDFReport = (data: ReportData) => {
         theme: 'striped',
         headStyles: { fillColor: [145, 132, 217] },
         styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
+        columnStyles: { 0: { halign: 'left', cellWidth: 50 }, 1: { cellWidth: 30 }, 2: { cellWidth: 30 }, 3: { halign: 'left', cellWidth: 40 }, 4: { cellWidth: 'auto' } }
     });
     yPos = doc.lastAutoTable.finalY + 8;
 
@@ -380,7 +384,7 @@ export const generatePDFReport = (data: ReportData) => {
         theme: 'striped',
         headStyles: { fillColor: [145, 132, 217] },
         styles: { fontSize: 9, cellPadding: 2, halign: 'center' },
-        columnStyles: { 0: { halign: 'left' }, 3: { halign: 'left' } }
+        columnStyles: { 0: { halign: 'left', cellWidth: 50 }, 1: { cellWidth: 30 }, 2: { cellWidth: 30 }, 3: { halign: 'left', cellWidth: 40 }, 4: { cellWidth: 'auto' } }
     });
 
     yPos = doc.lastAutoTable.finalY + 15;

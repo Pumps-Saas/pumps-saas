@@ -34,7 +34,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
     const tickFill = isLight ? '#666' : '#ccc';
 
     const chartMargins = printMode
-        ? { top: 40, right: 60, left: 100, bottom: 90 }
+        ? { top: 40, right: 60, left: 100, bottom: 120 }
         : { top: 20, right: 30, left: 10, bottom: 10 };
 
     const containerClass = printMode
@@ -49,7 +49,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
         <div className={containerClass}>
             {/* Title for both Print and Screen modes, styled differently */}
             {printMode ? (
-                <h3 className="text-[#2980b9] font-sans mb-8 ml-12" style={{ fontSize: '64px', fontWeight: 'bold' }}>
+                <h3 className="text-black font-sans mb-8 text-center w-full" style={{ fontSize: '64px', fontWeight: 'bold' }}>
                     NPSH Available vs Required
                 </h3>
             ) : (
@@ -66,7 +66,7 @@ export const NPSHChart: React.FC<NPSHChartProps> = ({ data, operatingPoint, prin
                             type="number"
                             unit=" m³/h"
                             domain={[0, 'auto']}
-                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: printMode ? -60 : -40, style: { fontSize: labelFontSize, fill: labelFill, fontWeight: 600 } }}
+                            label={{ value: 'Flow Rate (m³/h)', position: 'insideBottom', offset: printMode ? -80 : -40, style: { fontSize: labelFontSize, fill: labelFill, fontWeight: 600 } }}
                             tick={{ fontSize: axisFontSize, fill: tickFill }}
                             tickFormatter={(val) => Math.round(val).toString()}
                             tickMargin={printMode ? 20 : 10}
