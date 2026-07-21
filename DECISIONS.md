@@ -4,6 +4,13 @@ Este documento mantém o histórico de decisões técnicas, premissas de negóci
 
 ---
 
+## 2026-07-20 — Layout Absoluto para Componentes Flutuantes em Relatórios PDF
+Decisão: No módulo de exportação (`printMode`), todas as caixas de KPI e legendas sobrepostas aos gráficos (OP e NPSH) devem ser implementadas usando posicionamento absoluto rígido (ex: `absolute`, `top: -15px`, `left: 50%`), abandonando injeções Flexbox entre o Título e a Área de Plotagem.
+Motivo: Ao injetar blocos HTML baseados em Flex (que ocupam volume estrutural real) em containers desenhados para ter altura fixa (para encaixar no tamanho de uma página A4 PDF), o container transborda (overflow). Isso causava o estrangulamento da altura livre da biblioteca `recharts`, resultando na "decepagem" (corte vertical) dos rótulos do eixo X e das legendas inferiores.
+Trade-off aceito: Exige o uso preciso e pontual de "números mágicos" de CSS (`top: -15px`) que demandam manutenção visual se a hierarquia de fontes mudar, em troca de preservar 100% da integridade da escala, geometria e leitura dos dados hidráulicos no PDF.
+
+---
+
 ## 2026-07-19 — Controle Dinâmico do Domínio Recharts (Fix de Pontos Flutuantes)
 Decisão: Eixos X (Vazão) nas telas de HeadFlowChart e NPSHChart mudaram de configuração de domínio dependente (`domain={['dataMin', 'dataMax']}`) para domínio com fim autônomo (`domain={[0, 'auto']}`), associados a funções customizadas de exibição de labels `tickFormatter={(val) => Math.round(val)}`.
 Trade-off: A renderização gráfica pode descolar a malha alguns pixels da última coordenada interpolada de dados (quando o valor de dados não for exato, ex: 273.5999), mas previne as quebras de passo da UI mantendo um eixo harmonizado, íntegro (0, 70, 140, 210, 280) e com zero confusão cognitiva para o usuário sem exigir normalização destrutiva na base de dados do Backend.

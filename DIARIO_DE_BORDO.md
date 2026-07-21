@@ -5,6 +5,17 @@
 
 ---
 
+## 20/07/2026 — Layout Top-Down em Gráficos PDF e Consistência do Tema Claro
+
+### 🎯 O que foi realizado
+- **Isolamento de Tema (Print Mode)**: O diagrama esquemático da rede (`SystemSchematic.tsx`) foi blindado contra a preferência de tema escuro/claro do navegador do usuário no momento da impressão do PDF. Por meio de substituição direta de variáveis CSS in-line (`--color-surface`, `--color-bg`), o componente agora força a renderização num tema claro, melhorando a visibilidade da cota de Desnível (`ΔZ`) sobre o papel.
+- **Posicionamento Absoluto Não-Destrutivo (Gráficos)**: As caixinhas informativas de Ponto de Operação e NPSH nos gráficos do PDF estavam causando estouro de layout (cortando o Eixo X) ao serem inseridas como blocos Flex. Elas retornaram para o modelo de **Posicionamento Absoluto**, mas agora fixadas rigorosamente centralizadas (`left: 50%`) na margem negativa do topo (`top: -15px`). 
+
+### 💼 Impacto no Negócio
+- **Qualidade Institucional Impecável (PDF)**: O relatório exportado é o entregável de maior valor que o engenheiro leva para a diretoria. Com a garantia de que as cores de fundo sempre estarão claras e os dados estatísticos suspensos de forma perfeitamente alinhada e centralizada sem cortar escalas gráficas, o documento irradia sofisticação, precisão matemática e maturidade do produto SaaS.
+
+---
+
 ## 19/07/2026 — Otimização de UI/UX e Alinhamento Preciso do Diagrama do Sistema
 
 ### 🎯 O que foi realizado
