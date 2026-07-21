@@ -89,10 +89,7 @@ Os seguintes tipos de arquivo não devem fazer parte do controle de versão ofic
 > **Regra de Contenção de Resíduos:** A IA ou o desenvolvedor que gerar arquivos de teste durante a resolução de um bug tem a obrigação de limpá-los (`rm` / `git rm`) antes de finalizar a tarefa ou solicitar revisão.
 
 ### 4.2. Extração de Histórico de Sessões (Backup da IA)
-Ao finalizar uma sessão densa de programação ou arquitetura com o usuário, a Inteligência Artificial **deve**, obrigatoriamente, propor ou executar a extração do log bruto de sua memória (`transcript_full.jsonl` localizado na pasta do sistema `.gemini/antigravity-ide/brain/`).
-* O conteúdo extraído deve ser limpo e convertido para o formato legível Markdown.
-* O arquivo resultante (ex: `HISTORICO_COMPLETO_DD_MM_AAAA.md`) deve ser salvo e movido para a pasta raiz `historico_conversas/`.
-* Isso garante que as discussões arquiteturais, os prompts e os raciocínios técnicos fiquem salvos junto ao código-fonte, evitando perda de contexto quando o ambiente da IA for resetado.
+Esta regra foi absorvida pela Diretriz 5 (Fechamento de Sessão de Melhorias), que automatiza completamente este processo.
 
 ---
 
@@ -151,7 +148,7 @@ npm run build
 * Ao introduzir um novo módulo ou serviço, garanta que a documentação técnica ou variáveis de ambiente sejam atualizadas nos respectivos arquivos `reference/` e `.env.example`.
 
 
-## 4. Fechamento de Sessão de Melhorias (Encerramento de Turno)
+## 5. Fechamento de Sessão de Melhorias (Encerramento de Turno)
 Ao final do dia, quando você solicitar o encerramento da sessão de trabalho ou disser "vamos finalizar por hoje", a Inteligência Artificial foi programada via Customizações Globais (`AGENTS.md`) para realizar automaticamente um backup de atividades. As seguintes ações acontecerão em cadeia, sem necessidade de lembretes manuais:
 1. **Registro no `DIARIO_DE_BORDO.md`**: O agente redigirá as anotações do dia com o foco no impacto e nas entregas alcançadas (UX, UI, Banco de Dados, Backend).
 2. **Registro de Decisões no `DECISIONS.md`**: O agente listará os prós e contras e *trade-offs* de cada arquitetura nova implantada (ex. novos middlewares, remoções de dependências pesadas, lógicas físicas customizadas).
