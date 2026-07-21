@@ -89,7 +89,7 @@ Os seguintes tipos de arquivo não devem fazer parte do controle de versão ofic
 > **Regra de Contenção de Resíduos:** A IA ou o desenvolvedor que gerar arquivos de teste durante a resolução de um bug tem a obrigação de limpá-los (`rm` / `git rm`) antes de finalizar a tarefa ou solicitar revisão.
 
 ### 4.2. Extração de Histórico de Sessões (Backup da IA)
-Esta regra foi absorvida pela Diretriz 5 (Fechamento de Sessão de Melhorias), que automatiza completamente este processo.
+Esta regra foi absorvida pela Diretriz 6 (Fechamento de Sessão de Melhorias), que automatiza completamente este processo.
 
 ---
 
@@ -148,7 +148,7 @@ npm run build
 * Ao introduzir um novo módulo ou serviço, garanta que a documentação técnica ou variáveis de ambiente sejam atualizadas nos respectivos arquivos `reference/` e `.env.example`.
 
 
-## 5. Fechamento de Sessão de Melhorias (Encerramento de Turno)
+## 6. Fechamento de Sessão de Melhorias (Encerramento de Turno)
 Ao final do dia, quando você solicitar o encerramento da sessão de trabalho ou disser "vamos finalizar por hoje", a Inteligência Artificial foi programada via Customizações Globais (`AGENTS.md`) para realizar automaticamente um backup de atividades. As seguintes ações acontecerão em cadeia, sem necessidade de lembretes manuais:
 1. **Registro no `DIARIO_DE_BORDO.md`**: O agente redigirá as anotações do dia com o foco no impacto e nas entregas alcançadas (UX, UI, Banco de Dados, Backend).
 2. **Registro de Decisões no `DECISIONS.md`**: O agente listará os prós e contras e *trade-offs* de cada arquitetura nova implantada (ex. novos middlewares, remoções de dependências pesadas, lógicas físicas customizadas).
